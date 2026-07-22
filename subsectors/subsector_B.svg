@@ -1,0 +1,448 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 450.0 639.2229374252499" width="100%" height="100%" style="background-color: #faf8f5;">
+<style>
+    .subsector-title { font-family: "Georgia", serif; font-size: 18px; font-weight: bold; fill: #000; text-anchor: middle; }
+    .subsector-subtitle { font-family: "Georgia", serif; font-style: italic; font-size: 11px; fill: #555; text-anchor: middle; }
+    .classic-hex { stroke: #000; stroke-width: 0.8; fill: none; }
+    .classic-hex-filled { fill: #fcfbfa; }
+    .grid-border { stroke: #000; stroke-width: 2.5; fill: none; }
+    .grid-label { font-family: "Courier New", monospace; font-size: 10px; font-weight: bold; fill: #000; text-anchor: middle; dominant-baseline: middle; }
+    .classic-text { font-family: "Courier New", monospace; font-size: 7px; text-anchor: middle; fill: #000; font-weight: bold; }
+    .classic-coord { font-size: 6px; fill: #555; font-weight: normal; }
+    .classic-uwp { font-size: 6px; fill: #333; font-weight: bold; }
+    .classic-world-dot { fill: #000; stroke: #000; stroke-width: 1; }
+    .classic-gas-ring { fill: none; stroke: #000; stroke-width: 1; }
+    .classic-base { font-family: "Courier New", monospace; font-size: 9px; fill: #000; font-weight: bold; }
+    .classic-route-major { stroke: #000; stroke-width: 1.5; fill: none; }
+    .classic-route-minor { stroke: #000; stroke-width: 0.8; stroke-dasharray: 2, 2; fill: none; }
+</style>
+<text x="225.0" y="35" class="subsector-title">SUBSECTOR B</text>
+<text x="225.0" y="52" class="subsector-subtitle">IISS Survey Grid - Traveller 1981 De Luxe Style</text>
+<line x1="78.0" y1="104.24871130596428" x2="78.0" y2="152.74613391789285" class="classic-route-major" />
+<line x1="78.0" y1="104.24871130596428" x2="120.0" y2="128.49742261192856" class="classic-route-major" />
+<line x1="78.0" y1="152.74613391789285" x2="78.0" y2="201.2435565298214" class="classic-route-major" />
+<line x1="78.0" y1="152.74613391789285" x2="120.0" y2="128.49742261192856" class="classic-route-major" />
+<line x1="78.0" y1="201.2435565298214" x2="78.0" y2="249.74097914175" class="classic-route-major" />
+<line x1="78.0" y1="346.7358243656071" x2="120.0" y2="370.98453567157134" class="classic-route-major" />
+<line x1="78.0" y1="443.7306695894642" x2="78.0" y2="492.22809220139277" class="classic-route-major" />
+<line x1="78.0" y1="443.7306695894642" x2="120.0" y2="467.97938089542845" class="classic-route-major" />
+<line x1="78.0" y1="492.22809220139277" x2="120.0" y2="467.97938089542845" class="classic-route-major" />
+<line x1="120.0" y1="128.49742261192856" x2="162.0" y2="152.74613391789285" class="classic-route-major" />
+<line x1="120.0" y1="370.98453567157134" x2="162.0" y2="346.7358243656071" class="classic-route-major" />
+<line x1="120.0" y1="370.98453567157134" x2="162.0" y2="395.23324697753566" class="classic-route-major" />
+<line x1="120.0" y1="467.97938089542845" x2="162.0" y2="492.22809220139277" class="classic-route-major" />
+<line x1="162.0" y1="152.74613391789285" x2="204.0" y2="128.49742261192856" class="classic-route-major" />
+<line x1="162.0" y1="152.74613391789285" x2="204.0" y2="176.99484522385714" class="classic-route-major" />
+<line x1="162.0" y1="346.7358243656071" x2="162.0" y2="395.23324697753566" class="classic-route-major" />
+<line x1="162.0" y1="395.23324697753566" x2="204.0" y2="419.4819582834999" class="classic-route-major" />
+<line x1="162.0" y1="492.22809220139277" x2="204.0" y2="467.97938089542845" class="classic-route-major" />
+<line x1="162.0" y1="492.22809220139277" x2="204.0" y2="516.4768035073571" class="classic-route-major" />
+<line x1="204.0" y1="128.49742261192856" x2="204.0" y2="176.99484522385714" class="classic-route-major" />
+<line x1="204.0" y1="128.49742261192856" x2="246.0" y2="152.74613391789285" class="classic-route-major" />
+<line x1="204.0" y1="176.99484522385714" x2="246.0" y2="152.74613391789285" class="classic-route-major" />
+<line x1="204.0" y1="273.9896904477143" x2="246.0" y2="249.74097914175" class="classic-route-major" />
+<line x1="204.0" y1="273.9896904477143" x2="246.0" y2="298.23840175367854" class="classic-route-major" />
+<line x1="204.0" y1="419.4819582834999" x2="204.0" y2="467.97938089542845" class="classic-route-minor" />
+<line x1="204.0" y1="419.4819582834999" x2="246.0" y2="395.23324697753566" class="classic-route-major" />
+<line x1="204.0" y1="419.4819582834999" x2="246.0" y2="443.7306695894642" class="classic-route-major" />
+<line x1="204.0" y1="467.97938089542845" x2="204.0" y2="516.4768035073571" class="classic-route-major" />
+<line x1="204.0" y1="467.97938089542845" x2="246.0" y2="443.7306695894642" class="classic-route-major" />
+<line x1="204.0" y1="516.4768035073571" x2="204.0" y2="564.9742261192856" class="classic-route-major" />
+<line x1="246.0" y1="152.74613391789285" x2="288.0" y2="128.49742261192856" class="classic-route-major" />
+<line x1="246.0" y1="152.74613391789285" x2="288.0" y2="176.99484522385714" class="classic-route-major" />
+<line x1="246.0" y1="249.74097914175" x2="246.0" y2="298.23840175367854" class="classic-route-major" />
+<line x1="246.0" y1="249.74097914175" x2="288.0" y2="225.4922678357857" class="classic-route-major" />
+<line x1="246.0" y1="298.23840175367854" x2="288.0" y2="322.4871130596428" class="classic-route-major" />
+<line x1="246.0" y1="395.23324697753566" x2="246.0" y2="443.7306695894642" class="classic-route-major" />
+<line x1="246.0" y1="395.23324697753566" x2="288.0" y2="370.98453567157134" class="classic-route-major" />
+<line x1="246.0" y1="443.7306695894642" x2="288.0" y2="467.97938089542845" class="classic-route-major" />
+<line x1="288.0" y1="128.49742261192856" x2="288.0" y2="176.99484522385714" class="classic-route-major" />
+<line x1="288.0" y1="128.49742261192856" x2="330.0" y2="152.74613391789285" class="classic-route-major" />
+<line x1="288.0" y1="176.99484522385714" x2="288.0" y2="225.4922678357857" class="classic-route-major" />
+<line x1="288.0" y1="176.99484522385714" x2="330.0" y2="152.74613391789285" class="classic-route-major" />
+<line x1="288.0" y1="225.4922678357857" x2="330.0" y2="249.74097914175" class="classic-route-major" />
+<line x1="288.0" y1="322.4871130596428" x2="288.0" y2="370.98453567157134" class="classic-route-major" />
+<line x1="288.0" y1="322.4871130596428" x2="330.0" y2="346.7358243656071" class="classic-route-major" />
+<line x1="288.0" y1="370.98453567157134" x2="330.0" y2="346.7358243656071" class="classic-route-major" />
+<line x1="288.0" y1="370.98453567157134" x2="330.0" y2="395.23324697753566" class="classic-route-major" />
+<line x1="288.0" y1="467.97938089542845" x2="288.0" y2="516.4768035073571" class="classic-route-major" />
+<line x1="288.0" y1="516.4768035073571" x2="288.0" y2="564.9742261192856" class="classic-route-major" />
+<line x1="330.0" y1="346.7358243656071" x2="330.0" y2="395.23324697753566" class="classic-route-major" />
+<line x1="330.0" y1="395.23324697753566" x2="372.0" y2="419.4819582834999" class="classic-route-major" />
+<line x1="372.0" y1="419.4819582834999" x2="372.0" y2="467.97938089542845" class="classic-route-major" />
+<line x1="372.0" y1="467.97938089542845" x2="372.0" y2="516.4768035073571" class="classic-route-major" />
+<polygon class="classic-hex classic-hex-filled" points="106.0,104.24871130596428 92.0,128.49742261192856 64.0,128.49742261192856 50.0,104.24871130596428 63.999999999999986,80.0 91.99999999999999,79.99999999999999"/>
+<text x="78.0" y="86.74871130596428" class="classic-text classic-coord">0101</text>
+<circle cx="78.0" cy="104.24871130596428" r="3.5" class="classic-world-dot" />
+<circle cx="78.0" cy="104.24871130596428" r="6.5" class="classic-gas-ring" />
+<text x="78.0" y="114.24871130596428" class="classic-text">ARDAN</text>
+<text x="78.0" y="121.24871130596428" class="classic-text classic-uwp">C6A6CCF-8</text>
+<polygon class="classic-hex classic-hex-filled" points="148.0,128.49742261192856 134.0,152.74613391789285 106.0,152.74613391789285 92.0,128.49742261192856 105.99999999999999,104.24871130596428 133.99999999999997,104.24871130596426"/>
+<text x="120.0" y="110.99742261192856" class="classic-text classic-coord">0201</text>
+<circle cx="120.0" cy="128.49742261192856" r="3.5" class="classic-world-dot" />
+<circle cx="120.0" cy="128.49742261192856" r="6.5" class="classic-gas-ring" />
+<text x="120.0" y="138.49742261192856" class="classic-text">QUOREN</text>
+<text x="120.0" y="145.49742261192856" class="classic-text classic-uwp">A653GEF-C</text>
+<polygon class="classic-hex " points="190.0,104.24871130596428 176.0,128.49742261192856 148.0,128.49742261192856 134.0,104.24871130596428 148.0,80.0 175.99999999999997,79.99999999999999"/>
+<text x="162.0" y="86.74871130596428" class="classic-text classic-coord">0301</text>
+<polygon class="classic-hex classic-hex-filled" points="232.0,128.49742261192856 218.0,152.74613391789285 190.0,152.74613391789285 176.0,128.49742261192856 190.0,104.24871130596428 217.99999999999997,104.24871130596426"/>
+<text x="204.0" y="110.99742261192856" class="classic-text classic-coord">0401</text>
+<circle cx="204.0" cy="128.49742261192856" r="3.5" class="classic-world-dot" />
+<text x="192.0" y="123.49742261192856" class="classic-base">★</text>
+<text x="204.0" y="138.49742261192856" class="classic-text">VEREL</text>
+<text x="204.0" y="145.49742261192856" class="classic-text classic-uwp">B224A96-D</text>
+<polygon class="classic-hex " points="274.0,104.24871130596428 260.0,128.49742261192856 232.0,128.49742261192856 218.0,104.24871130596428 232.0,80.0 260.0,79.99999999999999"/>
+<text x="246.0" y="86.74871130596428" class="classic-text classic-coord">0501</text>
+<polygon class="classic-hex classic-hex-filled" points="316.0,128.49742261192856 302.0,152.74613391789285 274.0,152.74613391789285 260.0,128.49742261192856 274.0,104.24871130596428 302.0,104.24871130596426"/>
+<text x="288.0" y="110.99742261192856" class="classic-text classic-coord">0601</text>
+<circle cx="288.0" cy="128.49742261192856" r="3.5" class="classic-world-dot" />
+<circle cx="288.0" cy="128.49742261192856" r="6.5" class="classic-gas-ring" />
+<text x="288.0" y="138.49742261192856" class="classic-text">KELOR</text>
+<text x="288.0" y="145.49742261192856" class="classic-text classic-uwp">A610ECA-D</text>
+<polygon class="classic-hex " points="358.0,104.24871130596428 344.0,128.49742261192856 316.0,128.49742261192856 302.0,104.24871130596428 316.0,80.0 344.0,79.99999999999999"/>
+<text x="330.0" y="86.74871130596428" class="classic-text classic-coord">0701</text>
+<polygon class="classic-hex " points="400.0,128.49742261192856 386.0,152.74613391789285 358.0,152.74613391789285 344.0,128.49742261192856 358.0,104.24871130596428 386.0,104.24871130596426"/>
+<text x="372.0" y="110.99742261192856" class="classic-text classic-coord">0801</text>
+<polygon class="classic-hex classic-hex-filled" points="106.0,152.74613391789285 92.0,176.99484522385714 64.0,176.99484522385714 50.0,152.74613391789285 63.999999999999986,128.49742261192858 91.99999999999999,128.49742261192856"/>
+<text x="78.0" y="135.24613391789285" class="classic-text classic-coord">0102</text>
+<circle cx="78.0" cy="152.74613391789285" r="3.5" class="classic-world-dot" />
+<circle cx="78.0" cy="152.74613391789285" r="6.5" class="classic-gas-ring" />
+<text x="66.0" y="147.74613391789285" class="classic-base">★</text>
+<text x="78.0" y="162.74613391789285" class="classic-text">JENA</text>
+<text x="78.0" y="169.74613391789285" class="classic-text classic-uwp">A788C8B-C</text>
+<polygon class="classic-hex " points="148.0,176.99484522385714 134.0,201.24355652982143 106.0,201.24355652982143 92.0,176.99484522385714 105.99999999999999,152.74613391789288 133.99999999999997,152.74613391789285"/>
+<text x="120.0" y="159.49484522385714" class="classic-text classic-coord">0202</text>
+<polygon class="classic-hex classic-hex-filled" points="190.0,152.74613391789285 176.0,176.99484522385714 148.0,176.99484522385714 134.0,152.74613391789285 148.0,128.49742261192858 175.99999999999997,128.49742261192856"/>
+<text x="162.0" y="135.24613391789285" class="classic-text classic-coord">0302</text>
+<circle cx="162.0" cy="152.74613391789285" r="3.5" class="classic-world-dot" />
+<circle cx="162.0" cy="152.74613391789285" r="6.5" class="classic-gas-ring" />
+<text x="162.0" y="162.74613391789285" class="classic-text">MOROR</text>
+<text x="162.0" y="169.74613391789285" class="classic-text classic-uwp">A300CDC-F</text>
+<polygon class="classic-hex classic-hex-filled" points="232.0,176.99484522385714 218.0,201.24355652982143 190.0,201.24355652982143 176.0,176.99484522385714 190.0,152.74613391789288 217.99999999999997,152.74613391789285"/>
+<text x="204.0" y="159.49484522385714" class="classic-text classic-coord">0402</text>
+<circle cx="204.0" cy="176.99484522385714" r="3.5" class="classic-world-dot" />
+<circle cx="204.0" cy="176.99484522385714" r="6.5" class="classic-gas-ring" />
+<text x="204.0" y="186.99484522385714" class="classic-text">ORROS</text>
+<text x="204.0" y="193.99484522385714" class="classic-text classic-uwp">D564FDD-3</text>
+<polygon class="classic-hex classic-hex-filled" points="274.0,152.74613391789285 260.0,176.99484522385714 232.0,176.99484522385714 218.0,152.74613391789285 232.0,128.49742261192858 260.0,128.49742261192856"/>
+<text x="246.0" y="135.24613391789285" class="classic-text classic-coord">0502</text>
+<circle cx="246.0" cy="152.74613391789285" r="3.5" class="classic-world-dot" />
+<circle cx="246.0" cy="152.74613391789285" r="6.5" class="classic-gas-ring" />
+<text x="246.0" y="162.74613391789285" class="classic-text">ISHOS</text>
+<text x="246.0" y="169.74613391789285" class="classic-text classic-uwp">BA98FLR-7</text>
+<polygon class="classic-hex classic-hex-filled" points="316.0,176.99484522385714 302.0,201.24355652982143 274.0,201.24355652982143 260.0,176.99484522385714 274.0,152.74613391789288 302.0,152.74613391789285"/>
+<text x="288.0" y="159.49484522385714" class="classic-text classic-coord">0602</text>
+<circle cx="288.0" cy="176.99484522385714" r="3.5" class="classic-world-dot" />
+<circle cx="288.0" cy="176.99484522385714" r="6.5" class="classic-gas-ring" />
+<text x="288.0" y="186.99484522385714" class="classic-text">ARDAR</text>
+<text x="288.0" y="193.99484522385714" class="classic-text classic-uwp">A756DEE-C</text>
+<polygon class="classic-hex classic-hex-filled" points="358.0,152.74613391789285 344.0,176.99484522385714 316.0,176.99484522385714 302.0,152.74613391789285 316.0,128.49742261192858 344.0,128.49742261192856"/>
+<text x="330.0" y="135.24613391789285" class="classic-text classic-coord">0702</text>
+<circle cx="330.0" cy="152.74613391789285" r="3.5" class="classic-world-dot" />
+<circle cx="330.0" cy="152.74613391789285" r="6.5" class="classic-gas-ring" />
+<text x="330.0" y="162.74613391789285" class="classic-text">GORAN</text>
+<text x="330.0" y="169.74613391789285" class="classic-text classic-uwp">C325DDB-8</text>
+<polygon class="classic-hex " points="400.0,176.99484522385714 386.0,201.24355652982143 358.0,201.24355652982143 344.0,176.99484522385714 358.0,152.74613391789288 386.0,152.74613391789285"/>
+<text x="372.0" y="159.49484522385714" class="classic-text classic-coord">0802</text>
+<polygon class="classic-hex classic-hex-filled" points="106.0,201.2435565298214 92.0,225.4922678357857 64.0,225.4922678357857 50.0,201.2435565298214 63.999999999999986,176.99484522385714 91.99999999999999,176.9948452238571"/>
+<text x="78.0" y="183.7435565298214" class="classic-text classic-coord">0103</text>
+<circle cx="78.0" cy="201.2435565298214" r="3.5" class="classic-world-dot" />
+<circle cx="78.0" cy="201.2435565298214" r="6.5" class="classic-gas-ring" />
+<text x="78.0" y="211.2435565298214" class="classic-text">PERIS</text>
+<text x="78.0" y="218.2435565298214" class="classic-text classic-uwp">D1409CC-6</text>
+<polygon class="classic-hex " points="148.0,225.4922678357857 134.0,249.74097914175 106.0,249.74097914175 92.0,225.4922678357857 105.99999999999999,201.24355652982143 133.99999999999997,201.2435565298214"/>
+<text x="120.0" y="207.9922678357857" class="classic-text classic-coord">0203</text>
+<polygon class="classic-hex " points="190.0,201.2435565298214 176.0,225.4922678357857 148.0,225.4922678357857 134.0,201.2435565298214 148.0,176.99484522385714 175.99999999999997,176.9948452238571"/>
+<text x="162.0" y="183.7435565298214" class="classic-text classic-coord">0303</text>
+<polygon class="classic-hex " points="232.0,225.4922678357857 218.0,249.74097914175 190.0,249.74097914175 176.0,225.4922678357857 190.0,201.24355652982143 217.99999999999997,201.2435565298214"/>
+<text x="204.0" y="207.9922678357857" class="classic-text classic-coord">0403</text>
+<polygon class="classic-hex " points="274.0,201.2435565298214 260.0,225.4922678357857 232.0,225.4922678357857 218.0,201.2435565298214 232.0,176.99484522385714 260.0,176.9948452238571"/>
+<text x="246.0" y="183.7435565298214" class="classic-text classic-coord">0503</text>
+<polygon class="classic-hex classic-hex-filled" points="316.0,225.4922678357857 302.0,249.74097914175 274.0,249.74097914175 260.0,225.4922678357857 274.0,201.24355652982143 302.0,201.2435565298214"/>
+<text x="288.0" y="207.9922678357857" class="classic-text classic-coord">0603</text>
+<circle cx="288.0" cy="225.4922678357857" r="3.5" class="classic-world-dot" />
+<circle cx="288.0" cy="225.4922678357857" r="6.5" class="classic-gas-ring" />
+<text x="288.0" y="235.4922678357857" class="classic-text">LORAR</text>
+<text x="288.0" y="242.4922678357857" class="classic-text classic-uwp">C000FKK-A</text>
+<polygon class="classic-hex " points="358.0,201.2435565298214 344.0,225.4922678357857 316.0,225.4922678357857 302.0,201.2435565298214 316.0,176.99484522385714 344.0,176.9948452238571"/>
+<text x="330.0" y="183.7435565298214" class="classic-text classic-coord">0703</text>
+<polygon class="classic-hex " points="400.0,225.4922678357857 386.0,249.74097914175 358.0,249.74097914175 344.0,225.4922678357857 358.0,201.24355652982143 386.0,201.2435565298214"/>
+<text x="372.0" y="207.9922678357857" class="classic-text classic-coord">0803</text>
+<polygon class="classic-hex classic-hex-filled" points="106.0,249.74097914175 92.0,273.9896904477143 64.0,273.9896904477143 50.0,249.74097914175 63.999999999999986,225.49226783578573 91.99999999999999,225.4922678357857"/>
+<text x="78.0" y="232.24097914175" class="classic-text classic-coord">0104</text>
+<circle cx="78.0" cy="249.74097914175" r="3.5" class="classic-world-dot" />
+<text x="78.0" y="259.74097914175" class="classic-text">ETHOR</text>
+<text x="78.0" y="266.74097914175" class="classic-text classic-uwp">C100DCC-B</text>
+<polygon class="classic-hex " points="148.0,273.9896904477143 134.0,298.23840175367854 106.0,298.23840175367854 92.0,273.9896904477143 105.99999999999999,249.74097914175002 133.99999999999997,249.74097914175"/>
+<text x="120.0" y="256.4896904477143" class="classic-text classic-coord">0204</text>
+<polygon class="classic-hex " points="190.0,249.74097914175 176.0,273.9896904477143 148.0,273.9896904477143 134.0,249.74097914175 148.0,225.49226783578573 175.99999999999997,225.4922678357857"/>
+<text x="162.0" y="232.24097914175" class="classic-text classic-coord">0304</text>
+<polygon class="classic-hex classic-hex-filled" points="232.0,273.9896904477143 218.0,298.23840175367854 190.0,298.23840175367854 176.0,273.9896904477143 190.0,249.74097914175002 217.99999999999997,249.74097914175"/>
+<text x="204.0" y="256.4896904477143" class="classic-text classic-coord">0404</text>
+<circle cx="204.0" cy="273.9896904477143" r="3.5" class="classic-world-dot" />
+<circle cx="204.0" cy="273.9896904477143" r="6.5" class="classic-gas-ring" />
+<text x="204.0" y="283.9896904477143" class="classic-text">HENOS</text>
+<text x="204.0" y="290.9896904477143" class="classic-text classic-uwp">C661886-8</text>
+<polygon class="classic-hex classic-hex-filled" points="274.0,249.74097914175 260.0,273.9896904477143 232.0,273.9896904477143 218.0,249.74097914175 232.0,225.49226783578573 260.0,225.4922678357857"/>
+<text x="246.0" y="232.24097914175" class="classic-text classic-coord">0504</text>
+<circle cx="246.0" cy="249.74097914175" r="3.5" class="classic-world-dot" />
+<circle cx="246.0" cy="249.74097914175" r="6.5" class="classic-gas-ring" />
+<text x="246.0" y="259.74097914175" class="classic-text">FENIS</text>
+<text x="246.0" y="266.74097914175" class="classic-text classic-uwp">D634DGG-6</text>
+<polygon class="classic-hex " points="316.0,273.9896904477143 302.0,298.23840175367854 274.0,298.23840175367854 260.0,273.9896904477143 274.0,249.74097914175002 302.0,249.74097914175"/>
+<text x="288.0" y="256.4896904477143" class="classic-text classic-coord">0604</text>
+<polygon class="classic-hex classic-hex-filled" points="358.0,249.74097914175 344.0,273.9896904477143 316.0,273.9896904477143 302.0,249.74097914175 316.0,225.49226783578573 344.0,225.4922678357857"/>
+<text x="330.0" y="232.24097914175" class="classic-text classic-coord">0704</text>
+<circle cx="330.0" cy="249.74097914175" r="3.5" class="classic-world-dot" />
+<circle cx="330.0" cy="249.74097914175" r="6.5" class="classic-gas-ring" />
+<text x="330.0" y="259.74097914175" class="classic-text">TORIS</text>
+<text x="330.0" y="266.74097914175" class="classic-text classic-uwp">A577CDG-9</text>
+<polygon class="classic-hex " points="400.0,273.9896904477143 386.0,298.23840175367854 358.0,298.23840175367854 344.0,273.9896904477143 358.0,249.74097914175002 386.0,249.74097914175"/>
+<text x="372.0" y="256.4896904477143" class="classic-text classic-coord">0804</text>
+<polygon class="classic-hex " points="106.0,298.23840175367854 92.0,322.4871130596428 64.0,322.4871130596428 50.0,298.23840175367854 63.999999999999986,273.9896904477143 91.99999999999999,273.9896904477142"/>
+<text x="78.0" y="280.73840175367854" class="classic-text classic-coord">0105</text>
+<polygon class="classic-hex " points="148.0,322.4871130596428 134.0,346.7358243656071 106.0,346.7358243656071 92.0,322.4871130596428 105.99999999999999,298.23840175367854 133.99999999999997,298.23840175367854"/>
+<text x="120.0" y="304.9871130596428" class="classic-text classic-coord">0205</text>
+<polygon class="classic-hex " points="190.0,298.23840175367854 176.0,322.4871130596428 148.0,322.4871130596428 134.0,298.23840175367854 148.0,273.9896904477143 175.99999999999997,273.9896904477142"/>
+<text x="162.0" y="280.73840175367854" class="classic-text classic-coord">0305</text>
+<polygon class="classic-hex " points="232.0,322.4871130596428 218.0,346.7358243656071 190.0,346.7358243656071 176.0,322.4871130596428 190.0,298.23840175367854 217.99999999999997,298.23840175367854"/>
+<text x="204.0" y="304.9871130596428" class="classic-text classic-coord">0405</text>
+<polygon class="classic-hex classic-hex-filled" points="274.0,298.23840175367854 260.0,322.4871130596428 232.0,322.4871130596428 218.0,298.23840175367854 232.0,273.9896904477143 260.0,273.9896904477142"/>
+<text x="246.0" y="280.73840175367854" class="classic-text classic-coord">0505</text>
+<circle cx="246.0" cy="298.23840175367854" r="3.5" class="classic-world-dot" />
+<circle cx="246.0" cy="298.23840175367854" r="6.5" class="classic-gas-ring" />
+<text x="234.0" y="293.23840175367854" class="classic-base">★</text>
+<text x="246.0" y="308.23840175367854" class="classic-text">LORIS</text>
+<text x="246.0" y="315.23840175367854" class="classic-text classic-uwp">A00077B-F</text>
+<polygon class="classic-hex classic-hex-filled" points="316.0,322.4871130596428 302.0,346.7358243656071 274.0,346.7358243656071 260.0,322.4871130596428 274.0,298.23840175367854 302.0,298.23840175367854"/>
+<text x="288.0" y="304.9871130596428" class="classic-text classic-coord">0605</text>
+<circle cx="288.0" cy="322.4871130596428" r="3.5" class="classic-world-dot" />
+<circle cx="288.0" cy="322.4871130596428" r="6.5" class="classic-gas-ring" />
+<text x="288.0" y="332.4871130596428" class="classic-text">JENUS</text>
+<text x="288.0" y="339.4871130596428" class="classic-text classic-uwp">A410CBD-F</text>
+<polygon class="classic-hex " points="358.0,298.23840175367854 344.0,322.4871130596428 316.0,322.4871130596428 302.0,298.23840175367854 316.0,273.9896904477143 344.0,273.9896904477142"/>
+<text x="330.0" y="280.73840175367854" class="classic-text classic-coord">0705</text>
+<polygon class="classic-hex " points="400.0,322.4871130596428 386.0,346.7358243656071 358.0,346.7358243656071 344.0,322.4871130596428 358.0,298.23840175367854 386.0,298.23840175367854"/>
+<text x="372.0" y="304.9871130596428" class="classic-text classic-coord">0805</text>
+<polygon class="classic-hex classic-hex-filled" points="106.0,346.7358243656071 92.0,370.98453567157134 64.0,370.98453567157134 50.0,346.7358243656071 63.999999999999986,322.4871130596428 91.99999999999999,322.48711305964275"/>
+<text x="78.0" y="329.2358243656071" class="classic-text classic-coord">0106</text>
+<circle cx="78.0" cy="346.7358243656071" r="3.5" class="classic-world-dot" />
+<circle cx="78.0" cy="346.7358243656071" r="6.5" class="classic-gas-ring" />
+<text x="66.0" y="341.7358243656071" class="classic-base">▲</text>
+<text x="78.0" y="356.7358243656071" class="classic-text">VERUS</text>
+<text x="78.0" y="363.7358243656071" class="classic-text classic-uwp">C7A5962-6</text>
+<polygon class="classic-hex classic-hex-filled" points="148.0,370.98453567157134 134.0,395.2332469775356 106.0,395.2332469775356 92.0,370.98453567157134 105.99999999999999,346.7358243656071 133.99999999999997,346.7358243656071"/>
+<text x="120.0" y="353.48453567157134" class="classic-text classic-coord">0206</text>
+<circle cx="120.0" cy="370.98453567157134" r="3.5" class="classic-world-dot" />
+<circle cx="120.0" cy="370.98453567157134" r="6.5" class="classic-gas-ring" />
+<text x="108.0" y="365.98453567157134" class="classic-base">★▲</text>
+<text x="120.0" y="380.98453567157134" class="classic-text">NORIS</text>
+<text x="120.0" y="387.98453567157134" class="classic-text classic-uwp">B745AAB-9</text>
+<polygon class="classic-hex classic-hex-filled" points="190.0,346.7358243656071 176.0,370.98453567157134 148.0,370.98453567157134 134.0,346.7358243656071 148.0,322.4871130596428 175.99999999999997,322.48711305964275"/>
+<text x="162.0" y="329.2358243656071" class="classic-text classic-coord">0306</text>
+<circle cx="162.0" cy="346.7358243656071" r="3.5" class="classic-world-dot" />
+<text x="150.0" y="341.7358243656071" class="classic-base">▲</text>
+<text x="162.0" y="356.7358243656071" class="classic-text">ARDEN</text>
+<text x="162.0" y="363.7358243656071" class="classic-text classic-uwp">D732845-5</text>
+<polygon class="classic-hex " points="232.0,370.98453567157134 218.0,395.2332469775356 190.0,395.2332469775356 176.0,370.98453567157134 190.0,346.7358243656071 217.99999999999997,346.7358243656071"/>
+<text x="204.0" y="353.48453567157134" class="classic-text classic-coord">0406</text>
+<polygon class="classic-hex " points="274.0,346.7358243656071 260.0,370.98453567157134 232.0,370.98453567157134 218.0,346.7358243656071 232.0,322.4871130596428 260.0,322.48711305964275"/>
+<text x="246.0" y="329.2358243656071" class="classic-text classic-coord">0506</text>
+<polygon class="classic-hex classic-hex-filled" points="316.0,370.98453567157134 302.0,395.2332469775356 274.0,395.2332469775356 260.0,370.98453567157134 274.0,346.7358243656071 302.0,346.7358243656071"/>
+<text x="288.0" y="353.48453567157134" class="classic-text classic-coord">0606</text>
+<circle cx="288.0" cy="370.98453567157134" r="3.5" class="classic-world-dot" />
+<text x="276.0" y="365.98453567157134" class="classic-base">▲</text>
+<text x="288.0" y="380.98453567157134" class="classic-text">GOROR</text>
+<text x="288.0" y="387.98453567157134" class="classic-text classic-uwp">B443GGG-A</text>
+<polygon class="classic-hex classic-hex-filled" points="358.0,346.7358243656071 344.0,370.98453567157134 316.0,370.98453567157134 302.0,346.7358243656071 316.0,322.4871130596428 344.0,322.48711305964275"/>
+<text x="330.0" y="329.2358243656071" class="classic-text classic-coord">0706</text>
+<circle cx="330.0" cy="346.7358243656071" r="3.5" class="classic-world-dot" />
+<circle cx="330.0" cy="346.7358243656071" r="6.5" class="classic-gas-ring" />
+<text x="318.0" y="341.7358243656071" class="classic-base">▲</text>
+<text x="330.0" y="356.7358243656071" class="classic-text">NORAR</text>
+<text x="330.0" y="363.7358243656071" class="classic-text classic-uwp">D67AGHE-3</text>
+<polygon class="classic-hex " points="400.0,370.98453567157134 386.0,395.2332469775356 358.0,395.2332469775356 344.0,370.98453567157134 358.0,346.7358243656071 386.0,346.7358243656071"/>
+<text x="372.0" y="353.48453567157134" class="classic-text classic-coord">0806</text>
+<polygon class="classic-hex " points="106.0,395.23324697753566 92.0,419.4819582834999 64.0,419.4819582834999 50.0,395.23324697753566 63.999999999999986,370.9845356715714 91.99999999999999,370.9845356715714"/>
+<text x="78.0" y="377.73324697753566" class="classic-text classic-coord">0107</text>
+<polygon class="classic-hex " points="148.0,419.4819582834999 134.0,443.7306695894642 106.0,443.7306695894642 92.0,419.4819582834999 105.99999999999999,395.23324697753566 133.99999999999997,395.2332469775356"/>
+<text x="120.0" y="401.9819582834999" class="classic-text classic-coord">0207</text>
+<polygon class="classic-hex classic-hex-filled" points="190.0,395.23324697753566 176.0,419.4819582834999 148.0,419.4819582834999 134.0,395.23324697753566 148.0,370.9845356715714 175.99999999999997,370.9845356715714"/>
+<text x="162.0" y="377.73324697753566" class="classic-text classic-coord">0307</text>
+<circle cx="162.0" cy="395.23324697753566" r="3.5" class="classic-world-dot" />
+<circle cx="162.0" cy="395.23324697753566" r="6.5" class="classic-gas-ring" />
+<text x="150.0" y="390.23324697753566" class="classic-base">▲</text>
+<text x="162.0" y="405.23324697753566" class="classic-text">MOROR</text>
+<text x="162.0" y="412.23324697753566" class="classic-text classic-uwp">C000B8B-8</text>
+<polygon class="classic-hex classic-hex-filled" points="232.0,419.4819582834999 218.0,443.7306695894642 190.0,443.7306695894642 176.0,419.4819582834999 190.0,395.23324697753566 217.99999999999997,395.2332469775356"/>
+<text x="204.0" y="401.9819582834999" class="classic-text classic-coord">0407</text>
+<circle cx="204.0" cy="419.4819582834999" r="3.5" class="classic-world-dot" />
+<text x="192.0" y="414.4819582834999" class="classic-base">▲</text>
+<text x="204.0" y="429.4819582834999" class="classic-text">WORAR</text>
+<text x="204.0" y="436.4819582834999" class="classic-text classic-uwp">C34679A-5</text>
+<polygon class="classic-hex classic-hex-filled" points="274.0,395.23324697753566 260.0,419.4819582834999 232.0,419.4819582834999 218.0,395.23324697753566 232.0,370.9845356715714 260.0,370.9845356715714"/>
+<text x="246.0" y="377.73324697753566" class="classic-text classic-coord">0507</text>
+<circle cx="246.0" cy="395.23324697753566" r="3.5" class="classic-world-dot" />
+<circle cx="246.0" cy="395.23324697753566" r="6.5" class="classic-gas-ring" />
+<text x="234.0" y="390.23324697753566" class="classic-base">▲</text>
+<text x="246.0" y="405.23324697753566" class="classic-text">HENAR</text>
+<text x="246.0" y="412.23324697753566" class="classic-text classic-uwp">D424ADD-8</text>
+<polygon class="classic-hex " points="316.0,419.4819582834999 302.0,443.7306695894642 274.0,443.7306695894642 260.0,419.4819582834999 274.0,395.23324697753566 302.0,395.2332469775356"/>
+<text x="288.0" y="401.9819582834999" class="classic-text classic-coord">0607</text>
+<polygon class="classic-hex classic-hex-filled" points="358.0,395.23324697753566 344.0,419.4819582834999 316.0,419.4819582834999 302.0,395.23324697753566 316.0,370.9845356715714 344.0,370.9845356715714"/>
+<text x="330.0" y="377.73324697753566" class="classic-text classic-coord">0707</text>
+<circle cx="330.0" cy="395.23324697753566" r="3.5" class="classic-world-dot" />
+<circle cx="330.0" cy="395.23324697753566" r="6.5" class="classic-gas-ring" />
+<text x="318.0" y="390.23324697753566" class="classic-base">▲</text>
+<text x="330.0" y="405.23324697753566" class="classic-text">BOROR</text>
+<text x="330.0" y="412.23324697753566" class="classic-text classic-uwp">C562887-5</text>
+<polygon class="classic-hex classic-hex-filled" points="400.0,419.4819582834999 386.0,443.7306695894642 358.0,443.7306695894642 344.0,419.4819582834999 358.0,395.23324697753566 386.0,395.2332469775356"/>
+<text x="372.0" y="401.9819582834999" class="classic-text classic-coord">0807</text>
+<circle cx="372.0" cy="419.4819582834999" r="3.5" class="classic-world-dot" />
+<circle cx="372.0" cy="419.4819582834999" r="6.5" class="classic-gas-ring" />
+<text x="360.0" y="414.4819582834999" class="classic-base">▲</text>
+<text x="372.0" y="429.4819582834999" class="classic-text">QUORA</text>
+<text x="372.0" y="436.4819582834999" class="classic-text classic-uwp">D657875-2</text>
+<polygon class="classic-hex classic-hex-filled" points="106.0,443.7306695894642 92.0,467.97938089542845 64.0,467.97938089542845 50.0,443.7306695894642 63.999999999999986,419.4819582834999 91.99999999999999,419.4819582834999"/>
+<text x="78.0" y="426.2306695894642" class="classic-text classic-coord">0108</text>
+<circle cx="78.0" cy="443.7306695894642" r="3.5" class="classic-world-dot" />
+<circle cx="78.0" cy="443.7306695894642" r="6.5" class="classic-gas-ring" />
+<text x="66.0" y="438.7306695894642" class="classic-base">▲</text>
+<text x="78.0" y="453.7306695894642" class="classic-text">TORAN</text>
+<text x="78.0" y="460.7306695894642" class="classic-text classic-uwp">A887CFJ-8</text>
+<polygon class="classic-hex classic-hex-filled" points="148.0,467.97938089542845 134.0,492.2280922013927 106.0,492.2280922013927 92.0,467.97938089542845 105.99999999999999,443.7306695894642 133.99999999999997,443.7306695894641"/>
+<text x="120.0" y="450.47938089542845" class="classic-text classic-coord">0208</text>
+<circle cx="120.0" cy="467.97938089542845" r="3.5" class="classic-world-dot" />
+<circle cx="120.0" cy="467.97938089542845" r="6.5" class="classic-gas-ring" />
+<text x="108.0" y="462.97938089542845" class="classic-base">★</text>
+<text x="120.0" y="477.97938089542845" class="classic-text">CORAR</text>
+<text x="120.0" y="484.97938089542845" class="classic-text classic-uwp">B525AB9-D</text>
+<polygon class="classic-hex " points="190.0,443.7306695894642 176.0,467.97938089542845 148.0,467.97938089542845 134.0,443.7306695894642 148.0,419.4819582834999 175.99999999999997,419.4819582834999"/>
+<text x="162.0" y="426.2306695894642" class="classic-text classic-coord">0308</text>
+<polygon class="classic-hex classic-hex-filled" points="232.0,467.97938089542845 218.0,492.2280922013927 190.0,492.2280922013927 176.0,467.97938089542845 190.0,443.7306695894642 217.99999999999997,443.7306695894641"/>
+<text x="204.0" y="450.47938089542845" class="classic-text classic-coord">0408</text>
+<circle cx="204.0" cy="467.97938089542845" r="3.5" class="classic-world-dot" />
+<circle cx="204.0" cy="467.97938089542845" r="6.5" class="classic-gas-ring" />
+<text x="192.0" y="462.97938089542845" class="classic-base">▲</text>
+<text x="204.0" y="477.97938089542845" class="classic-text">FENEN</text>
+<text x="204.0" y="484.97938089542845" class="classic-text classic-uwp">D1407A8-5</text>
+<polygon class="classic-hex classic-hex-filled" points="274.0,443.7306695894642 260.0,467.97938089542845 232.0,467.97938089542845 218.0,443.7306695894642 232.0,419.4819582834999 260.0,419.4819582834999"/>
+<text x="246.0" y="426.2306695894642" class="classic-text classic-coord">0508</text>
+<circle cx="246.0" cy="443.7306695894642" r="3.5" class="classic-world-dot" />
+<text x="246.0" y="453.7306695894642" class="classic-text">DENIA</text>
+<text x="246.0" y="460.7306695894642" class="classic-text classic-uwp">A58A876-E</text>
+<polygon class="classic-hex classic-hex-filled" points="316.0,467.97938089542845 302.0,492.2280922013927 274.0,492.2280922013927 260.0,467.97938089542845 274.0,443.7306695894642 302.0,443.7306695894641"/>
+<text x="288.0" y="450.47938089542845" class="classic-text classic-coord">0608</text>
+<circle cx="288.0" cy="467.97938089542845" r="3.5" class="classic-world-dot" />
+<circle cx="288.0" cy="467.97938089542845" r="6.5" class="classic-gas-ring" />
+<text x="288.0" y="477.97938089542845" class="classic-text">JENOS</text>
+<text x="288.0" y="484.97938089542845" class="classic-text classic-uwp">C6479DF-9</text>
+<polygon class="classic-hex " points="358.0,443.7306695894642 344.0,467.97938089542845 316.0,467.97938089542845 302.0,443.7306695894642 316.0,419.4819582834999 344.0,419.4819582834999"/>
+<text x="330.0" y="426.2306695894642" class="classic-text classic-coord">0708</text>
+<polygon class="classic-hex classic-hex-filled" points="400.0,467.97938089542845 386.0,492.2280922013927 358.0,492.2280922013927 344.0,467.97938089542845 358.0,443.7306695894642 386.0,443.7306695894641"/>
+<text x="372.0" y="450.47938089542845" class="classic-text classic-coord">0808</text>
+<circle cx="372.0" cy="467.97938089542845" r="3.5" class="classic-world-dot" />
+<circle cx="372.0" cy="467.97938089542845" r="6.5" class="classic-gas-ring" />
+<text x="360.0" y="462.97938089542845" class="classic-base">★▲</text>
+<text x="372.0" y="477.97938089542845" class="classic-text">HENEL</text>
+<text x="372.0" y="484.97938089542845" class="classic-text classic-uwp">A354EAB-A</text>
+<polygon class="classic-hex classic-hex-filled" points="106.0,492.22809220139277 92.0,516.4768035073571 64.0,516.4768035073571 50.0,492.22809220139277 63.999999999999986,467.9793808954285 91.99999999999999,467.97938089542845"/>
+<text x="78.0" y="474.72809220139277" class="classic-text classic-coord">0109</text>
+<circle cx="78.0" cy="492.22809220139277" r="3.5" class="classic-world-dot" />
+<circle cx="78.0" cy="492.22809220139277" r="6.5" class="classic-gas-ring" />
+<text x="78.0" y="502.22809220139277" class="classic-text">DENIS</text>
+<text x="78.0" y="509.22809220139277" class="classic-text classic-uwp">C776DED-5</text>
+<polygon class="classic-hex " points="148.0,516.4768035073571 134.0,540.7255148133214 106.0,540.7255148133214 92.0,516.4768035073571 105.99999999999999,492.2280922013928 133.99999999999997,492.22809220139277"/>
+<text x="120.0" y="498.9768035073571" class="classic-text classic-coord">0209</text>
+<polygon class="classic-hex classic-hex-filled" points="190.0,492.22809220139277 176.0,516.4768035073571 148.0,516.4768035073571 134.0,492.22809220139277 148.0,467.9793808954285 175.99999999999997,467.97938089542845"/>
+<text x="162.0" y="474.72809220139277" class="classic-text classic-coord">0309</text>
+<circle cx="162.0" cy="492.22809220139277" r="3.5" class="classic-world-dot" />
+<circle cx="162.0" cy="492.22809220139277" r="6.5" class="classic-gas-ring" />
+<text x="150.0" y="487.22809220139277" class="classic-base">▲</text>
+<text x="162.0" y="502.22809220139277" class="classic-text">JENA</text>
+<text x="162.0" y="509.22809220139277" class="classic-text classic-uwp">C976GHK-6</text>
+<polygon class="classic-hex classic-hex-filled" points="232.0,516.4768035073571 218.0,540.7255148133214 190.0,540.7255148133214 176.0,516.4768035073571 190.0,492.2280922013928 217.99999999999997,492.22809220139277"/>
+<text x="204.0" y="498.9768035073571" class="classic-text classic-coord">0409</text>
+<circle cx="204.0" cy="516.4768035073571" r="3.5" class="classic-world-dot" />
+<circle cx="204.0" cy="516.4768035073571" r="6.5" class="classic-gas-ring" />
+<text x="192.0" y="511.4768035073571" class="classic-base">▲</text>
+<text x="204.0" y="526.4768035073571" class="classic-text">NORAN</text>
+<text x="204.0" y="533.4768035073571" class="classic-text classic-uwp">D57AB77-3</text>
+<polygon class="classic-hex " points="274.0,492.22809220139277 260.0,516.4768035073571 232.0,516.4768035073571 218.0,492.22809220139277 232.0,467.9793808954285 260.0,467.97938089542845"/>
+<text x="246.0" y="474.72809220139277" class="classic-text classic-coord">0509</text>
+<polygon class="classic-hex classic-hex-filled" points="316.0,516.4768035073571 302.0,540.7255148133214 274.0,540.7255148133214 260.0,516.4768035073571 274.0,492.2280922013928 302.0,492.22809220139277"/>
+<text x="288.0" y="498.9768035073571" class="classic-text classic-coord">0609</text>
+<circle cx="288.0" cy="516.4768035073571" r="3.5" class="classic-world-dot" />
+<circle cx="288.0" cy="516.4768035073571" r="6.5" class="classic-gas-ring" />
+<text x="288.0" y="526.4768035073571" class="classic-text">ARDA</text>
+<text x="288.0" y="533.4768035073571" class="classic-text classic-uwp">C120DBB-A</text>
+<polygon class="classic-hex " points="358.0,492.22809220139277 344.0,516.4768035073571 316.0,516.4768035073571 302.0,492.22809220139277 316.0,467.9793808954285 344.0,467.97938089542845"/>
+<text x="330.0" y="474.72809220139277" class="classic-text classic-coord">0709</text>
+<polygon class="classic-hex classic-hex-filled" points="400.0,516.4768035073571 386.0,540.7255148133214 358.0,540.7255148133214 344.0,516.4768035073571 358.0,492.2280922013928 386.0,492.22809220139277"/>
+<text x="372.0" y="498.9768035073571" class="classic-text classic-coord">0809</text>
+<circle cx="372.0" cy="516.4768035073571" r="3.5" class="classic-world-dot" />
+<circle cx="372.0" cy="516.4768035073571" r="6.5" class="classic-gas-ring" />
+<text x="360.0" y="511.4768035073571" class="classic-base">▲</text>
+<text x="372.0" y="526.4768035073571" class="classic-text">XENA</text>
+<text x="372.0" y="533.4768035073571" class="classic-text classic-uwp">C7676B7-7</text>
+<polygon class="classic-hex " points="106.0,540.7255148133213 92.0,564.9742261192856 64.0,564.9742261192856 50.0,540.7255148133213 63.999999999999986,516.476803507357 91.99999999999999,516.476803507357"/>
+<text x="78.0" y="523.2255148133213" class="classic-text classic-coord">0110</text>
+<polygon class="classic-hex " points="148.0,564.9742261192856 134.0,589.2229374252499 106.0,589.2229374252499 92.0,564.9742261192856 105.99999999999999,540.7255148133213 133.99999999999997,540.7255148133213"/>
+<text x="120.0" y="547.4742261192856" class="classic-text classic-coord">0210</text>
+<polygon class="classic-hex " points="190.0,540.7255148133213 176.0,564.9742261192856 148.0,564.9742261192856 134.0,540.7255148133213 148.0,516.476803507357 175.99999999999997,516.476803507357"/>
+<text x="162.0" y="523.2255148133213" class="classic-text classic-coord">0310</text>
+<polygon class="classic-hex classic-hex-filled" points="232.0,564.9742261192856 218.0,589.2229374252499 190.0,589.2229374252499 176.0,564.9742261192856 190.0,540.7255148133213 217.99999999999997,540.7255148133213"/>
+<text x="204.0" y="547.4742261192856" class="classic-text classic-coord">0410</text>
+<circle cx="204.0" cy="564.9742261192856" r="3.5" class="classic-world-dot" />
+<circle cx="204.0" cy="564.9742261192856" r="6.5" class="classic-gas-ring" />
+<text x="204.0" y="574.9742261192856" class="classic-text">DENIA</text>
+<text x="204.0" y="581.9742261192856" class="classic-text classic-uwp">E96A984-8</text>
+<polygon class="classic-hex " points="274.0,540.7255148133213 260.0,564.9742261192856 232.0,564.9742261192856 218.0,540.7255148133213 232.0,516.476803507357 260.0,516.476803507357"/>
+<text x="246.0" y="523.2255148133213" class="classic-text classic-coord">0510</text>
+<polygon class="classic-hex classic-hex-filled" points="316.0,564.9742261192856 302.0,589.2229374252499 274.0,589.2229374252499 260.0,564.9742261192856 274.0,540.7255148133213 302.0,540.7255148133213"/>
+<text x="288.0" y="547.4742261192856" class="classic-text classic-coord">0610</text>
+<circle cx="288.0" cy="564.9742261192856" r="3.5" class="classic-world-dot" />
+<circle cx="288.0" cy="564.9742261192856" r="6.5" class="classic-gas-ring" />
+<text x="288.0" y="574.9742261192856" class="classic-text">QUOROS</text>
+<text x="288.0" y="581.9742261192856" class="classic-text classic-uwp">C769448-9</text>
+<polygon class="classic-hex " points="358.0,540.7255148133213 344.0,564.9742261192856 316.0,564.9742261192856 302.0,540.7255148133213 316.0,516.476803507357 344.0,516.476803507357"/>
+<text x="330.0" y="523.2255148133213" class="classic-text classic-coord">0710</text>
+<polygon class="classic-hex " points="400.0,564.9742261192856 386.0,589.2229374252499 358.0,589.2229374252499 344.0,564.9742261192856 358.0,540.7255148133213 386.0,540.7255148133213"/>
+<text x="372.0" y="547.4742261192856" class="classic-text classic-coord">0810</text>
+<rect x="50" y="80" width="350.0" height="509.2229374252499" class="grid-border" />
+<text x="78.0" y="68" class="grid-label">01</text>
+<text x="78.0" y="601.2229374252499" class="grid-label">01</text>
+<text x="120.0" y="68" class="grid-label">02</text>
+<text x="120.0" y="601.2229374252499" class="grid-label">02</text>
+<text x="162.0" y="68" class="grid-label">03</text>
+<text x="162.0" y="601.2229374252499" class="grid-label">03</text>
+<text x="204.0" y="68" class="grid-label">04</text>
+<text x="204.0" y="601.2229374252499" class="grid-label">04</text>
+<text x="246.0" y="68" class="grid-label">05</text>
+<text x="246.0" y="601.2229374252499" class="grid-label">05</text>
+<text x="288.0" y="68" class="grid-label">06</text>
+<text x="288.0" y="601.2229374252499" class="grid-label">06</text>
+<text x="330.0" y="68" class="grid-label">07</text>
+<text x="330.0" y="601.2229374252499" class="grid-label">07</text>
+<text x="372.0" y="68" class="grid-label">08</text>
+<text x="372.0" y="601.2229374252499" class="grid-label">08</text>
+<text x="35" y="104.24871130596428" class="grid-label">01</text>
+<text x="415.0" y="104.24871130596428" class="grid-label">01</text>
+<text x="35" y="152.74613391789285" class="grid-label">02</text>
+<text x="415.0" y="152.74613391789285" class="grid-label">02</text>
+<text x="35" y="201.2435565298214" class="grid-label">03</text>
+<text x="415.0" y="201.2435565298214" class="grid-label">03</text>
+<text x="35" y="249.74097914175" class="grid-label">04</text>
+<text x="415.0" y="249.74097914175" class="grid-label">04</text>
+<text x="35" y="298.23840175367854" class="grid-label">05</text>
+<text x="415.0" y="298.23840175367854" class="grid-label">05</text>
+<text x="35" y="346.7358243656071" class="grid-label">06</text>
+<text x="415.0" y="346.7358243656071" class="grid-label">06</text>
+<text x="35" y="395.23324697753566" class="grid-label">07</text>
+<text x="415.0" y="395.23324697753566" class="grid-label">07</text>
+<text x="35" y="443.7306695894642" class="grid-label">08</text>
+<text x="415.0" y="443.7306695894642" class="grid-label">08</text>
+<text x="35" y="492.22809220139277" class="grid-label">09</text>
+<text x="415.0" y="492.22809220139277" class="grid-label">09</text>
+<text x="35" y="540.7255148133213" class="grid-label">10</text>
+<text x="415.0" y="540.7255148133213" class="grid-label">10</text>
+</svg>
