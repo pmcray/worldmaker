@@ -29,5 +29,14 @@ from .society import (
 from .sophont import get_major_race, generate_minor_race
 from .polity import define_polities, generate_bases
 from .sector import generate_sector, generate_sector_svg, generate_subsector_svg
-from .exporters import create_system_dataframe, export_system_markdown, export_sector_sec_file
+from .exporters import create_system_dataframe, export_system_markdown, export_sector_sec_file, export_system_html
+from .visualization import plot_system_orbit_diagram
+from .visualization_3d import plot_system_3d_orbit_diagram
+from .trade_network import plot_subsector_trade_network
+from .trade_calculator import calculate_speculative_trade_run
+from .pdf_exporter import export_campaign_briefing_html
+from .adventure import generate_system_adventure_seeds
+from .planet_mapper import generate_planetary_maps
+from .planet_projections import render_traveller_icosahedral_net, plot_3d_planet_globe
 from .generator import generate_full_system
+from .widgets import render_generator_dashboard, render_subsector_dashboard

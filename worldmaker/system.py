@@ -89,7 +89,7 @@ def _calculate_hill_sphere_orbits(system: StellarSystem) -> List[Tuple[float, fl
     # Step 5: Determine stable orbits around multiple stars (simplified)
     forbidden_zones = []
     for star in system.stars:
-        if star.designation in stability_spheres_orbit:
+        if star.parent and star.designation in stability_spheres_orbit:
             orbit_val = stability_spheres_orbit[star.designation]
             forbidden_zones.append((star.orbit_num - orbit_val, star.orbit_num + orbit_val))
 
@@ -173,6 +173,8 @@ def calculate_available_orbits(system: StellarSystem, model='simple'):
 
     elif model == 'physics':
         primary_group.available_orbits = _calculate_hill_sphere_orbits(system)
+
+    return primary_group.available_orbits
 
 def calculate_baseline_and_spread(system: StellarSystem):
     """Determines the system's baseline number, baseline orbit, and orbital spread."""

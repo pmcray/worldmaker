@@ -152,11 +152,13 @@ def generate_sector_svg(subsectors):
     svg = f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {svg_width} {svg_height}" width="100%" height="100%">\n'
     
     svg += '''<style>
-    .hex { stroke: #888; stroke-width: 0.5; fill: #fff; }
+    .hex { stroke: #888; stroke-width: 0.5; fill: #fff; transition: all 0.15s ease; }
     .hex-fill-Im { fill: #ffe0e0; }
     .hex-fill-Zh { fill: #e0e0ff; }
     .hex-fill-Av { fill: #ffeec0; }
     .hex-fill-Na { fill: #ffffff; }
+    .hex-group { cursor: pointer; }
+    .hex-group:hover .hex { stroke: #0284c7 !important; stroke-width: 2 !important; fill: #38bdf8 !important; }
     .hex_text { font-family: "Courier New", monospace; font-size: 6px; text-anchor: middle; fill: #333; }
     .coord_text { font-size: 5px; fill: #777; }
     .uwp_text { font-size: 5px; fill: #111; font-weight: bold; }
@@ -233,6 +235,14 @@ def generate_sector_svg(subsectors):
                         px = x + hex_radius * math.cos(angle)
                         py = y + hex_radius * math.sin(angle)
                         points.append(f"{px},{py}")
+
+                    tooltip_title = f"Hex {hex_coord}"
+                    if system:
+                        mw = next((w for w in system.all_worlds if w.is_mainworld), None)
+                        if mw:
+                            tooltip_title += f": {mw.name}\nUWP: {mw.uwp}\nAllegiance: {system.allegiance}\nBases: {', '.join(system.bases) if system.bases else 'None'}\nGas Giants: {system.gas_giant_count}\nTrade Codes: {', '.join(mw.trade_codes) if mw.trade_codes else 'None'}"
+
+                    svg += f'<g class="hex-group"><title>{tooltip_title}</title>\n'
                     svg += f'<polygon class="hex {fill_class}" points="{" ".join(points)}"/>\n'
                     
                     # Coordinate text at top
@@ -265,8 +275,8 @@ def generate_sector_svg(subsectors):
                             # 4. Name and UWP
                             svg += f'<text x="{x}" y="{y+6}" class="hex_text">{mainworld.name[:7].upper()}</text>\n'
                             svg += f'<text x="{x}" y="{y+12}" class="hex_text uwp_text">{mainworld.uwp}</text>\n'
-                    else:
-                        pass
+
+                    svg += '</g>\n'
 
     svg += '</svg>'
     return svg
@@ -291,18 +301,21 @@ def generate_subsector_svg(subsector, name="Subsector Map"):
     
     svg = f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {svg_width} {svg_height}" width="100%" height="100%" style="background-color: #faf8f5;">\n'
     
-    # Styles for vintage paper/black ink print aesthetic
+    # Styles for vintage paper/black ink print aesthetic with interactive tooltips
     svg += '''<style>
     .subsector-title { font-family: "Georgia", serif; font-size: 18px; font-weight: bold; fill: #000; text-anchor: middle; }
     .subsector-subtitle { font-family: "Georgia", serif; font-style: italic; font-size: 11px; fill: #555; text-anchor: middle; }
-    .classic-hex { stroke: #000; stroke-width: 0.8; fill: none; }
+    .classic-hex { stroke: #000; stroke-width: 0.8; fill: none; transition: all 0.2s ease; }
     .classic-hex-filled { fill: #fcfbfa; }
+    .hex-group { cursor: pointer; }
+    .hex-group:hover .classic-hex { stroke: #0284c7 !important; stroke-width: 2.5 !important; fill: #e0f2fe !important; }
+    .hex-group:hover .classic-world-dot { fill: #0284c7 !important; r: 5; }
     .grid-border { stroke: #000; stroke-width: 2.5; fill: none; }
     .grid-label { font-family: "Courier New", monospace; font-size: 10px; font-weight: bold; fill: #000; text-anchor: middle; dominant-baseline: middle; }
     .classic-text { font-family: "Courier New", monospace; font-size: 7px; text-anchor: middle; fill: #000; font-weight: bold; }
     .classic-coord { font-size: 6px; fill: #555; font-weight: normal; }
     .classic-uwp { font-size: 6px; fill: #333; font-weight: bold; }
-    .classic-world-dot { fill: #000; stroke: #000; stroke-width: 1; }
+    .classic-world-dot { fill: #000; stroke: #000; stroke-width: 1; transition: all 0.2s ease; }
     .classic-gas-ring { fill: none; stroke: #000; stroke-width: 1; }
     .classic-base { font-family: "Courier New", monospace; font-size: 9px; fill: #000; font-weight: bold; }
     .classic-route-major { stroke: #000; stroke-width: 1.5; fill: none; }
@@ -347,6 +360,14 @@ def generate_subsector_svg(subsector, name="Subsector Map"):
                 points.append(f"{px},{py}")
             
             fill_class = "classic-hex-filled" if system else ""
+            
+            tooltip_title = f"Hex {hex_coord}"
+            if system:
+                mw = next((w for w in system.all_worlds if w.is_mainworld), None)
+                if mw:
+                    tooltip_title += f": {mw.name}\nUWP: {mw.uwp}\nAllegiance: {system.allegiance}\nBases: {', '.join(system.bases) if system.bases else 'None'}\nGas Giants: {system.gas_giant_count}\nTrade Codes: {', '.join(mw.trade_codes) if mw.trade_codes else 'None'}"
+            
+            svg += f'<g class="hex-group"><title>{tooltip_title}</title>\n'
             svg += f'<polygon class="classic-hex {fill_class}" points="{" ".join(points)}"/>\n'
             
             # Draw tiny coordinate at top of hex
@@ -377,6 +398,8 @@ def generate_subsector_svg(subsector, name="Subsector Map"):
                     
                     # UWP under name
                     svg += f'<text x="{x}" y="{y + 17}" class="classic-text classic-uwp">{mainworld.uwp}</text>\n'
+            
+            svg += '</g>\n'
 
     # 3. Outer Grid Bounding Frame & Labels
     svg += f'<rect x="{left_padding}" y="{top_padding}" width="{grid_width}" height="{grid_height}" class="grid-border" />\n'
