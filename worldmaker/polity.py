@@ -46,12 +46,46 @@ def define_polities(sector: Sector):
             imperium.controlled_systems.append(hex_coord)
 
     polities = [zhodani, avalar, imperium]
-    
+    sector.polities = polities
+
     # Assign polities to the sector systems
     for polity in polities:
         for hex_coord in polity.controlled_systems:
             if hex_coord in sector.systems:
                 sector.systems[hex_coord].allegiance = polity.allegiance_code
+
+def generate_travel_zones(sector: Sector):
+    """Assigns Amber/Red Travel Zones using the SCG p.27 rules of thumb:
+    Exotic/Corrosive/Insidious atmospheres and worlds whose Government +
+    Law Level total 20+ are Amber candidates, as are Balkanised worlds
+    with ongoing conflicts. Red Zones are rare interdictions."""
+    for hex_coord, system in sector.systems.items():
+        mainworld = next((w for w in system.all_worlds if w.is_mainworld), None)
+        if not mainworld:
+            continue
+
+        uwp = mainworld.uwp
+        atm = Utils.from_eHex(uwp.atmosphere)
+        gov = Utils.from_eHex(uwp.government)
+        law = Utils.from_eHex(uwp.law_level)
+        pop = Utils.from_eHex(uwp.population)
+
+        zone = ""
+        if atm in (10, 11, 12) and Utils.D6(2) >= 9:  # Exotic/Corrosive/Insidious, hazardous cases
+            zone = "A"
+        elif gov + law >= 20:
+            zone = "A"
+        elif gov == 7 and Utils.D6(2) >= 10:  # Balkanised, ongoing conflict
+            zone = "A"
+
+        # Rare interdictions: hazardous Amber worlds and empty interdicted
+        # worlds escalate to Red on boxcars.
+        if zone == "A" and Utils.D6(2) == 12:
+            zone = "R"
+        elif pop == 0 and Utils.D6(2) == 12:
+            zone = "R"
+
+        system.travel_zone = zone
 
 def generate_bases(sector: Sector):
     """Generates bases for systems based on Starport, Allegiance, and defense indicators (SCG rules)."""

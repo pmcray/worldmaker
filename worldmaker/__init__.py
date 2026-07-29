@@ -27,7 +27,14 @@ from .society import (
     generate_expanded_tech_matrix
 )
 from .sophont import get_major_race, generate_minor_race
-from .polity import define_polities, generate_bases
-from .sector import generate_sector, generate_sector_svg, generate_subsector_svg
+from .polity import define_polities, generate_bases, generate_travel_zones
+from .sector import (
+    generate_sector,
+    generate_full_sector,
+    merge_subsectors,
+    generate_sector_svg,
+    generate_subsector_svg,
+    calculate_xboat_routes,
+)
 from .exporters import create_system_dataframe, export_system_markdown, export_sector_sec_file
 from .generator import generate_full_system

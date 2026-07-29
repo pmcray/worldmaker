@@ -5,8 +5,9 @@ from typing import List, Dict, Any, Tuple, Optional
 from .classes import Sector, StellarSystem, Wave, Sophont, PlanetaryBody, Satellite
 from .utils import Utils
 from .generator import generate_full_system
-from .polity import define_polities, generate_bases
+from .polity import define_polities, generate_bases, generate_travel_zones
 from .sophont import get_major_race, generate_minor_race
+from .stellar import generate_world_name
 
 def hex_to_coords(hex_coord: str) -> Tuple[int, int]:
     """Converts a hex coordinate string (e.g., '0101') to (col, row) integers."""
@@ -14,29 +15,33 @@ def hex_to_coords(hex_coord: str) -> Tuple[int, int]:
     row = int(hex_coord[2:])
     return col, row
 
-def hex_distance(hex1: str, hex2: str) -> float:
-    """Calculates the Euclidean distance between two hex coordinates."""
-    col1, row1 = hex_to_coords(hex1)
-    col2, row2 = hex_to_coords(hex2)
-    # Euclidean approximation
-    return math.sqrt((col1 - col2)**2 + (row1 - row2)**2)
+def _to_cube(col: int, row: int) -> Tuple[int, int, int]:
+    """Offset (Traveller column-staggered) coordinates to cube coordinates."""
+    x = col
+    z = row - (col + (col % 2)) // 2
+    y = -x - z
+    return x, y, z
+
+def hex_distance(hex1: str, hex2: str) -> int:
+    """Distance in parsecs (hexes) between two hex coordinates."""
+    a = _to_cube(*hex_to_coords(hex1))
+    b = _to_cube(*hex_to_coords(hex2))
+    return max(abs(a[0] - b[0]), abs(a[1] - b[1]), abs(a[2] - b[2]))
 
 def is_adjacent(hex1: str, hex2: str) -> bool:
     """Calculates if two hexes are adjacent in a flat-topped hex grid."""
-    col1, row1 = hex_to_coords(hex1)
-    col2, row2 = hex_to_coords(hex2)
-    
-    dc = col1 - col2
-    dr = row1 - row2
-    
-    if dc == 0:
-        return abs(dr) == 1
-    elif abs(dc) == 1:
-        if col1 % 2 == 1: # 1-based odd (01, 03, 05...)
-            return dr in [0, 1]
-        else: # 1-based even (02, 04, 06...)
-            return dr in [-1, 0]
-    return False
+    return hex_distance(hex1, hex2) == 1
+
+def hex_neighbors(col: int, row: int) -> Dict[str, Tuple[int, int]]:
+    """The six neighbours of a hex, keyed by compass direction. Even-numbered
+    columns are staggered half a hex down (Traveller map convention)."""
+    if col % 2 == 1:  # odd printed column
+        return {'N': (col, row - 1), 'S': (col, row + 1),
+                'NE': (col + 1, row - 1), 'SE': (col + 1, row),
+                'NW': (col - 1, row - 1), 'SW': (col - 1, row)}
+    return {'N': (col, row - 1), 'S': (col, row + 1),
+            'NE': (col + 1, row), 'SE': (col + 1, row + 1),
+            'NW': (col - 1, row), 'SW': (col - 1, row + 1)}
 
 def calculate_population_dm(hex_coord: str, sector: Sector) -> int:
     """Calculates the population DM for a given hex based on native sophonts and settlement waves."""
@@ -46,14 +51,15 @@ def calculate_population_dm(hex_coord: str, sector: Sector) -> int:
     if hex_coord in sector.native_sophonts:
         population_dm += 6
 
-    # Apply DM for settlement waves
+    # Apply DM for settlement waves (SCG p.22: thin wave DM-5 +1/century,
+    # thick wave DM-3 +1/century; the penalty decays to zero, never a bonus)
     for wave in sector.settlement_waves:
         distance = hex_distance(hex_coord, wave.origin_hex)
         if distance <= (wave.propagation_rate * wave.age_centuries):
             if wave.wave_type == "thin":
-                population_dm += (-5 + wave.age_centuries) # DM-5 + 1 per century
+                population_dm += min(0, -5 + wave.age_centuries)
             elif wave.wave_type == "thick":
-                population_dm += (-3 + wave.age_centuries) # DM-3 + 1 per century
+                population_dm += min(0, -3 + wave.age_centuries)
 
     return population_dm
 
@@ -70,30 +76,41 @@ def define_settlement_waves(sector: Sector):
 
 def place_native_sophonts(sector: Sector):
     """Places native sophonts in the sector using the hybrid Major/Minor generator."""
+    def random_hex():
+        return f"{random.randint(1, sector.width):02d}{random.randint(1, sector.height):02d}"
+
     # Place a Major Race homeworld
-    aslan_homeworld = get_major_race("Aslan", "0805")
+    aslan_homeworld = get_major_race("Aslan", random_hex())
     sector.native_sophonts[aslan_homeworld.homeworld_hex] = aslan_homeworld
 
-    # Place a procedurally generated Minor Race homeworld
-    minor_race = generate_minor_race("0308")
-    sector.native_sophonts[minor_race.homeworld_hex] = minor_race
+    # Place procedurally generated Minor Race homeworlds (~1 per 2 subsectors)
+    num_minor = max(1, (sector.width * sector.height) // 160)
+    for _ in range(num_minor):
+        hex_coord = random_hex()
+        if hex_coord in sector.native_sophonts:
+            continue
+        minor_race = generate_minor_race(hex_coord)
+        sector.native_sophonts[hex_coord] = minor_race
+
+def _mainworld_of(system: StellarSystem) -> Optional[PlanetaryBody]:
+    return next((w for w in system.all_worlds if w.is_mainworld), None)
 
 def calculate_routes(sector: Sector):
     """Calculates trade routes between adjacent systems."""
     systems_list = list(sector.systems.items())
     for i in range(len(systems_list)):
         hex1, sys1 = systems_list[i]
-        mw1 = next((w for w in sys1.all_worlds if w.is_mainworld), None)
+        mw1 = _mainworld_of(sys1)
         if not mw1: continue
-        
+
         for j in range(i + 1, len(systems_list)):
             hex2, sys2 = systems_list[j]
-            mw2 = next((w for w in sys2.all_worlds if w.is_mainworld), None)
+            mw2 = _mainworld_of(sys2)
             if not mw2: continue
-            
+
             if not is_adjacent(hex1, hex2):
                 continue
-            
+
             def get_wtn(mw):
                 sp_val = {'A': 5, 'B': 4, 'C': 3, 'D': 2, 'E': 1, 'X': 0}.get(mw.uwp.starport, 0)
                 pop_val = Utils.from_eHex(mw.uwp.population)
@@ -102,296 +119,433 @@ def calculate_routes(sector: Sector):
             wtn1 = get_wtn(mw1)
             wtn2 = get_wtn(mw2)
             trade_potential = wtn1 + wtn2
-            
+
             route_type = None
-            if trade_potential >= 13: 
+            if trade_potential >= 13:
                 route_type = "major"
-            elif trade_potential >= 9: 
+            elif trade_potential >= 9:
                 route_type = "minor"
-            
+
             if route_type:
                 sector.routes.append((hex1, hex2, route_type))
 
+def calculate_xboat_routes(sector: Sector, max_jump: int = 4):
+    """Builds the express boat (Xboat) network: a minimal set of links, each
+    at most jump-4, spanning the Class A and B starports - the heavy solid
+    route lines of the classic sector maps."""
+    hubs = []
+    for hex_coord, system in sector.systems.items():
+        mw = _mainworld_of(system)
+        if mw and mw.uwp.starport in ('A', 'B'):
+            hubs.append(hex_coord)
+
+    if len(hubs) < 2:
+        return
+
+    # Kruskal's algorithm restricted to jump-range edges
+    parent = {h: h for h in hubs}
+
+    def find(h):
+        while parent[h] != h:
+            parent[h] = parent[parent[h]]
+            h = parent[h]
+        return h
+
+    edges = []
+    for i in range(len(hubs)):
+        for j in range(i + 1, len(hubs)):
+            d = hex_distance(hubs[i], hubs[j])
+            if d <= max_jump:
+                edges.append((d, hubs[i], hubs[j]))
+    edges.sort()
+
+    for d, h1, h2 in edges:
+        r1, r2 = find(h1), find(h2)
+        if r1 != r2:
+            parent[r1] = r2
+            sector.routes.append((h1, h2, "xboat"))
+
+def _generate_systems(sector: Sector, density_target: int = 4):
+    """Rolls system presence per hex (1D >= density_target) and generates
+    systems with unique mainworld names."""
+    used_names = set()
+    for col in range(1, sector.width + 1):
+        for row in range(1, sector.height + 1):
+            hex_coord = f"{col:02d}{row:02d}"
+            population_dm = calculate_population_dm(hex_coord, sector)
+
+            if Utils.D6() >= density_target:
+                name = generate_world_name(used_names)
+                system = generate_full_system(name, population_dm)
+                mainworld = _mainworld_of(system)
+                if mainworld:
+                    mainworld.name = name
+                sector.systems[hex_coord] = system
+
 def generate_sector(width=8, height=10):
-    """Generates a sector/subsector of systems."""
+    """Generates a subsector-sized (default 8x10) region of systems."""
     sector = Sector(width=width, height=height)
-    
+
     # Population and Sophont waves
     define_settlement_waves(sector)
     place_native_sophonts(sector)
 
-    for col in range(1, width + 1):
-        for row in range(1, height + 1):
-            hex_coord = f"{col:02d}{row:02d}"
-            population_dm = calculate_population_dm(hex_coord, sector)
+    _generate_systems(sector)
 
-            # Roll for system presence (50% density standard)
-            if Utils.D6() >= 4:
-                sys_name = f"System {hex_coord}"
-                system = generate_full_system(sys_name, population_dm)
-                sector.systems[hex_coord] = system
-                
     define_polities(sector)
+    generate_travel_zones(sector)
     generate_bases(sector)
     calculate_routes(sector)
-    
+    calculate_xboat_routes(sector)
+
     return sector
 
-def generate_sector_svg(subsectors):
-    """Renders a combined sector vector map of Traveller systems using mathematically exact flat-topped hexes."""
-    grid_cols = 32
-    grid_rows = 40
-    
-    hex_radius = 20
-    row_height = math.sqrt(3) * hex_radius
-    col_width = 1.5 * hex_radius
-    
-    svg_width = grid_cols * col_width + 0.5 * hex_radius
-    svg_height = grid_rows * row_height + row_height / 2
-    
-    svg = f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {svg_width} {svg_height}" width="100%" height="100%">\n'
-    
-    svg += '''<style>
-    .hex { stroke: #888; stroke-width: 0.5; fill: #fff; }
-    .hex-fill-Im { fill: #ffe0e0; }
-    .hex-fill-Zh { fill: #e0e0ff; }
-    .hex-fill-Av { fill: #ffeec0; }
-    .hex-fill-Na { fill: #ffffff; }
-    .hex_text { font-family: "Courier New", monospace; font-size: 6px; text-anchor: middle; fill: #333; }
-    .coord_text { font-size: 5px; fill: #777; }
-    .uwp_text { font-size: 5px; fill: #111; font-weight: bold; }
-    .world-icon { stroke: #333; stroke-width: 0.5; }
-    .gas-giant { fill: #d4a0a0; stroke: none; }
-    .base-icon { font-size: 8px; fill: #333; }
-    .route-major { stroke: #2ecc71; stroke-width: 2; opacity: 0.6; }
-    .route-minor { stroke: #2ecc71; stroke-width: 1; opacity: 0.4; }
+def generate_full_sector(name="Generated Sector", width=32, height=40, density_target=4):
+    """Generates a complete sector (default 32x40 hexes) in a single pass so
+    polities, sophonts, settlement waves, routes and names are coherent
+    across all sixteen subsectors."""
+    sector = Sector(name=name, width=width, height=height)
+
+    define_settlement_waves(sector)
+    place_native_sophonts(sector)
+
+    _generate_systems(sector, density_target)
+
+    define_polities(sector)
+    generate_travel_zones(sector)
+    generate_bases(sector)
+    calculate_routes(sector)
+    calculate_xboat_routes(sector)
+
+    return sector
+
+def merge_subsectors(subsectors: List[Sector], name="Generated Sector") -> Sector:
+    """Stitches sixteen independently generated 8x10 subsectors into one
+    32x40 Sector (legacy support for pre-generate_full_sector data)."""
+    merged = Sector(name=name, width=32, height=40)
+    for idx, sub in enumerate(subsectors[:16]):
+        scol, srow = (idx % 4) * 8, (idx // 4) * 10
+        for hex_coord, system in sub.systems.items():
+            c, r = hex_to_coords(hex_coord)
+            merged.systems[f"{scol + c:02d}{srow + r:02d}"] = system
+        for h1, h2, rtype in sub.routes:
+            c1, r1 = hex_to_coords(h1)
+            c2, r2 = hex_to_coords(h2)
+            merged.routes.append((f"{scol + c1:02d}{srow + r1:02d}",
+                                  f"{scol + c2:02d}{srow + r2:02d}", rtype))
+        merged.polities = merged.polities or sub.polities
+    return merged
+
+
+# --------------------------------------------------------------------------
+# Classic 1981-style map rendering
+#
+# Conventions follow the GDW Classic Traveller maps (the 1981 Deluxe boxset
+# foldout of the Spinward Marches and the Supplement-format subsector pages):
+# black ink on white; flat-topped hexes in staggered vertical columns; a small
+# four-digit hex number at the top of every hex; the starport class letter
+# above the world symbol; a solid disc for worlds with free-standing water and
+# an open circle for dry worlds; a scatter of dots for asteroid-belt
+# mainworlds; a small filled circle at the upper right when a gas giant is
+# present; naval base (star) and scout base (triangle) glyphs at the left;
+# world name beneath, in capitals for high-population (Pop 9+) worlds; travel
+# zones as a broken (Amber) or solid (Red) ring around the hex contents;
+# Xboat routes as heavy solid lines; polity borders as dashed lines; and a
+# boxed legend.
+# --------------------------------------------------------------------------
+
+_SQRT3 = math.sqrt(3)
+
+_CLASSIC_STYLE = '''<style>
+    .cm-bg { fill: #fdfcf8; }
+    .cm-hex { stroke: #1a1a1a; stroke-width: 0.9; fill: none; }
+    .cm-frame { stroke: #000; stroke-width: 2.5; fill: none; }
+    .cm-subgrid { stroke: #000; stroke-width: 1.6; fill: none; }
+    .cm-title { font-family: Helvetica, Arial, sans-serif; font-weight: bold; fill: #000; }
+    .cm-subtitle { font-family: Helvetica, Arial, sans-serif; fill: #333; }
+    .cm-hexnum { font-family: Helvetica, Arial, sans-serif; fill: #666; text-anchor: middle; }
+    .cm-port { font-family: Helvetica, Arial, sans-serif; font-weight: bold; fill: #000; text-anchor: middle; }
+    .cm-name { font-family: Helvetica, Arial, sans-serif; fill: #000; text-anchor: middle; }
+    .cm-base { font-family: Helvetica, Arial, sans-serif; fill: #000; text-anchor: middle; }
+    .cm-world { fill: #000; stroke: #000; }
+    .cm-world-dry { fill: #fdfcf8; stroke: #000; }
+    .cm-belt { fill: #000; stroke: none; }
+    .cm-gg { fill: #000; stroke: none; }
+    .cm-zone-amber { fill: none; stroke: #b22222; }
+    .cm-zone-red { fill: none; stroke: #b22222; }
+    .cm-xboat { stroke: #000; fill: none; }
+    .cm-border { stroke: #8b0000; fill: none; }
+    .cm-legend-box { stroke: #000; stroke-width: 1.2; fill: #fdfcf8; }
+    .cm-legend-text { font-family: Helvetica, Arial, sans-serif; fill: #000; }
+    .cm-sslabel { font-family: Helvetica, Arial, sans-serif; fill: #999; }
 </style>
 '''
-    
-    palette = {
-        'Wa': '#4287f5', 'Ga': '#42f569', 'De': '#f5e042', 'Va': '#d1d1d1',
-        'Ic': '#e0f7fa', 'As': '#5e5e5e', 'In': '#f55742', 'He': '#f55742'
-    }
 
-    def get_hex_center(col_idx, row_idx):
-        x = col_idx * col_width + hex_radius
-        y = row_idx * row_height + row_height / 2
-        if col_idx % 2 == 1:
-            y += row_height / 2
-        return x, y
+def _hex_center(col_idx: int, row_idx: int, radius: float,
+                ox: float, oy: float) -> Tuple[float, float]:
+    """Centre of the hex at 0-based (col_idx, row_idx); even printed columns
+    (odd 0-based index) are staggered half a hex down."""
+    row_h = _SQRT3 * radius
+    x = ox + radius + 1.5 * radius * col_idx
+    y = oy + row_h * row_idx + row_h / 2
+    if col_idx % 2 == 1:
+        y += row_h / 2
+    return x, y
 
-    # 1. Draw Routes
-    all_routes = []
-    for subsector_row in range(4):
-        for subsector_col in range(4):
-            subsector_index = subsector_row * 4 + subsector_col
-            if subsector_index >= len(subsectors): continue
-            subsector = subsectors[subsector_index]
-            
-            for h1, h2, rtype in subsector.routes:
-                c1, r1 = hex_to_coords(h1)
-                c2, r2 = hex_to_coords(h2)
-                
-                g_c1 = subsector_col * 8 + (c1 - 1)
-                g_r1 = subsector_row * 10 + (r1 - 1)
-                g_c2 = subsector_col * 8 + (c2 - 1)
-                g_r2 = subsector_row * 10 + (r2 - 1)
-                
-                x1, y1 = get_hex_center(g_c1, g_r1)
-                x2, y2 = get_hex_center(g_c2, g_r2)
-                
-                all_routes.append(f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" class="route-{rtype}" />')
+def _hex_vertices(x: float, y: float, radius: float) -> List[Tuple[float, float]]:
+    return [(x + radius * math.cos(math.pi / 3 * i),
+             y + radius * math.sin(math.pi / 3 * i)) for i in range(6)]
 
-    svg += '\n'.join(all_routes) + '\n'
+# Which pair of vertex indices forms the hex edge facing each direction
+_EDGE_OF = {'SE': (0, 1), 'S': (1, 2), 'SW': (2, 3),
+            'NW': (3, 4), 'N': (4, 5), 'NE': (5, 0)}
 
-    # 2. Draw Hexes & Systems
-    for subsector_row in range(4):
-        for subsector_col in range(4):
-            subsector_index = subsector_row * 4 + subsector_col
-            if subsector_index >= len(subsectors): continue
-            
-            subsector = subsectors[subsector_index]
-            for row in range(subsector.height):
-                for col in range(subsector.width):
-                    hex_col = subsector_col * 8 + col
-                    hex_row = subsector_row * 10 + row
-                    hex_coord = f"{hex_col + 1:02d}{hex_row + 1:02d}"
-                    
-                    x, y = get_hex_center(hex_col, hex_row)
+def _world_glyphs(svg: List[str], system: StellarSystem, x: float, y: float,
+                  R: float, scale: float):
+    """Emits the in-hex system markings shared by both map scales."""
+    mainworld = _mainworld_of(system)
+    if not mainworld:
+        return
 
-                    system_hex_coord = f"{col+1:02d}{row+1:02d}"
-                    system = subsector.systems.get(system_hex_coord)
-                    
-                    fill_class = "hex-fill-Na"
-                    if system:
-                        fill_class = f"hex-fill-{system.allegiance}" if system.allegiance in ['Im', 'Zh', 'Av'] else "hex-fill-Na"
+    wr = 0.17 * R  # world symbol radius
 
-                    # Hex corners (flat-topped)
-                    points = []
-                    for i in range(6):
-                        angle = math.pi / 3 * i
-                        px = x + hex_radius * math.cos(angle)
-                        py = y + hex_radius * math.sin(angle)
-                        points.append(f"{px},{py}")
-                    svg += f'<polygon class="hex {fill_class}" points="{" ".join(points)}"/>\n'
-                    
-                    # Coordinate text at top
-                    svg += f'<text x="{x}" y="{y - 8}" class="hex_text coord_text">{hex_coord}</text>\n'
-                    
-                    # Details
-                    if system:
-                        mainworld = next((w for w in system.all_worlds if w.is_mainworld), None)
-                        if mainworld:
-                            # 1. World Icon
-                            world_color = '#f2f2f2'
-                            for code, color in palette.items():
-                                if code in mainworld.trade_codes:
-                                    world_color = color
-                                    break
-                            svg += f'<circle cx="{x}" cy="{y}" r="3" class="world-icon" fill="{world_color}" />\n'
-                            
-                            # 2. Gas Giant Indicator
-                            if system.gas_giant_count > 0:
-                                svg += f'<circle cx="{x+6}" cy="{y-5}" r="1.5" class="gas-giant" />\n'
-                            
-                            # 3. Bases
-                            base_symbol = ""
-                            if "Naval" in system.bases or "Zhodani Naval" in system.bases: base_symbol += "★"
-                            if "Scout" in system.bases: base_symbol += "▲"
-                            if "Pirate" in system.bases: base_symbol += "☠"
-                            if base_symbol:
-                                svg += f'<text x="{x-9}" y="{y-4}" class="base-icon">{base_symbol}</text>\n'
+    # Travel zone ring surrounds the hex contents
+    if system.travel_zone == "A":
+        svg.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{0.72*R:.1f}" '
+                   f'class="cm-zone-amber" stroke-width="{1.6*scale:.1f}" '
+                   f'stroke-dasharray="{4*scale:.1f},{3*scale:.1f}" />')
+    elif system.travel_zone == "R":
+        svg.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{0.72*R:.1f}" '
+                   f'class="cm-zone-red" stroke-width="{2.2*scale:.1f}" />')
 
-                            # 4. Name and UWP
-                            svg += f'<text x="{x}" y="{y+6}" class="hex_text">{mainworld.name[:7].upper()}</text>\n'
-                            svg += f'<text x="{x}" y="{y+12}" class="hex_text uwp_text">{mainworld.uwp}</text>\n'
-                    else:
-                        pass
+    # World symbol: belt glyph for Size 0, open circle if dry, disc if wet
+    if mainworld.uwp.size == '0':
+        for dx, dy, r in ((-0.9, -0.5, 0.45), (0.4, -0.9, 0.35), (0.9, 0.3, 0.4),
+                          (-0.3, 0.7, 0.35), (-0.05, -0.1, 0.5)):
+            svg.append(f'<circle cx="{x + dx*wr:.1f}" cy="{y + dy*wr:.1f}" '
+                       f'r="{r*wr:.1f}" class="cm-belt" />')
+    elif Utils.from_eHex(mainworld.uwp.hydrographics) > 0:
+        svg.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{wr:.1f}" class="cm-world" />')
+    else:
+        svg.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{wr:.1f}" '
+                   f'class="cm-world-dry" stroke-width="{1.2*scale:.1f}" />')
 
-    svg += '</svg>'
-    return svg
+    # Starport class letter above the world symbol
+    svg.append(f'<text x="{x:.1f}" y="{y - 0.32*R:.1f}" class="cm-port" '
+               f'font-size="{0.30*R:.1f}">{mainworld.uwp.starport}</text>')
 
-def generate_subsector_svg(subsector, name="Subsector Map"):
-    """Renders a single subsector in the classic 1981 Traveller De Luxe print style."""
-    grid_cols = 8
-    grid_rows = 10
-    
-    hex_radius = 28 # Slightly larger for individual subsector maps
-    row_height = math.sqrt(3) * hex_radius
-    col_width = 1.5 * hex_radius
-    
-    left_padding = 50
-    top_padding = 80
-    
-    grid_width = grid_cols * col_width + 0.5 * hex_radius
-    grid_height = grid_rows * row_height + row_height / 2
-    
-    svg_width = grid_width + left_padding * 2
-    svg_height = grid_height + top_padding + 50
-    
-    svg = f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {svg_width} {svg_height}" width="100%" height="100%" style="background-color: #faf8f5;">\n'
-    
-    # Styles for vintage paper/black ink print aesthetic
-    svg += '''<style>
-    .subsector-title { font-family: "Georgia", serif; font-size: 18px; font-weight: bold; fill: #000; text-anchor: middle; }
-    .subsector-subtitle { font-family: "Georgia", serif; font-style: italic; font-size: 11px; fill: #555; text-anchor: middle; }
-    .classic-hex { stroke: #000; stroke-width: 0.8; fill: none; }
-    .classic-hex-filled { fill: #fcfbfa; }
-    .grid-border { stroke: #000; stroke-width: 2.5; fill: none; }
-    .grid-label { font-family: "Courier New", monospace; font-size: 10px; font-weight: bold; fill: #000; text-anchor: middle; dominant-baseline: middle; }
-    .classic-text { font-family: "Courier New", monospace; font-size: 7px; text-anchor: middle; fill: #000; font-weight: bold; }
-    .classic-coord { font-size: 6px; fill: #555; font-weight: normal; }
-    .classic-uwp { font-size: 6px; fill: #333; font-weight: bold; }
-    .classic-world-dot { fill: #000; stroke: #000; stroke-width: 1; }
-    .classic-gas-ring { fill: none; stroke: #000; stroke-width: 1; }
-    .classic-base { font-family: "Courier New", monospace; font-size: 9px; fill: #000; font-weight: bold; }
-    .classic-route-major { stroke: #000; stroke-width: 1.5; fill: none; }
-    .classic-route-minor { stroke: #000; stroke-width: 0.8; stroke-dasharray: 2, 2; fill: none; }
-</style>
-'''
-    
-    # Title Block
-    svg += f'<text x="{svg_width / 2}" y="35" class="subsector-title">{name.upper()}</text>\n'
-    svg += f'<text x="{svg_width / 2}" y="52" class="subsector-subtitle">IISS Survey Grid - Traveller 1981 De Luxe Style</text>\n'
+    # Gas giant: small filled circle at upper right
+    if system.gas_giant_count > 0:
+        svg.append(f'<circle cx="{x + 0.52*R:.1f}" cy="{y - 0.30*R:.1f}" '
+                   f'r="{0.07*R:.1f}" class="cm-gg" />')
 
-    def get_hex_center(col_idx, row_idx):
-        x = col_idx * col_width + hex_radius + left_padding
-        y = row_idx * row_height + row_height / 2 + top_padding
-        if col_idx % 2 == 1:
-            y += row_height / 2
-        return x, y
+    # Bases at the left: naval star above, scout triangle below
+    if any(b in system.bases for b in ("Naval", "Zhodani Naval")):
+        svg.append(f'<text x="{x - 0.52*R:.1f}" y="{y - 0.18*R:.1f}" class="cm-base" '
+                   f'font-size="{0.26*R:.1f}">&#9733;</text>')
+    if "Scout" in system.bases:
+        svg.append(f'<text x="{x - 0.52*R:.1f}" y="{y + 0.16*R:.1f}" class="cm-base" '
+                   f'font-size="{0.22*R:.1f}">&#9650;</text>')
 
-    # 1. Draw Routes
-    for h1, h2, rtype in subsector.routes:
-        c1, r1 = hex_to_coords(h1)
-        c2, r2 = hex_to_coords(h2)
-        
-        x1, y1 = get_hex_center(c1 - 1, r1 - 1)
-        x2, y2 = get_hex_center(c2 - 1, r2 - 1)
-        
-        svg += f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" class="classic-route-{rtype}" />\n'
+    # World name beneath; capitals for a billion or more inhabitants
+    name = mainworld.name[:9]
+    if Utils.from_eHex(mainworld.uwp.population) >= 9:
+        name = name.upper()
+        weight = ' font-weight="bold"'
+    else:
+        name = name.capitalize()
+        weight = ''
+    svg.append(f'<text x="{x:.1f}" y="{y + 0.48*R:.1f}" class="cm-name" '
+               f'font-size="{0.21*R:.1f}"{weight}>{name}</text>')
 
-    # 2. Draw Hexes & Systems
-    for row in range(grid_rows):
-        for col in range(grid_cols):
-            x, y = get_hex_center(col, row)
-            hex_coord = f"{col + 1:02d}{row + 1:02d}"
-            system = subsector.systems.get(hex_coord)
-            
-            # Hex corners (flat-topped)
-            points = []
-            for i in range(6):
-                angle = math.pi / 3 * i
-                px = x + hex_radius * math.cos(angle)
-                py = y + hex_radius * math.sin(angle)
-                points.append(f"{px},{py}")
-            
-            fill_class = "classic-hex-filled" if system else ""
-            svg += f'<polygon class="classic-hex {fill_class}" points="{" ".join(points)}"/>\n'
-            
-            # Draw tiny coordinate at top of hex
-            svg += f'<text x="{x}" y="{y - hex_radius/1.6}" class="classic-text classic-coord">{hex_coord}</text>\n'
-            
+def _draw_routes(svg: List[str], sector: Sector, R: float, ox: float, oy: float,
+                 window: Tuple[int, int, int, int], scale: float):
+    """Xboat route lines (drawn beneath the hex grid)."""
+    c0, r0, c1, r1 = window
+
+    def in_window(h):
+        c, r = hex_to_coords(h)
+        return c0 <= c <= c1 and r0 <= r <= r1
+
+    for h1, h2, rtype in sector.routes:
+        if rtype != "xboat" or not in_window(h1) or not in_window(h2):
+            continue
+        ca, ra = hex_to_coords(h1)
+        cb, rb = hex_to_coords(h2)
+        xa, ya = _hex_center(ca - c0, ra - r0, R, ox, oy)
+        xb, yb = _hex_center(cb - c0, rb - r0, R, ox, oy)
+        svg.append(f'<line x1="{xa:.1f}" y1="{ya:.1f}" x2="{xb:.1f}" y2="{yb:.1f}" '
+                   f'class="cm-xboat" stroke-width="{2.6*scale:.1f}" />')
+
+def _draw_borders(svg: List[str], sector: Sector, R: float, ox: float, oy: float,
+                  window: Tuple[int, int, int, int], scale: float):
+    """Dashed polity border lines traced along hex edges between territory
+    and non-territory hexes."""
+    c0, r0, c1, r1 = window
+    territory: Dict[Tuple[int, int], str] = {}
+    for polity in sector.polities:
+        for h in polity.controlled_systems:
+            territory[hex_to_coords(h)] = polity.allegiance_code
+
+    for (col, row), alleg in territory.items():
+        if not (c0 <= col <= c1 and r0 <= row <= r1):
+            continue
+        x, y = _hex_center(col - c0, row - r0, R, ox, oy)
+        verts = _hex_vertices(x, y, R)
+        for direction, neighbor in hex_neighbors(col, row).items():
+            if territory.get(neighbor) == alleg:
+                continue
+            i, j = _EDGE_OF[direction]
+            (xa, ya), (xb, yb) = verts[i], verts[j]
+            svg.append(f'<line x1="{xa:.1f}" y1="{ya:.1f}" x2="{xb:.1f}" y2="{yb:.1f}" '
+                       f'class="cm-border" stroke-width="{1.8*scale:.1f}" '
+                       f'stroke-dasharray="{5*scale:.1f},{3*scale:.1f}" />')
+
+_LEGEND_ITEMS = ["world_wet", "world_dry", "belt", "gg", "naval", "scout",
+                 "amber", "red", "xboat", "border"]
+_LEGEND_LABELS = {
+    "world_wet": "World (water present)", "world_dry": "World (no water)",
+    "belt": "Asteroid belt", "gg": "Gas giant", "naval": "Naval base",
+    "scout": "Scout base", "amber": "Amber zone", "red": "Red zone",
+    "xboat": "Xboat route", "border": "Polity border",
+}
+
+def _legend_layout(width: float, font: float) -> Tuple[int, int, float]:
+    """Column/row count and box height for the legend at a given width."""
+    cols = max(1, min(5, int(width // (font * 15))))
+    rows = math.ceil(len(_LEGEND_ITEMS) / cols)
+    row_h = font * 2.4
+    return cols, rows, rows * row_h + font * 1.6
+
+def _draw_legend(svg: List[str], x: float, y: float, width: float, font: float):
+    """Boxed map legend, laid out in as many columns as fit."""
+    cols, rows, height = _legend_layout(width, font)
+    row_h = font * 2.4
+    svg.append(f'<rect x="{x:.1f}" y="{y:.1f}" width="{width:.1f}" '
+               f'height="{height:.1f}" class="cm-legend-box" />')
+    cell_w = width / cols
+    for idx, item in enumerate(_LEGEND_ITEMS):
+        cx = x + (idx % cols) * cell_w + font * 1.6
+        cy = y + font * 1.4 + (idx // cols) * row_h + row_h / 2 - font * 0.5
+        g = font * 0.55  # glyph radius
+        if item == "world_wet":
+            svg.append(f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{g:.1f}" class="cm-world cm-legend-glyph" />')
+        elif item == "world_dry":
+            svg.append(f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{g:.1f}" class="cm-world-dry cm-legend-glyph" stroke-width="1.2" />')
+        elif item == "belt":
+            for dx, dy, r in ((-0.8, -0.4, 0.4), (0.5, -0.7, 0.35), (0.7, 0.5, 0.4), (-0.3, 0.6, 0.35)):
+                svg.append(f'<circle cx="{cx + dx*g:.1f}" cy="{cy + dy*g:.1f}" r="{r*g:.1f}" class="cm-belt cm-legend-glyph" />')
+        elif item == "gg":
+            svg.append(f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{g*0.5:.1f}" class="cm-gg cm-legend-glyph" />')
+        elif item == "naval":
+            svg.append(f'<text x="{cx:.1f}" y="{cy + g*0.8:.1f}" class="cm-base cm-legend-glyph" font-size="{font*1.3:.1f}">&#9733;</text>')
+        elif item == "scout":
+            svg.append(f'<text x="{cx:.1f}" y="{cy + g*0.8:.1f}" class="cm-base cm-legend-glyph" font-size="{font*1.1:.1f}">&#9650;</text>')
+        elif item == "amber":
+            svg.append(f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{g:.1f}" class="cm-zone-amber cm-legend-glyph" stroke-width="1.6" stroke-dasharray="3,2.4" />')
+        elif item == "red":
+            svg.append(f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{g:.1f}" class="cm-zone-red cm-legend-glyph" stroke-width="2" />')
+        elif item == "xboat":
+            svg.append(f'<line x1="{cx - g:.1f}" y1="{cy:.1f}" x2="{cx + g:.1f}" y2="{cy:.1f}" class="cm-xboat cm-legend-glyph" stroke-width="2.4" />')
+        elif item == "border":
+            svg.append(f'<line x1="{cx - g:.1f}" y1="{cy:.1f}" x2="{cx + g:.1f}" y2="{cy:.1f}" class="cm-border cm-legend-glyph" stroke-width="1.8" stroke-dasharray="4,2.5" />')
+        svg.append(f'<text x="{cx + font*1.3:.1f}" y="{cy + font*0.4:.1f}" '
+                   f'class="cm-legend-text" font-size="{font:.1f}">{_LEGEND_LABELS[item]}</text>')
+
+def _render_window(sector: Sector, name: str, window: Tuple[int, int, int, int],
+                   R: float, title_size: float, subsector_grid: bool) -> str:
+    """Shared classic-style renderer for any rectangular hex window."""
+    c0, r0, c1, r1 = window
+    n_cols = c1 - c0 + 1
+    n_rows = r1 - r0 + 1
+    row_h = _SQRT3 * R
+    scale = R / 32.0
+
+    grid_w = 1.5 * R * n_cols + 0.5 * R
+    grid_h = row_h * n_rows + row_h / 2
+    ox, oy = 55.0, title_size * 3.2
+    legend_font = max(8.0, title_size * 0.42)
+    _, _, legend_h = _legend_layout(grid_w, legend_font)
+    svg_w = grid_w + ox * 2
+    svg_h = oy + grid_h + 30 + legend_h + 25
+
+    svg: List[str] = []
+    svg.append(f'<svg xmlns="http://www.w3.org/2000/svg" '
+               f'viewBox="0 0 {svg_w:.0f} {svg_h:.0f}" width="100%" height="100%">')
+    svg.append(_CLASSIC_STYLE)
+    svg.append(f'<rect x="0" y="0" width="{svg_w:.0f}" height="{svg_h:.0f}" class="cm-bg" />')
+
+    # Title block
+    svg.append(f'<text x="{ox:.1f}" y="{title_size * 1.6:.1f}" class="cm-title" '
+               f'font-size="{title_size:.1f}">{name.upper()}</text>')
+    svg.append(f'<text x="{ox:.1f}" y="{title_size * 2.5:.1f}" class="cm-subtitle" '
+               f'font-size="{title_size * 0.38:.1f}">'
+               f'Hexes {c0:02d}{r0:02d} &#8211; {c1:02d}{r1:02d} &#183; '
+               f'1 hex = 1 parsec</text>')
+
+    # Layer 1: Xboat routes beneath everything
+    _draw_routes(svg, sector, R, ox, oy, window, scale)
+
+    # Layer 2: hex grid and system contents
+    for ci in range(n_cols):
+        for ri in range(n_rows):
+            col, row = c0 + ci, r0 + ri
+            hex_coord = f"{col:02d}{row:02d}"
+            x, y = _hex_center(ci, ri, R, ox, oy)
+            pts = " ".join(f"{px:.1f},{py:.1f}" for px, py in _hex_vertices(x, y, R))
+            svg.append(f'<polygon class="cm-hex" points="{pts}" />')
+            svg.append(f'<text x="{x:.1f}" y="{y - 0.62*R:.1f}" class="cm-hexnum" '
+                       f'font-size="{0.20*R:.1f}">{hex_coord}</text>')
+            system = sector.systems.get(hex_coord)
             if system:
-                mainworld = next((w for w in system.all_worlds if w.is_mainworld), None)
-                if mainworld:
-                    # System dot: solid black circle
-                    svg += f'<circle cx="{x}" cy="{y}" r="3.5" class="classic-world-dot" />\n'
-                    
-                    # Gas giant indicator: concentric outer ring
-                    if system.gas_giant_count > 0:
-                        svg += f'<circle cx="{x}" cy="{y}" r="6.5" class="classic-gas-ring" />\n'
-                        
-                    # Bases: star and triangle
-                    base_str = ""
-                    if "Naval" in system.bases or "Zhodani Naval" in system.bases:
-                        base_str += "★"
-                    if "Scout" in system.bases:
-                        base_str += "▲"
-                    if base_str:
-                        svg += f'<text x="{x - 12}" y="{y - 5}" class="classic-base">{base_str}</text>\n'
-                        
-                    # World name in ALL CAPS under center
-                    world_name = mainworld.name.upper()[:10]
-                    svg += f'<text x="{x}" y="{y + 10}" class="classic-text">{world_name}</text>\n'
-                    
-                    # UWP under name
-                    svg += f'<text x="{x}" y="{y + 17}" class="classic-text classic-uwp">{mainworld.uwp}</text>\n'
+                _world_glyphs(svg, system, x, y, R, scale)
 
-    # 3. Outer Grid Bounding Frame & Labels
-    svg += f'<rect x="{left_padding}" y="{top_padding}" width="{grid_width}" height="{grid_height}" class="grid-border" />\n'
-    
-    # Labels across top and bottom
-    for col in range(grid_cols):
-        cx = col * col_width + hex_radius + left_padding
-        svg += f'<text x="{cx}" y="{top_padding - 12}" class="grid-label">{col + 1:02d}</text>\n'
-        svg += f'<text x="{cx}" y="{top_padding + grid_height + 12}" class="grid-label">{col + 1:02d}</text>\n'
-        
-    # Labels down sides
-    for row in range(grid_rows):
-        cy = row * row_height + row_height / 2 + top_padding
-        svg += f'<text x="{left_padding - 15}" y="{cy}" class="grid-label">{row + 1:02d}</text>\n'
-        svg += f'<text x="{left_padding + grid_width + 15}" y="{cy}" class="grid-label">{row + 1:02d}</text>\n'
-        
-    svg += '</svg>'
-    return svg
+    # Layer 3: polity borders over the grid
+    _draw_borders(svg, sector, R, ox, oy, window, scale)
+
+    # Layer 4: subsector division lines and letters (sector maps only)
+    if subsector_grid:
+        for k in range(1, 4):
+            gx = ox + 1.5 * R * (8 * k) + 0.25 * R
+            svg.append(f'<line x1="{gx:.1f}" y1="{oy:.1f}" x2="{gx:.1f}" '
+                       f'y2="{oy + grid_h:.1f}" class="cm-subgrid" opacity="0.55" />')
+            gy = oy + row_h * 10 * k + row_h / 4
+            svg.append(f'<line x1="{ox:.1f}" y1="{gy:.1f}" x2="{ox + grid_w:.1f}" '
+                       f'y2="{gy:.1f}" class="cm-subgrid" opacity="0.55" />')
+        for idx in range(16):
+            sc, sr = idx % 4, idx // 4
+            lx = ox + 1.5 * R * (8 * sc) + 0.75 * R
+            ly = oy + row_h * 10 * sr + row_h * 0.9
+            svg.append(f'<text x="{lx:.1f}" y="{ly:.1f}" class="cm-sslabel" '
+                       f'font-size="{row_h * 0.85:.1f}">{chr(ord("A") + idx)}</text>')
+
+    # Frame and legend
+    svg.append(f'<rect x="{ox:.1f}" y="{oy:.1f}" width="{grid_w:.1f}" '
+               f'height="{grid_h:.1f}" class="cm-frame" />')
+    _draw_legend(svg, ox, oy + grid_h + 25, grid_w, legend_font)
+
+    svg.append('</svg>')
+    return "\n".join(svg)
+
+def generate_subsector_svg(sector, name="Subsector Map", origin_col=1, origin_row=1):
+    """Renders one 8x10 subsector in the classic Supplement-page style.
+    Pass a subsector-sized Sector directly, or a full Sector plus the
+    origin hex column/row of the subsector window (e.g. origin_col=9,
+    origin_row=11 for subsector F)."""
+    window = (origin_col, origin_row,
+              min(origin_col + 7, sector.width),
+              min(origin_row + 9, sector.height))
+    return _render_window(sector, name, window, R=34.0, title_size=24.0,
+                          subsector_grid=False)
+
+def generate_sector_svg(sector, name=None):
+    """Renders a full sector map in the style of the 1981 Deluxe boxset
+    foldout. Accepts a Sector from generate_full_sector(), or (for legacy
+    callers) a list of sixteen 8x10 subsector Sectors, which are stitched
+    together first."""
+    if isinstance(sector, list):
+        sector = merge_subsectors(sector, name or "Generated Sector")
+    window = (1, 1, sector.width, sector.height)
+    return _render_window(sector, name or sector.name, window, R=15.0,
+                          title_size=30.0, subsector_grid=(sector.width == 32
+                                                           and sector.height == 40))

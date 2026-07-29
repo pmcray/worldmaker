@@ -39,10 +39,33 @@ def _interpolate_stellar_data(spectral_str, class_v_data):
     
     return lower_val + (upper_val - lower_val) * interp_ratio
 
-def generate_world_name():
-    prefixes = ["Ard", "Bor", "Cor", "Den", "Eth", "Fen", "Gor", "Hen", "Ish", "Jen", "Kel", "Lor", "Mor", "Nor", "Orr", "Per", "Quor", "Ren", "Sor", "Tor", "Ur", "Ver", "Wor", "Xen", "Yor", "Zor"]
-    suffixes = ["ia", "os", "a", "us", "is", "en", "or", "an", "el", "ar"]
-    return random.choice(prefixes) + random.choice(suffixes)
+def generate_world_name(used=None):
+    """Generates a world name; pass a set as `used` to guarantee uniqueness."""
+    prefixes = ["Ard", "Bor", "Cor", "Den", "Eth", "Fen", "Gor", "Hen", "Ish",
+                "Jen", "Kel", "Lor", "Mor", "Nor", "Orr", "Per", "Quor", "Ren",
+                "Sor", "Tor", "Ur", "Ver", "Wor", "Xen", "Yor", "Zor", "Al",
+                "Bel", "Cal", "Dar", "Es", "Fal", "Gar", "Hal", "Iv", "Jor",
+                "Kar", "Lan", "Mar", "Nal", "Ol", "Pal", "Ru", "Sal", "Tan",
+                "Ul", "Van", "Wil", "Yal", "Zan"]
+    mids = ["", "", "a", "e", "i", "o", "u", "an", "en", "in", "on", "un",
+            "ar", "er", "ir", "or", "al", "el", "il", "ol"]
+    suffixes = ["ia", "os", "a", "us", "is", "en", "or", "an", "el", "ar",
+                "eth", "ax", "ine", "one", "ura", "esh", "im", "oth", "ave", "yr"]
+
+    for _ in range(200):
+        name = random.choice(prefixes) + random.choice(mids) + random.choice(suffixes)
+        if used is None:
+            return name
+        if name not in used:
+            used.add(name)
+            return name
+    # Pathological fallback: disambiguate with a numeral
+    i = 2
+    while f"{name} {i}" in used:
+        i += 1
+    name = f"{name} {i}"
+    used.add(name)
+    return name
 
 def generate_primary_star(special_roll=None) -> Star:
     """Implements the primary star generation sequence."""

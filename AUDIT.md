@@ -191,18 +191,85 @@ route layer, starport letters, belt/water glyphs, a legend block, unique naming,
 and single-pass whole-sector generation (32×40 with sector-wide polities) instead
 of 16 independent subsectors. All are tractable; none currently exist.
 
+### 4a. Renderer rework — completed
+
+All ten gaps listed above have since been addressed. `worldmaker/sector.py`
+now renders in the classic idiom at both scales; `audit/classic_sector.png`
+and `audit/classic_subsector.png` are the current output (seed 1105), against
+`audit/gen_*.png` as the "before".
+
+Supporting data added so the classic markings have something to draw:
+
+- **Travel zones** — `generate_travel_zones()` in `polity.py` implements the
+  SCG p.27 rules of thumb (Exotic/Corrosive/Insidious atmospheres, Government
+  + Law Level ≥ 20, Balkanised worlds with conflict), with rare escalation to
+  Red. `StellarSystem.travel_zone` holds `""`/`"A"`/`"R"`.
+- **Xboat network** — `calculate_xboat_routes()` builds a minimum spanning
+  network over Class A and B starports with every link inside jump-4, which is
+  what produces the long connective route lines of the foldout.
+- **Polity borders** — polities are now stored on `Sector.polities` and traced
+  as dashed lines along the hex edges between territory and non-territory,
+  using a new `hex_neighbors()` helper.
+- **Unique names** — `generate_world_name(used)` takes a set and guarantees
+  uniqueness; a sector of 617 systems now yields 617 distinct names.
+- **Single-pass sectors** — `generate_full_sector()` generates a whole 32×40
+  sector at once, so polities, sophonts, waves and routes are coherent
+  sector-wide. `merge_subsectors()` retains support for the old sixteen-
+  subsector data, and `generate_sector_svg()` still accepts a list of
+  subsectors for legacy callers.
+- **Two rule fixes the map depends on** — `hex_distance()` is now the true
+  hex/parsec metric via cube coordinates (was Euclidean), and settlement-wave
+  population DMs are capped at zero per SCG p.22 (was reaching +7).
+
+Rendering conventions now implemented, per the numbered gaps above:
+
+| Gap | Resolution |
+|---|---|
+| 1. Starport letter | Class letter drawn above the world symbol; UWP strings removed from hexes entirely |
+| 2. Travel zones | Broken red ring (Amber) / solid red ring (Red) around hex contents |
+| 3. Polity borders | Dashed red lines traced along hex edges |
+| 4. Xboat routes | Heavy solid black lines, drawn beneath the grid |
+| 5. Belt & water glyphs | Five-dot scatter for Size-0 mainworlds; solid disc when Hydrographics > 0, open circle when dry |
+| 6. Gas giant marker | Small filled circle at the hex's upper right |
+| 7. Legend / layout | Boxed legend of all ten conventions, reflowing to fewer columns on narrow maps; canvas sized so nothing overflows the frame |
+| 8. Sector-scale style | Black ink throughout, no pastel fills or coloured trade dots; subsector division lines with A–P letters; single coherent polity layout |
+
+Also: world names are set in bold capitals at Population 9+ and mixed case
+otherwise, mirroring the originals' treatment of high-population worlds.
+
+`tests/test_renderer.py` adds **23 tests** guarding the drawing layer —
+glyph counts checked against the generated data, gas-giant offset direction,
+zone ring styling, border segment geometry, Xboat jump-range and acyclicity,
+legend completeness and reflow, hex regularity and flat-topped orientation,
+viewBox containment, subsector windowing, and regression guards against UWP
+strings and pastel fills reappearing. All 23 pass.
+
+Suite total after the rework: **38 passed, 14 failed** (from 11/18 at the
+audit baseline). The remaining 14 failures are the pre-existing generator
+defects and missing WBH subsystems catalogued in §1–§3; this rework was
+scoped to the map layer and did not touch them.
+
+Known cosmetic limits: border segments are drawn per-edge rather than joined
+into continuous paths, so at sector scale they read as a dashed chain rather
+than a single sweeping line; and subsectors are labelled by letter only, not
+by name.
+
 ---
 
 ## 5. Recommended order of work
 
-1. Fix the placement bugs (empty availability inversion, dropped worlds,
-   negative orbits, secondary star orbits) — everything downstream depends on it.
-2. Fix rule-fidelity bugs that skew every map: starport DM ordering, TL
-   government DMs, culture dice, wave DM cap, hex distance.
-3. Implement travel zones + habitability-based mainworld selection (small, high
-   payoff for maps and `.sec` output).
-4. Rework the renderer for classic fidelity (starport letters, zones, borders,
-   routes, glyphs, legend) and generate sectors in one pass.
-5. Then tackle the big missing WBH subsystems in order of table impact:
+1. ~~Fix rule-fidelity bugs that skew every map: wave DM cap, hex distance.~~
+   **Done** (see §4a); starport DM ordering and TL government DMs still open.
+2. ~~Implement travel zones.~~ **Done** (see §4a).
+3. ~~Rework the renderer for classic fidelity and generate sectors in one
+   pass.~~ **Done** (see §4a).
+4. Fix the placement bugs (empty availability inversion, dropped worlds,
+   negative orbits, secondary star orbits) — everything downstream depends on
+   it, and these are now the largest remaining source of test failures.
+5. Fix the remaining rule-fidelity bugs: starport population DM ordering,
+   Tech Level government DMs, culture dice (1D → 2D+DMs).
+6. Implement habitability-based mainworld selection and derive the mainworld
+   UWP from the physically generated world instead of re-rolling it.
+7. Then tackle the big missing WBH subsystems in order of table impact:
    expanded atmospheres, moon orbits, economics, population/government/law
    detail, special circumstances.

@@ -173,6 +173,7 @@ class StellarSystem:
     spread: float = 0.0
     allegiance: str = "Na"
     bases: List[str] = field(default_factory=list)
+    travel_zone: str = ""  # "" = Green, "A" = Amber, "R" = Red
 
     @property
     def primary_star(self):
@@ -195,3 +196,4 @@ class Sector:
     native_sophonts: Dict[str, Sophont] = field(default_factory=dict)
     settlement_waves: List[Wave] = field(default_factory=list)
     routes: List[Tuple[str, str, str]] = field(default_factory=list) # (hex1, hex2, type)
+    polities: List[Polity] = field(default_factory=list)
