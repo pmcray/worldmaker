@@ -167,10 +167,14 @@ def test_habitability_rating(systems):
 
 
 def test_mainworld_is_chosen_by_habitability(systems):
-    """WBH p.133: the mainworld is selected on habitability (resource rating
-    breaking ties), not by orbital position."""
+    """WBH p.133: the mainworld is chosen on habitability, resources and
+    native life - not by orbital position. Habitability dominates the
+    weighting but does not decide alone."""
     mw_count = 0
     innermost_count = 0
+    mw_hab = []
+    other_hab = []
+
     for s in systems:
         mw = s.mainworld
         if mw is None:
@@ -180,20 +184,59 @@ def test_mainworld_is_chosen_by_habitability(systems):
             continue
         mw_count += 1
 
-        # The chosen world must be at least as habitable as every planetary
-        # candidate; a moon can win outright, hence the membership check.
-        best = max(c.habitability_rating for c in candidates)
-        assert mw.habitability_rating >= best or mw not in candidates, (
-            f"{s.name}: chose habitability {mw.habitability_rating} "
-            f"over an available {best}"
-        )
         if mw is candidates[0]:
             innermost_count += 1
 
+        if mw in candidates:
+            mw_hab.append(mw.habitability_rating)
+            other_hab += [c.habitability_rating for c in candidates
+                          if c is not mw]
+
     assert mw_count > 20, "too few multi-candidate systems to judge"
     assert innermost_count < mw_count, (
-        "mainworld is still always the innermost terrestrial world"
-    )
+        "mainworld is still always the innermost terrestrial world")
+
+    # Habitability must dominate: chosen worlds are markedly more habitable
+    # than the candidates passed over.
+    assert mw_hab and other_hab
+    avg_chosen = sum(mw_hab) / len(mw_hab)
+    avg_passed = sum(other_hab) / len(other_hab)
+    assert avg_chosen > avg_passed + 1.0, (
+        f"chosen worlds average {avg_chosen:.2f} habitability against "
+        f"{avg_passed:.2f} for those passed over")
+
+
+def test_mainworld_selection_weighs_resources(systems):
+    """A less habitable but resource-rich world can be the settled world, as
+    many desert worlds are in Charted Space."""
+    chosen_less_habitable = 0
+    for s in systems:
+        mw = s.mainworld
+        if mw is None or mw not in s.all_worlds:
+            continue
+        candidates = [w for w in s.all_worlds if w.body_type == "Terrestrial"]
+        if len(candidates) < 2:
+            continue
+        best_hab = max(c.habitability_rating for c in candidates)
+        if mw.habitability_rating < best_hab:
+            chosen_less_habitable += 1
+            # It must have won on the combined score instead
+            assert (mw.habitability_rating * 2 + mw.resource_rating
+                    >= max(c.habitability_rating * 2 + c.resource_rating
+                           for c in candidates) - 4)
+    # The weighting should actually bite somewhere in 400 systems
+    assert chosen_less_habitable > 0, (
+        "resources never influence mainworld choice")
+
+
+def test_dry_worlds_can_be_mainworlds(systems):
+    """Desert mainworlds must be possible; Hydrographics 0 carries DM-4 to
+    habitability but that alone should not exclude them."""
+    dry = [s.mainworld for s in systems
+           if s.mainworld is not None
+           and Utils.from_eHex(s.mainworld.uwp.hydrographics) == 0
+           and s.mainworld.uwp.size != "0"]
+    assert dry, "no desert world was ever selected as a mainworld"
 
 
 def test_moons_can_be_mainworlds(systems):

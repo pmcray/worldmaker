@@ -29,8 +29,11 @@ from .geophysics import (
 )
 from .atmosphere import generate_atmosphere_details, refresh_scale_height
 from .temperature import detail_temperatures
+from .belts import detail_system_belts
 from .economics import generate_economics
 from .government import generate_government_details
+from .population import generate_population_details
+from .technology import generate_technology_profile
 from .society import (
     generate_mainworld_uwp,
     generate_trade_codes,
@@ -150,6 +153,7 @@ def generate_full_system(name="Random System", population_dm=0) -> StellarSystem
     
     # Phase 4: Detailing
     detail_placed_worlds(system)
+    detail_system_belts(system)
     
     # Phase 5: Physical detailing of every world, before any mainworld is
     # chosen - the choice depends on the physical results (WBH p.133).
@@ -171,7 +175,7 @@ def generate_full_system(name="Random System", population_dm=0) -> StellarSystem
             refresh_scale_height(world)
             assign_climate_zone(world)
             world.surface_features = generate_surface_features(world)
-            world.life_details = generate_life(world)
+            world.life_details = generate_life(world, system)
             world.habitability_rating = calculate_habitability_rating(world, system)
 
         # Place and detail satellites
@@ -189,7 +193,7 @@ def generate_full_system(name="Random System", population_dm=0) -> StellarSystem
             refresh_scale_height(sat)
             assign_climate_zone(sat)
             sat.surface_features = generate_surface_features(sat)
-            sat.life_details = generate_life(sat)
+            sat.life_details = generate_life(sat, system)
             sat.habitability_rating = calculate_habitability_rating(sat, system)
 
     # Phase 6: Final mainworld determination (WBH p.133). Candidates are
@@ -208,8 +212,12 @@ def generate_full_system(name="Random System", population_dm=0) -> StellarSystem
             hydrographics=Utils.from_eHex(mainworld.hydrographics_code),
         )
         generate_expanded_tech_matrix(mainworld.uwp, mainworld)
-        generate_economics(mainworld)
+        # Government and law first: the technology profile's personal-weapons
+        # bound depends on the weapons Law Level.
         generate_government_details(mainworld)
+        generate_population_details(mainworld)
+        generate_technology_profile(mainworld)
+        generate_economics(mainworld, system)
         generate_social_details(mainworld)
 
     for world in system.all_worlds:
@@ -225,9 +233,13 @@ def generate_full_system(name="Random System", population_dm=0) -> StellarSystem
     return system
 
 def select_mainworld(system: StellarSystem):
-    """Chooses the system mainworld by the WBH p.133 criteria: highest
-    habitability rating, then highest resource rating. Significant moons are
-    eligible alongside planets."""
+    """Chooses the system mainworld by the WBH p.133 criteria.
+
+    The book lists four: highest habitability rating, presence of native
+    sophonts, highest resource rating and best refuelling location - and notes
+    the Referee may weigh them freely. Habitability dominates but does not
+    decide alone, so a resource-rich desert world can still be the settled
+    world of its system, as many are in Charted Space."""
     candidates = []
     for world in system.all_worlds:
         # Planetoid belts are legitimate mainworlds - Charted Space is full of
@@ -246,6 +258,13 @@ def select_mainworld(system: StellarSystem):
         # A gas-giant-only system still needs a body to carry the UWP
         return system.all_worlds[0] if system.all_worlds else None
 
-    return max(candidates,
-               key=lambda w: (getattr(w, 'habitability_rating', 0),
-                              getattr(w, 'resource_rating', 0)))
+    def mainworld_score(world):
+        hab = getattr(world, 'habitability_rating', 0)
+        resources = getattr(world, 'resource_rating', 0)
+        score = hab * 2 + resources
+        # Native sophonts settle their own homeworld
+        if getattr(world, 'biocomplexity_rating', 0) >= 8:
+            score += 4
+        return score
+
+    return max(candidates, key=mainworld_score)

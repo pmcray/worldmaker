@@ -369,3 +369,8 @@ def detail_temperatures(world: Any, system: Any, is_moon: bool = False) -> None:
         world.high_temperature, seis['total_seismic_stress'])
     world.low_temperature = apply_seismic_temperature(
         world.low_temperature, seis['total_seismic_stress'])
+
+    # The physics guarantees low <= mean <= high, but the three are rounded
+    # independently; keep the ordering true after rounding.
+    world.low_temperature = min(world.low_temperature, world.mean_temperature)
+    world.high_temperature = max(world.high_temperature, world.mean_temperature)

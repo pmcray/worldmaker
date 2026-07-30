@@ -20,6 +20,14 @@ from .atmosphere import (
 )
 from .economics import generate_economics, calculate_wtn, calculate_importance
 from .government import generate_government_details, generate_factions
+from .population import (
+    generate_population_details,
+    calculate_pcr,
+    calculate_urbanisation,
+    minimum_sustainable_tl,
+)
+from .technology import generate_technology_profile, tlm
+from .belts import detail_belt, detail_system_belts
 from .geophysics import (
     detail_placed_worlds,
     generate_atmosphere,

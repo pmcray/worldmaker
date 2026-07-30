@@ -195,33 +195,114 @@ def generate_surface_features(world: Any) -> str:
         else:
             return f"{hydro_val*10}% water coverage. Single super-ocean pocket on a dry continent."
 
-def generate_life(world: Any) -> str:
-    """Generates a description of the world's biosystem (complex life/biomass index WBH p. 110)."""
+def generate_life(world: Any, system: Any = None) -> str:
+    """Native lifeform ratings (WBH pp.127-131): biomass, biocomplexity,
+    biodiversity and compatibility, plus the native and extinct sophont
+    checks. Records the profile MXDC on the world."""
     if not world.atmosphere_code or not str(world.atmosphere_code).isalnum():
         return "No life data."
 
     atm_val = Utils.from_eHex(world.atmosphere_code)
+    hyd_val = Utils.from_eHex(getattr(world, 'hydrographics_code', 0) or 0)
+    age = getattr(system, 'age_gyr', 4.5) if system is not None else 4.5
 
-    if atm_val < 4 or atm_val > 9:
-        return "No significant native life (untenable atmosphere)."
+    # Biomass rating = 2D + DMs, capped at DM+4 and floored at DM-12
+    dm = 0
+    if atm_val in (6, 8):
+        dm += 2
+    elif atm_val in (5, 7, 9):
+        dm += 1
+    elif atm_val in (0, 1):
+        dm -= 12
+    elif atm_val in (2, 3):
+        dm -= 4
+    elif atm_val in (10, 11, 12) or atm_val >= 15:
+        dm -= 8
 
-    biomass_rating = Utils.D6(2)
-    biocomplexity_rating = max(0, Utils.D6(2) - 7 + biomass_rating)
-    
-    if hasattr(world, 'biomass_rating'):
-        world.biomass_rating = biomass_rating
-        world.biocomplexity_rating = biocomplexity_rating
+    if hyd_val == 0:
+        dm -= 4
+    elif hyd_val >= 6:
+        dm += 1
 
-    if biocomplexity_rating <= 2:
+    temp = getattr(world, 'mean_temperature', 0.0) or 0.0
+    if temp and (temp < 233 or temp > 373):
+        dm -= 4
+    if age < 1.0:
+        dm -= 4  # too young for life to have taken hold
+
+    dm = max(-12, min(4, dm))
+    biomass = max(0, Utils.D6(2) + dm)
+
+    if biomass == 0:
+        world.biomass_rating = 0
+        world.biocomplexity_rating = 0
+        world.biodiversity_rating = 0
+        world.compatibility_rating = 0
+        world.native_lifeform_profile = "0000"
+        return "No native life."
+
+    # Biocomplexity = 2D-7 + biomass, with the biomass DM capped at 9
+    biocomplexity = max(0, Utils.D6(2) - 7 + min(9, biomass))
+
+    # Biodiversity = 2D-7 + (biomass + biocomplexity)/2, rounded up, minimum 1
+    biodiversity = max(1, Utils.D6(2) - 7
+                       + math.ceil((biomass + biocomplexity) / 2))
+
+    # Compatibility = 2D - (biomass + biocomplexity)/2 + DMs, rounded down
+    comp_dm = 0
+    if atm_val in (0, 1, 11, 16, 17):
+        comp_dm -= 8
+    elif atm_val in (2, 4, 7, 9):
+        comp_dm -= 2
+    elif atm_val in (3, 5, 8):
+        comp_dm += 1
+    elif atm_val == 6:
+        comp_dm += 2
+    elif atm_val in (10, 15):
+        comp_dm -= 6
+    elif atm_val == 12:
+        comp_dm -= 10
+    elif atm_val in (13, 14):
+        comp_dm -= 1
+    if age > 8:
+        comp_dm -= 2
+
+    compatibility = max(0, math.floor(
+        Utils.D6(2) - (biomass + biocomplexity) / 2 + comp_dm))
+
+    world.biomass_rating = biomass
+    world.biocomplexity_rating = biocomplexity
+    world.biodiversity_rating = biodiversity
+    world.compatibility_rating = compatibility
+
+    e = Utils.eHex
+    world.native_lifeform_profile = (
+        f"{e(min(33, biomass))}{e(min(33, biocomplexity))}"
+        f"{e(min(33, biodiversity))}{e(min(33, compatibility))}")
+
+    # Native and extinct sophont checks for biocomplexity 8+ (WBH p.130)
+    if biocomplexity >= 8:
+        capped = min(9, biocomplexity)
+        if Utils.D6(2) + capped - 7 >= 13:
+            world.native_sophont = True
+            world.notes.append("Native sophont species present")
+        extinct_dm = 1 if age > 5 else 0
+        if Utils.D6(2) + capped - 7 + extinct_dm >= 13:
+            world.extinct_sophont = True
+            world.notes.append("Evidence of an extinct native sophont species")
+
+    if biocomplexity <= 2:
         desc = "Single-cell microbial life only."
-    elif biocomplexity_rating <= 5:
-        desc = "Simple multicellular structures, fungi-analogues, and basic plants."
-    elif biocomplexity_rating <= 8:
-        desc = "Complex fauna, basic animal lifeforms, and complex biomes."
+    elif biocomplexity <= 5:
+        desc = "Simple multicellular structures, fungi-analogues and basic plants."
+    elif biocomplexity <= 8:
+        desc = "Complex fauna, animal lifeforms and developed biomes."
     else:
-        desc = "Extremely complex, diverse biosphere with complex ecosystems and high biohazard risk."
+        desc = "Extremely complex, diverse biosphere with high biohazard risk."
 
-    return f"Biomass Code: {biomass_rating}, Biocomplexity Code: {biocomplexity_rating}. {desc}"
+    return (f"Biomass {e(biomass)}, Biocomplexity {e(biocomplexity)}, "
+            f"Biodiversity {e(biodiversity)}, Compatibility {e(compatibility)}. "
+            f"{desc}")
 
 ROCHE_LIMIT_PD = 1.537  # 1.22 x (2)^(1/3), WBH p.76 simplifying assumption
 AU_KM = 149597870.9

@@ -47,6 +47,19 @@ class Satellite:
     biocomplexity_rating: int = 0
     biomes: List[str] = field(default_factory=list)
     cultural_profile: Any = None
+    # Native lifeform ratings (WBH pp.127-131)
+    biodiversity_rating: int = 0
+    compatibility_rating: int = 0
+    native_lifeform_profile: str = ""
+    native_sophont: bool = False
+    extinct_sophont: bool = False
+    # Planetoid belt profile (WBH pp.72-75)
+    belt_span: float = 0.0
+    belt_composition: Dict[str, int] = field(default_factory=dict)
+    belt_bulk: int = 0
+    belt_profile: str = ""
+    size_1_bodies: int = 0
+    size_s_bodies: int = 0
     # Detailed temperature and seismology (WBH pp.107-128)
     albedo: float = 0.0
     greenhouse_factor: float = 0.0
@@ -78,6 +91,30 @@ class Satellite:
     minimum_safe_altitude_km: float = 0.0
     safe_altitude_below_mean_km: float = 0.0
     low_oxygen: bool = False
+    # Population detail (WBH pp.148-156)
+    pcr: int = 0
+    pcr_description: str = ""
+    urbanisation_pct: int = 0
+    urban_population: int = 0
+    major_cities: List[Dict[str, Any]] = field(default_factory=list)
+    population_profile: str = ""
+    minimum_sustainable_tl: int = 0
+    # Technology profile (WBH pp.173-180)
+    tech_high: int = 0
+    tech_low: int = 0
+    tech_energy: int = 0
+    tech_electronics: int = 0
+    tech_manufacturing: int = 0
+    tech_medical: int = 0
+    tech_environmental: int = 0
+    tech_land: int = 0
+    tech_sea: int = 0
+    tech_air: int = 0
+    tech_space: int = 0
+    tech_personal: int = 0
+    tech_heavy: int = 0
+    tech_novelty: int = 0
+    technology_profile: str = ""
     # Economic extension (WBH pp.185-199)
     importance: int = 0
     resources: int = 0
@@ -213,6 +250,19 @@ class PlanetaryBody:
     habitability_rating: int = 0
     hill_sphere_pd: float = 0.0
     hill_sphere_moon_limit_pd: float = 0.0
+    # Native lifeform ratings (WBH pp.127-131)
+    biodiversity_rating: int = 0
+    compatibility_rating: int = 0
+    native_lifeform_profile: str = ""
+    native_sophont: bool = False
+    extinct_sophont: bool = False
+    # Planetoid belt profile (WBH pp.72-75)
+    belt_span: float = 0.0
+    belt_composition: Dict[str, int] = field(default_factory=dict)
+    belt_bulk: int = 0
+    belt_profile: str = ""
+    size_1_bodies: int = 0
+    size_s_bodies: int = 0
     # Detailed temperature and seismology (WBH pp.107-128)
     albedo: float = 0.0
     greenhouse_factor: float = 0.0
@@ -244,6 +294,30 @@ class PlanetaryBody:
     minimum_safe_altitude_km: float = 0.0
     safe_altitude_below_mean_km: float = 0.0
     low_oxygen: bool = False
+    # Population detail (WBH pp.148-156)
+    pcr: int = 0
+    pcr_description: str = ""
+    urbanisation_pct: int = 0
+    urban_population: int = 0
+    major_cities: List[Dict[str, Any]] = field(default_factory=list)
+    population_profile: str = ""
+    minimum_sustainable_tl: int = 0
+    # Technology profile (WBH pp.173-180)
+    tech_high: int = 0
+    tech_low: int = 0
+    tech_energy: int = 0
+    tech_electronics: int = 0
+    tech_manufacturing: int = 0
+    tech_medical: int = 0
+    tech_environmental: int = 0
+    tech_land: int = 0
+    tech_sea: int = 0
+    tech_air: int = 0
+    tech_space: int = 0
+    tech_personal: int = 0
+    tech_heavy: int = 0
+    tech_novelty: int = 0
+    technology_profile: str = ""
     # Economic extension (WBH pp.185-199)
     importance: int = 0
     resources: int = 0

@@ -174,7 +174,9 @@ def generate_polities(sector: Sector, max_polities: int = None):
     used_codes = set()
     used_names = set()
     polities = []
-    claimed = {}
+    # Every capital is reserved before any expansion begins: a polity must not
+    # be able to absorb another state's seat of government.
+    claimed = {c: None for c in capitals}
 
     for capital in capitals:
         cap_mw = systems[capital].mainworld
