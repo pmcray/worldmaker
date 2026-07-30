@@ -110,10 +110,13 @@ def _is_legend(el):
 
 
 def _map_elements(svg, tag, cls):
-    """Elements of the map itself, excluding the legend's sample glyphs."""
+    """Elements of the map itself, excluding the legend's sample glyphs.
+
+    Classes are matched as whole tokens: 'cm-world' must not also pick up
+    'cm-world-dry'."""
     root = ET.fromstring(svg)
     return [e for e in root.iter(f"{SVG_NS}{tag}")
-            if cls in (e.get("class") or "") and not _is_legend(e)]
+            if cls in (e.get("class") or "").split() and not _is_legend(e)]
 
 
 def _texts(svg, cls):
@@ -159,15 +162,46 @@ def test_hex_numbers_on_every_hex(subsector_svg):
 
 
 def test_wet_and_dry_world_glyphs_differ(sector, sector_svg):
-    """Solid disc for worlds with free-standing water, open circle for dry."""
+    """Solid disc for worlds with free-standing water, open circle for dry.
+    The counts must match the generated data exactly."""
     wet = _map_elements(sector_svg, "circle", "cm-world")
     dry = _map_elements(sector_svg, "circle", "cm-world-dry")
-    assert wet and dry, "both wet and dry world glyphs must appear"
     exp_dry = sum(1 for s in sector.systems.values()
                   if s.mainworld is not None
                   and s.mainworld.uwp.size != '0'
                   and Utils.from_eHex(s.mainworld.uwp.hydrographics) == 0)
+    exp_wet = sum(1 for s in sector.systems.values()
+                  if s.mainworld is not None
+                  and s.mainworld.uwp.size != '0'
+                  and Utils.from_eHex(s.mainworld.uwp.hydrographics) > 0)
     assert len(dry) == exp_dry
+    assert len(wet) == exp_wet
+    assert wet, "no worlds rendered at all"
+
+
+def test_dry_world_renders_as_open_circle():
+    """A desert mainworld draws an open circle, not a filled disc. Built
+    explicitly so the case does not depend on the sample."""
+    from worldmaker.classes import PlanetaryBody, Sector, Star, StellarSystem, UWP
+
+    sec = Sector(name="Dry Test", width=8, height=10)
+    for hex_coord, hyd in (("0101", "0"), ("0202", "7")):
+        system = StellarSystem(name=f"Sys{hex_coord}")
+        star = Star(designation="A", spectral_type="G2 V", mass=1.0)
+        body = PlanetaryBody(
+            name="Testworld", body_type="Terrestrial", size_code="6",
+            is_mainworld=True,
+            uwp=UWP(starport="C", size="6", atmosphere="6", hydrographics=hyd,
+                    population="4", government="2", law_level="3",
+                    tech_level="9"),
+        )
+        star.orbiting_bodies.append(body)
+        system.stars.append(star)
+        sec.systems[hex_coord] = system
+
+    svg = generate_subsector_svg(sec, "Dry Test")
+    assert len(_map_elements(svg, "circle", "cm-world-dry")) == 1
+    assert len(_map_elements(svg, "circle", "cm-world")) == 1
 
 
 def test_belt_glyph_used_for_size_zero_mainworlds():

@@ -309,52 +309,30 @@ def generate_travel_zones(sector: Sector):
         system.travel_zone = zone
 
 def generate_bases(sector: Sector):
-    """Generates bases for systems based on Starport, Allegiance, and defense indicators (SCG rules)."""
+    """Applies polity-specific adjustments to the bases each world's starport
+    already rolled (WBH p.194).
+
+    The Starport Facilities table is the authoritative source and is rolled
+    during system generation; this pass only layers on the polity rules the
+    SCG describes (p.28), where a restrictive state pairs every naval base
+    with a military one and ignores scout base results."""
     for hex_coord, system in sector.systems.items():
         mainworld = system.mainworld
-        if not mainworld: continue
-        
-        uwp = mainworld.uwp
-        port = uwp.starport
-        allegiance = system.allegiance
-        
-        bases = []
+        if not mainworld:
+            continue
 
-        # Psionic/authoritarian polities keep their own base pattern (SCG
-        # p.28): a naval base implies a military base and scout rolls are
-        # ignored. Everyone else uses the standard Starport Facilities rolls.
         polity = next((p for p in sector.polities
-                       if p.allegiance_code == allegiance), None)
-        restrictive = bool(polity and polity.defense_index >= 9
-                           and polity.polity_type in ("Major Race Polity",
-                                                      "Interstellar Empire"))
+                       if p.allegiance_code == system.allegiance), None)
+        if polity is None:
+            continue
 
-        if allegiance == "Zh" or restrictive:
-            if port == 'A':
-                if Utils.D6(2) >= 8:
-                    bases.append("Naval")
-                    bases.append("Military")
-                if Utils.D6(2) >= 10: bases.append("Base")
-            elif port == 'B':
-                if Utils.D6(2) >= 8:
-                    bases.append("Naval")
-                    bases.append("Military")
-        else:
-            if port == 'A':
-                if Utils.D6(2) >= 8: bases.append("Naval")
-                if Utils.D6(2) >= 10: bases.append("Scout")
-                if Utils.D6(2) >= 8: bases.append("Tas")
-            elif port == 'B':
-                if Utils.D6(2) >= 8: bases.append("Naval")
-                if Utils.D6(2) >= 8: bases.append("Scout")
-                if Utils.D6(2) >= 12: bases.append("Pirate")
-            elif port == 'C':
-                if Utils.D6(2) >= 8: bases.append("Scout")
-                if Utils.D6(2) >= 10: bases.append("Pirate")
-            elif port == 'D':
-                if Utils.D6(2) >= 7: bases.append("Scout")
-                if Utils.D6(2) >= 12: bases.append("Pirate")
-            elif port == 'E':
-                if Utils.D6(2) >= 12: bases.append("Pirate")
+        restrictive = (polity.defense_index >= 9
+                       and polity.polity_type in ("Major Race Polity",
+                                                  "Interstellar Empire"))
+        if not restrictive:
+            continue
 
+        bases = [b for b in system.bases if b not in ("Scout", "Waystation")]
+        if "Naval" in bases and "Military" not in bases:
+            bases.append("Military")
         system.bases = bases

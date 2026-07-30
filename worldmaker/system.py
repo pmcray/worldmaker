@@ -188,6 +188,11 @@ def calculate_available_orbits(system: StellarSystem, model='simple'):
     elif model == 'physics':
         primary_group.available_orbits = _calculate_hill_sphere_orbits(system)
 
+    # Rules 8-11 (WBH pp.39-40): each Close/Near/Far secondary has its own
+    # centred orbits, extending to its Orbit# minus 3, reduced by adjacent-zone
+    # neighbours and by eccentricity.
+    _assign_secondary_orbit_allowances(system)
+
     # A system must always offer somewhere to put its worlds; if exclusion
     # zones swallowed everything, fall back to the outermost usable band.
     if not primary_group.available_orbits:
@@ -201,6 +206,52 @@ def calculate_available_orbits(system: StellarSystem, model='simple'):
             primary_group.available_orbits = [(start, 20.0)]
         else:
             primary_group.available_orbits = [(floor, max(floor + 1.0, 20.0))]
+
+_ZONE_ORDER = ['Close', 'Near', 'Far']
+
+def _assign_secondary_orbit_allowances(system: StellarSystem):
+    """Rules 8-11 (WBH pp.39-40): a Close, Near or Far secondary may hold its
+    own worlds in orbits centred on itself.
+
+    The allowance runs to its Orbit# minus 3, reduced by one Orbit# if the
+    system has a star in an adjacent zone, by one more if it or an
+    adjacent-zone star is eccentric beyond 0.2, and by another if its own
+    eccentricity exceeds 0.5. Each condition triggers only once."""
+    secondaries = [s for s in system.stars
+                   if s.parent and s.orbit_class in _ZONE_ORDER]
+    if not secondaries:
+        return
+
+    occupied_zones = {s.orbit_class for s in secondaries}
+
+    for star in secondaries:
+        allowance = star.orbit_num - 3.0
+
+        # Rule 9: a star in an adjacent zone crowds this one
+        index = _ZONE_ORDER.index(star.orbit_class)
+        neighbours = []
+        if index > 0:
+            neighbours.append(_ZONE_ORDER[index - 1])
+        if index < len(_ZONE_ORDER) - 1:
+            neighbours.append(_ZONE_ORDER[index + 1])
+        if any(zone in occupied_zones for zone in neighbours):
+            allowance -= 1.0
+
+        # Rule 10: eccentricity of this star or an adjacent-zone star
+        eccentric_neighbour = any(
+            other.eccentricity > 0.2 for other in secondaries
+            if other.orbit_class in neighbours)
+        if star.eccentricity > 0.2 or eccentric_neighbour:
+            allowance -= 1.0
+
+        # Rule 11: strongly eccentric stars lose another Orbit#
+        if star.eccentricity > 0.5:
+            allowance -= 1.0
+
+        if allowance > star.mao and allowance > 0:
+            star.available_orbits = [(max(0.01, star.mao), round(allowance, 3))]
+        else:
+            star.available_orbits = []
 
 def calculate_baseline_and_spread(system: StellarSystem):
     """Determines the system's baseline number, baseline orbit, and orbital spread."""

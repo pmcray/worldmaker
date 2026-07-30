@@ -115,6 +115,13 @@ class Satellite:
     tech_heavy: int = 0
     tech_novelty: int = 0
     technology_profile: str = ""
+    # Starport facilities and military (WBH pp.193-208)
+    starport_facilities: Dict[str, Any] = field(default_factory=dict)
+    military_branches: Dict[str, int] = field(default_factory=dict)
+    military_budget_pct: float = 0.0
+    military_budget: float = 0.0
+    state_of_readiness: str = ""
+    military_profile: str = ""
     # Economic extension (WBH pp.185-199)
     importance: int = 0
     resources: int = 0
@@ -195,6 +202,15 @@ class Sophont:
     psychology: str = ""           # Social instinct, Aggression level
     evolutionary_track: str = ""   # Aquatic, Plains, Desert, etc.
     history_summary: str = ""
+    # Sophont Physical Characteristics D66 results (SCG pp.52-54)
+    symmetry: str = ""
+    limb_count: str = ""
+    manipulators: str = ""
+    environment: str = ""
+    behaviour: str = ""
+    gender: str = ""
+    characteristic_rolls: Dict[str, Any] = field(default_factory=dict)
+    characteristic_dms: Dict[str, int] = field(default_factory=dict)
 
 @dataclass
 class Polity:
@@ -318,6 +334,13 @@ class PlanetaryBody:
     tech_heavy: int = 0
     tech_novelty: int = 0
     technology_profile: str = ""
+    # Starport facilities and military (WBH pp.193-208)
+    starport_facilities: Dict[str, Any] = field(default_factory=dict)
+    military_branches: Dict[str, int] = field(default_factory=dict)
+    military_budget_pct: float = 0.0
+    military_budget: float = 0.0
+    state_of_readiness: str = ""
+    military_profile: str = ""
     # Economic extension (WBH pp.185-199)
     importance: int = 0
     resources: int = 0
@@ -401,6 +424,7 @@ class StellarSystem:
     allegiance: str = "Na"
     bases: List[str] = field(default_factory=list)
     travel_zone: str = ""  # "" = Green, "A" = Amber, "R" = Red
+    has_highport: bool = False
 
     @property
     def primary_star(self):

@@ -1,115 +1,288 @@
+"""Sophont design (SCG pp.50-60).
+
+Minor races are generated from the Sophont Physical Characteristics table, a
+D66 table whose 36 outcomes fall into six categories keyed by the first die:
+symmetry, limb count, manipulator type, environment, behaviour and gender.
+Major races of Charted Space are catalogued rather than rolled.
+"""
 import random
-from typing import List, Dict, Any, Tuple, Optional
+from typing import Any, Dict, List
 
 from .classes import Sophont, CulturalProfile
 from .utils import Utils
 
-# Classic Traveller Major Races catalog
-MAJOR_RACES = {
-    "Aslan": {
-        "morphology": "Bilateral (Feline-analogues)",
-        "limbs": "4 limbs (2 arms, 2 legs, retractible claws)",
-        "sensory_organs": ["Standard Vision (High Low-light)", "Acute Hearing"],
-        "reproduction": "Sexual (Dimorphic)",
-        "diet": "Carnivore (Hunter)",
-        "psychology": "High honor, territorial social grouping",
-        "evolutionary_track": "Forest / Plains predators",
-        "history_summary": "Highly expansive space-faring empire ruled by clan structure."
-    },
-    "Zhodani": {
-        "morphology": "Bilateral (Humaniti)",
-        "limbs": "4 limbs (2 arms, 2 legs)",
-        "sensory_organs": ["Standard Human Senses", "Psionic Sensitivity"],
-        "reproduction": "Sexual",
-        "diet": "Omnivore",
-        "psychology": "Highly cohesive, caste-oriented, psionically cooperative",
-        "evolutionary_track": "Temperate plains",
-        "history_summary": "Stable, long-standing consulate ruled by psionic noble castes."
-    },
-    "Vargr": {
-        "morphology": "Bilateral (Canine-analogues)",
-        "limbs": "4 limbs (2 arms, 2 legs)",
-        "sensory_organs": ["Olfactory dominant", "Low-light vision"],
-        "reproduction": "Sexual",
-        "diet": "Carnivore",
-        "psychology": "High charisma drive, decentralized, authority-shifting pack focus",
-        "evolutionary_track": "Plains hunter",
-        "history_summary": "Highly fragmented polities spanning the Vargr Extents."
-    },
-    "Imperial Human": {
-        "morphology": "Bilateral (Vilani/Solomani)",
-        "limbs": "4 limbs (2 arms, 2 legs)",
-        "sensory_organs": ["Standard Senses"],
-        "reproduction": "Sexual",
-        "diet": "Omnivore",
-        "psychology": "Individualistic, highly adaptable",
-        "evolutionary_track": "Grassland / Savannah",
-        "history_summary": "Part of the multi-world feudal structure of the Third Imperium."
-    }
+# Sophont Physical Characteristics (SCG pp.52-54), the full D66 table.
+SYMMETRY = {
+    1: ("Amorphous", "no defined shape, or able to transform it"),
+    2: ("Asymmetrical", "no symmetry, or symmetry broken between sides"),
+    3: ("Bilateral", "two sides, one mirroring the other"),
+    4: ("Spherical", "limbs protruding symmetrically in three dimensions"),
+    5: ("Radial", "four or more degrees of symmetry about a central axis"),
+    6: ("Trilateral", "a threefold axis of symmetry"),
 }
 
-def generate_minor_race(homeworld_hex: str, name: str = "") -> Sophont:
-    """Procedurally generates a detailed Minor Sophont Race based on SCG rules."""
+LIMBS = {
+    1: ("Bipod", "two limbs, or one per degree of symmetry"),
+    2: ("Hexapod", "six limbs, or three per degree of symmetry"),
+    3: ("Decapod", "ten limbs, or five per degree of symmetry"),
+    4: ("Many-limbed", "six or more limbs per degree of symmetry"),
+    5: ("Octopod", "eight limbs, or four per degree of symmetry"),
+    6: ("Tetrapod", "four limbs, or two per degree of symmetry"),
+}
+
+MANIPULATORS = {
+    1: ("Grasper", "three or more mutually opposed digits that clamp"),
+    2: ("Gripper", "two opposed flaps or digits that clamp"),
+    3: ("Hand", "two groups of opposed digits that hold"),
+    4: ("Paw", "multiple unopposed digits that hold"),
+    5: ("Socket", "hollows or suckers that hold"),
+    6: ("Tentacle", "flexible digits that entwine or coil"),
+}
+
+ENVIRONMENT = {
+    1: ("Amphibian", "survives in both gaseous and liquid environments"),
+    2: ("Aquatic", "evolved for a primarily liquid environment"),
+    3: ("Floating", "floats in air or on liquid through buoyancy"),
+    4: ("Flying", "actively flies or glides"),
+    5: ("Subterranean", "lives beneath the surface, burrowing"),
+    6: ("Triphibian", "survives in air, on the surface and in liquid"),
+}
+
+BEHAVIOUR = {
+    1: ("Carnivore", "subsists by hunting motile prey"),
+    2: ("Herbivore", "subsists on immotile food"),
+    3: ("Immobile", "immobile or extremely slow; autotroph or filter-feeder"),
+    4: ("Omnivore", "a generalist, eating motile and immotile food alike"),
+    5: ("Parasite", "nourished through a parasitic or mutualistic bond"),
+    6: ("Scavenger", "harvests food from lifeforms it did not kill"),
+}
+
+GENDER = {
+    1: ("Asexual", "reproduces by budding, cloning or splitting"),
+    2: ("Extreme gender dimorphism", "genders differ enormously in size or plan"),
+    3: ("Hermaphrodite", "individuals are serially or simultaneously multi-gendered"),
+    4: ("Metamorphic life cycle", "multiple stages separated by metamorphosis"),
+    5: ("Multiple sexes", "three or more genders are needed to reproduce"),
+    6: ("Non-intelligent gender", "one or more genders are not sophont"),
+}
+
+_CATEGORIES = [
+    ('symmetry', SYMMETRY),
+    ('limbs', LIMBS),
+    ('manipulators', MANIPULATORS),
+    ('environment', ENVIRONMENT),
+    ('behaviour', BEHAVIOUR),
+    ('gender', GENDER),
+]
+
+# Sensory organs are not a D66 category in the guide; these follow the
+# environment a species evolved in.
+_SENSES_BY_ENVIRONMENT = {
+    'Aquatic': ["Pressure-sensitive lateral line", "Sonar echo-location",
+                "Electroreception", "Low-light vision"],
+    'Amphibian': ["Wide-spectrum vision", "Pressure sense", "Chemical taste-feelers"],
+    'Triphibian': ["Wide-spectrum vision", "Pressure sense", "Acute hearing"],
+    'Flying': ["Acute distance vision", "Magnetic field sense", "Air-pressure organs"],
+    'Floating': ["Barometric pressure organs", "Wide-angle vision"],
+    'Subterranean': ["Infrared thermal pits", "Vibration sense", "Acute olfaction"],
+}
+_DEFAULT_SENSES = ["Standard vision and hearing", "Acute olfaction",
+                   "Ultraviolet vision", "Infrared thermal pits",
+                   "Chemical taste-feelers"]
+
+_PREFIXES = ["Chil", "Dra", "Eld", "Flax", "Grom", "Hyth", "Isk", "Kro", "Lur",
+             "Mrax", "Nax", "Oph", "Pru", "Qur", "Scy", "Tla", "Urr", "Vux",
+             "Zad", "Bel", "Cyr", "Dho", "Esh", "Gith", "Jal", "Khe", "Mor"]
+_SUFFIXES = ["ian", "ax", "oid", "ite", "on", "ar", "i", "eth", "ur", "ka",
+             "esh", "ai", "ori", "un"]
+
+
+# Classic Traveller Major Races catalogue
+MAJOR_RACES = {
+    "Aslan": {
+        "symmetry": "Bilateral", "limbs": "Tetrapod",
+        "manipulators": "Hand (retractile claws)",
+        "environment": "Subterranean-descended plains dweller",
+        "behaviour": "Carnivore", "gender": "Extreme gender dimorphism",
+        "morphology": "Bilateral (feline analogues)",
+        "sensory_organs": ["Low-light vision", "Acute hearing"],
+        "psychology": "High honour, territorial clan grouping",
+        "evolutionary_track": "Forest and plains predators",
+        "history_summary": "Expansive spacefaring hierate ruled by clan structure.",
+    },
+    "Zhodani": {
+        "symmetry": "Bilateral", "limbs": "Tetrapod", "manipulators": "Hand",
+        "environment": "Amphibian-descended plains dweller",
+        "behaviour": "Omnivore", "gender": "Multiple sexes",
+        "morphology": "Bilateral (Humaniti)",
+        "sensory_organs": ["Standard human senses", "Psionic sensitivity"],
+        "psychology": "Cohesive, caste-oriented, psionically cooperative",
+        "evolutionary_track": "Temperate plains",
+        "history_summary": "Long-standing consulate ruled by psionic noble castes.",
+    },
+    "Vargr": {
+        "symmetry": "Bilateral", "limbs": "Tetrapod", "manipulators": "Paw",
+        "environment": "Subterranean-descended plains dweller",
+        "behaviour": "Carnivore", "gender": "Extreme gender dimorphism",
+        "morphology": "Bilateral (canine analogues)",
+        "sensory_organs": ["Olfactory dominant", "Low-light vision"],
+        "psychology": "Charisma-driven, decentralised, authority-shifting packs",
+        "evolutionary_track": "Plains hunter",
+        "history_summary": "Fragmented polities spanning the Vargr Extents.",
+    },
+    "Imperial Human": {
+        "symmetry": "Bilateral", "limbs": "Tetrapod", "manipulators": "Hand",
+        "environment": "Amphibian-descended savannah dweller",
+        "behaviour": "Omnivore", "gender": "Multiple sexes",
+        "morphology": "Bilateral (Vilani/Solomani)",
+        "sensory_organs": ["Standard senses"],
+        "psychology": "Individualistic, highly adaptable",
+        "evolutionary_track": "Grassland and savannah",
+        "history_summary": "Part of the feudal structure of the Third Imperium.",
+    },
+}
+
+
+def roll_d66_characteristic(category: str = None) -> Dict[str, str]:
+    """Rolls one entry on the Sophont Physical Characteristics table.
+
+    Pass a category name to roll within it; otherwise the first die selects
+    the category, as the table intends."""
+    if category is None:
+        first = Utils.D6()
+        name, table = _CATEGORIES[first - 1]
+    else:
+        match = next((c for c in _CATEGORIES if c[0] == category), None)
+        if match is None:
+            raise ValueError(f"unknown category {category!r}")
+        name, table = match
+
+    second = Utils.D6()
+    value, description = table[second]
+    return {'category': name, 'value': value, 'description': description}
+
+
+def generate_sophont_name(used: set = None) -> str:
+    for _ in range(100):
+        name = random.choice(_PREFIXES) + random.choice(_SUFFIXES)
+        if used is None or name not in used:
+            if used is not None:
+                used.add(name)
+            return name
+    return random.choice(_PREFIXES) + random.choice(_SUFFIXES)
+
+
+def generate_minor_race(homeworld_hex: str, name: str = "",
+                        world: Any = None) -> Sophont:
+    """Generates a minor sophont race by rolling once in each of the six
+    categories of the Sophont Physical Characteristics table (SCG p.53)."""
     if not name:
-        prefixes = ["Chil", "Dra", "Eld", "Flax", "Grom", "Hyth", "Isk", "Kro", "Lur", "Mrax", "Nax", "Oph", "Pru", "Qur", "Scy", "Tla", "Urr", "Vux", "Zad"]
-        suffixes = ["ian", "ax", "oid", "ite", "on", "ar", "i", "eth", "ur"]
-        name = random.choice(prefixes) + random.choice(suffixes)
+        name = generate_sophont_name()
 
-    # Procedural biology rolls (SCG pp. 50-60)
-    morphology_options = ["Bilateral Symmetry", "Radial Symmetry", "Spherical", "Amorphous / Fluidic"]
-    morphology = random.choice(morphology_options)
+    rolled = {c[0]: roll_d66_characteristic(c[0]) for c in _CATEGORIES}
 
-    limbs_options = ["2 arms, 2 legs", "4 arms, 2 legs", "6 multi-segmented legs", "8 tentacles", "No limbs (uses cilia or slithers)"]
-    limbs = random.choice(limbs_options)
+    symmetry = rolled['symmetry']['value']
+    limbs = rolled['limbs']['value']
+    manipulators = rolled['manipulators']['value']
+    environment = rolled['environment']['value']
+    behaviour = rolled['behaviour']['value']
+    gender = rolled['gender']['value']
 
-    sensory_list = [
-        "Standard Vision & Hearing", "Infrared Thermal Pits", "Ultraviolet Vision",
-        "High-Frequency Sonar Echo-location", "Electromagnetic Field Receptors",
-        "Chemical Taste-feelers", "Barometric Pressure Organs"
-    ]
-    random.shuffle(sensory_list)
-    sensory_organs = sensory_list[:random.randint(1, 3)]
+    senses = list(_SENSES_BY_ENVIRONMENT.get(environment, _DEFAULT_SENSES))
+    random.shuffle(senses)
+    senses = senses[:random.randint(1, min(3, len(senses)))]
 
-    reproduction_options = ["Sexual (Dimorphic)", "Asexual (Fission)", "Spore-based cyclical lifecycle", "Egg-laying parthenogenesis"]
-    reproduction = random.choice(reproduction_options)
-
-    diet_options = ["Carnivore (Hunter)", "Carnivore (Pouncer)", "Herbivore (Grazer)", "Herbivore (Browser)", "Omnivore", "Chemosynthetic autotroph"]
-    diet = random.choice(diet_options)
-
-    psychology_options = ["Highly cooperative (Hive-like structure)", "Solitary and territorial", "Fiercely xenophobic and protective", "Inquisitive and exploration-driven", "Decentralized and shifting packs"]
-    psychology = random.choice(psychology_options)
-
-    evolution_options = ["Aquatic ocean depths", "Arboreal rainforest canopy", "Arid rocky desert canyons", "Subterranean cavern complexes", "High-gravity plains"]
-    evolutionary_track = random.choice(evolution_options)
+    # Psychology follows from ecological role and social pressures
+    if behaviour in ('Carnivore', 'Parasite'):
+        psychology = random.choice([
+            "Solitary and territorial", "Cooperative pack hunters",
+            "Ambush-oriented and patient"])
+    elif behaviour == 'Herbivore':
+        psychology = random.choice([
+            "Highly gregarious herd society", "Cautious and consensus-driven"])
+    elif behaviour == 'Immobile':
+        psychology = random.choice([
+            "Contemplative, communicating chemically",
+            "Deeply conservative, with long deliberation"])
+    else:
+        psychology = random.choice([
+            "Inquisitive and exploration-driven",
+            "Opportunistic and adaptable",
+            "Decentralised and shifting alliances"])
 
     sophont = Sophont(
         name=name,
         homeworld_hex=homeworld_hex,
         is_major=False,
-        morphology=morphology,
-        limbs=limbs,
-        sensory_organs=sensory_organs,
-        reproduction=reproduction,
-        diet=diet,
+        morphology=f"{symmetry}, {limbs}",
+        limbs=f"{limbs} with {manipulators.lower()} manipulators",
+        sensory_organs=senses,
+        reproduction=gender,
+        diet=behaviour,
         psychology=psychology,
-        evolutionary_track=evolutionary_track,
-        history_summary=f"Procedurally generated minor race native to system hex {homeworld_hex}."
+        evolutionary_track=f"{environment} ({rolled['environment']['description']})",
+        history_summary=(
+            f"{name} are a {symmetry.lower()} {limbs.lower()} species native "
+            f"to hex {homeworld_hex}: {rolled['behaviour']['description']}, "
+            f"{rolled['environment']['description']}."),
     )
+
+    sophont.symmetry = symmetry
+    sophont.limb_count = limbs
+    sophont.manipulators = manipulators
+    sophont.environment = environment
+    sophont.behaviour = behaviour
+    sophont.gender = gender
+    sophont.characteristic_rolls = rolled
+
+    # Physical characteristic DMs the guide suggests for the species
+    # (SCG p.55): body plan and niche shift Strength, Dexterity and Endurance.
+    dms = {'STR': 0, 'DEX': 0, 'END': 0}
+    if limbs in ('Many-limbed', 'Octopod', 'Decapod'):
+        dms['DEX'] += 1
+    if manipulators in ('Hand', 'Grasper'):
+        dms['DEX'] += 1
+    elif manipulators in ('Socket', 'Paw'):
+        dms['DEX'] -= 1
+    if environment == 'Aquatic':
+        dms['STR'] += 1
+        dms['DEX'] -= 1
+    elif environment == 'Flying':
+        dms['STR'] -= 2
+        dms['DEX'] += 2
+    elif environment == 'Subterranean':
+        dms['STR'] += 1
+        dms['END'] += 1
+    if behaviour == 'Carnivore':
+        dms['STR'] += 1
+    elif behaviour in ('Herbivore', 'Immobile'):
+        dms['END'] += 1
+    sophont.characteristic_dms = dms
+
     return sophont
 
+
 def get_major_race(name: str, homeworld_hex: str) -> Sophont:
-    """Returns a pre-defined Major Sophont Race."""
+    """Returns a catalogued Major Race of Charted Space."""
     data = MAJOR_RACES.get(name, MAJOR_RACES["Imperial Human"])
-    return Sophont(
+    sophont = Sophont(
         name=name,
         homeworld_hex=homeworld_hex,
         is_major=True,
         morphology=data["morphology"],
-        limbs=data["limbs"],
-        sensory_organs=data["sensory_organs"],
-        reproduction=data["reproduction"],
-        diet=data["diet"],
+        limbs=f"{data['limbs']} with {data['manipulators'].lower()}",
+        sensory_organs=list(data["sensory_organs"]),
+        reproduction=data["gender"],
+        diet=data["behaviour"],
         psychology=data["psychology"],
         evolutionary_track=data["evolutionary_track"],
-        history_summary=data["history_summary"]
+        history_summary=data["history_summary"],
     )
+    sophont.symmetry = data["symmetry"]
+    sophont.limb_count = data["limbs"]
+    sophont.manipulators = data["manipulators"]
+    sophont.environment = data["environment"]
+    sophont.behaviour = data["behaviour"]
+    sophont.gender = data["gender"]
+    sophont.characteristic_dms = {'STR': 0, 'DEX': 0, 'END': 0}
+    return sophont

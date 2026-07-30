@@ -34,6 +34,7 @@ from .economics import generate_economics
 from .government import generate_government_details
 from .population import generate_population_details
 from .technology import generate_technology_profile
+from .starport import detail_starport_and_military
 from .society import (
     generate_mainworld_uwp,
     generate_trade_codes,
@@ -219,6 +220,9 @@ def generate_full_system(name="Random System", population_dm=0) -> StellarSystem
         generate_technology_profile(mainworld)
         generate_economics(mainworld, system)
         generate_social_details(mainworld)
+        # Starport facilities and military come last: both draw on the
+        # economic and cultural results.
+        detail_starport_and_military(mainworld, system)
 
     for world in system.all_worlds:
         if world.body_type == 'Terrestrial':

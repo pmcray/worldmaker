@@ -28,6 +28,18 @@ from .population import (
 )
 from .technology import generate_technology_profile, tlm
 from .belts import detail_belt, detail_system_belts
+from .worldmap import (
+    generate_world_terrain,
+    render_world_map_svg,
+    terrain_summary,
+    TERRAIN,
+)
+from .starport import (
+    generate_starport_facilities,
+    generate_military,
+    detail_starport_and_military,
+    STARPORT_FACILITIES,
+)
 from .geophysics import (
     detail_placed_worlds,
     generate_atmosphere,
@@ -48,7 +60,13 @@ from .society import (
     generate_expanded_tech_matrix,
     generate_cultural_profile
 )
-from .sophont import get_major_race, generate_minor_race
+from .sophont import (
+    get_major_race,
+    generate_minor_race,
+    generate_sophont_name,
+    roll_d66_characteristic,
+    MAJOR_RACES,
+)
 from .polity import (
     define_polities,
     define_foreven_polities,
