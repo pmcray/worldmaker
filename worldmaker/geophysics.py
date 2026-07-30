@@ -217,6 +217,189 @@ def generate_life(world: Any) -> str:
 
     return f"Biomass Code: {biomass_rating}, Biocomplexity Code: {biocomplexity_rating}. {desc}"
 
+ROCHE_LIMIT_PD = 1.537  # 1.22 x (2)^(1/3), WBH p.76 simplifying assumption
+AU_KM = 149597870.9
+
+def calculate_hill_sphere_pd(world: PlanetaryBody, system: StellarSystem) -> float:
+    """Hill sphere radius of a world, in planetary diameters (WBH p.76).
+
+    Hill Sphere (AU) = AU x (1 - ecc) x (m / (3M))^(1/3), where m is the
+    world's mass in solar units and M the mass of the stars it orbits."""
+    if world.diameter_km <= 0 or world.orbit_au <= 0:
+        return 0.0
+
+    star_mass = 0.0
+    parent = next((s for s in system.stars
+                   if s.designation == world.parent_star_group), None)
+    if parent:
+        if parent.is_composite:
+            star_mass = sum(s.mass for s in system.stars
+                            if s.designation in parent.components)
+        else:
+            star_mass = parent.mass
+    if star_mass <= 0:
+        star_mass = system.primary_star.mass if system.primary_star else 1.0
+    if star_mass <= 0:
+        return 0.0
+
+    m_solar = max(1e-12, world.mass_terran * 0.000003)
+    hill_au = (world.orbit_au * (1 - world.eccentricity)
+               * (m_solar / (3 * star_mass)) ** (1 / 3))
+    return hill_au * AU_KM / world.diameter_km
+
+def _moon_orbit_pd(mor: float) -> float:
+    """Rolls a moon's orbital distance in planetary diameters using the
+    Moon Orbit Location table (WBH p.76)."""
+    dm = 1 if mor < 60 else 0
+    band = Utils.D6() + dm
+    spread = Utils.D6(2) - 2
+    if band <= 3:      # Inner sixth
+        return spread * mor / 60 + 2
+    elif band <= 5:    # Middle third
+        return spread * mor / 30 + mor / 6 + 3
+    else:              # Outer half
+        return spread * mor / 20 + mor / 2 + 4
+
+def _moon_period_hours(orbit_pd: float, planet_size_equiv: float,
+                       planet_mass_terran: float) -> float:
+    """Period (hours) = 0.176927 x sqrt((PD x Size)^3 / Mp) (WBH p.78)."""
+    if planet_mass_terran <= 0 or orbit_pd <= 0 or planet_size_equiv <= 0:
+        return 0.0
+    return round(0.176927 * math.sqrt((orbit_pd * planet_size_equiv) ** 3
+                                      / planet_mass_terran), 2)
+
+def place_satellites(world: PlanetaryBody, system: StellarSystem):
+    """Assigns orbital distances and periods to a world's satellites, and
+    converts moons that cannot exist into rings (WBH pp.75-78).
+
+    Moons live between the Roche limit (1.537 PD) and the Hill Sphere Moon
+    Limit (half the Hill sphere). If that limit falls below 1.5 PD no
+    significant moon can survive: the first becomes a ring and the rest are
+    discarded. Below 0.55 PD not even rings persist."""
+    if not world.satellites:
+        return
+
+    hill_pd = calculate_hill_sphere_pd(world, system)
+    world.hill_sphere_pd = round(hill_pd, 3)
+    moon_limit = hill_pd / 2.0
+    world.hill_sphere_moon_limit_pd = round(moon_limit, 3)
+
+    # Size equivalent in 1600km units, so Terra (12,742km) reads as ~8
+    size_equiv = world.diameter_km / 1600.0
+    mass = world.mass_terran
+
+    if moon_limit < 0.55:
+        # Nothing survives here at all
+        world.notes.append("No moons or rings possible: Hill sphere moon limit "
+                           f"{moon_limit:.2f} PD is at the surface")
+        world.satellites = []
+        return
+
+    if moon_limit < 1.5:
+        # Below the Roche limit: the first moon becomes a ring, rest are gone
+        ring = next((s for s in world.satellites if s.is_ring), None)
+        if ring is None:
+            ring = world.satellites[0]
+            ring.is_ring = True
+            ring.size_code = 'R'
+            ring.uwp.size = '0'
+            ring.atmosphere_code = ''
+            ring.hydrographics_code = ''
+        ring.notes.append("Moon(s) reduced to a ring system inside the Roche limit")
+        world.satellites = [ring]
+
+    mor = math.floor(moon_limit) - 2
+    if mor > 200:
+        mor = 200 + len(world.satellites)
+    mor = max(1.0, float(mor))
+
+    for sat in world.satellites:
+        if sat.is_ring:
+            # Ring centre and width in PD (WBH p.78); kept inside the Roche
+            # limit, which is where rings form.
+            centre = 0.4 + ((Utils.D6() - 1) * 5 + (Utils.D6() - 1)) / 30.0
+            width = random.randint(1, 100) / 100.0 * 0.5 + 0.07
+            centre = min(centre, ROCHE_LIMIT_PD - width / 2)
+            sat.orbit_pd = round(max(0.2, centre), 3)
+            sat.ring_width_pd = round(width, 3)
+            sat.period_hours = _moon_period_hours(sat.orbit_pd, size_equiv, mass)
+            continue
+
+        # Significant moons sit outside the Roche limit
+        pd = _moon_orbit_pd(mor)
+        pd += (Utils.D6(2) - 7) / 10.0 * 0.5  # optional linear variance
+        pd = max(ROCHE_LIMIT_PD + 0.1, min(pd, moon_limit))
+        sat.orbit_pd = round(pd, 3)
+        sat.period_hours = _moon_period_hours(pd, size_equiv, mass)
+        sat.eccentricity = round(max(0.0, (Utils.D6(2) - 2) / 100.0), 3)
+        if Utils.D6(2) == 12:
+            sat.retrograde = True
+            sat.notes.append("Retrograde orbit")
+
+def calculate_habitability_rating(world: Any, system: StellarSystem) -> int:
+    """Habitability Rating = 10 + DMs (WBH pp.132-133), for Terragen life."""
+    size = Utils.from_eHex(getattr(world, 'size_code', 0) or 0)
+    atm = Utils.from_eHex(getattr(world, 'atmosphere_code', 0) or 0)
+    hyd = Utils.from_eHex(getattr(world, 'hydrographics_code', 0) or 0)
+    gravity = getattr(world, 'gravity', 0.0) or 0.0
+    temp = getattr(world, 'mean_temperature', 0.0) or 0.0
+
+    dm = 0
+
+    # Size
+    if size <= 4: dm -= 1
+    elif size >= 9: dm += 1
+
+    # Atmosphere
+    if atm in (0, 1, 10): dm -= 8
+    elif atm in (2, 14): dm -= 4
+    elif atm in (3, 13): dm -= 3
+    elif atm in (4, 9): dm -= 2
+    elif atm in (5, 7, 8): dm -= 1
+    elif atm == 11: dm -= 10
+    elif atm == 12 or atm >= 15: dm -= 12
+
+    # Hydrographics
+    if hyd == 0: dm -= 4
+    elif hyd <= 3: dm -= 2
+    elif hyd == 9: dm -= 1
+    elif hyd >= 10: dm -= 2
+
+    # Tidal lock
+    if any('Tidally Locked' in n for n in getattr(world, 'notes', [])):
+        dm -= 2
+
+    # Mean temperature. The book also draws DMs from separately computed high
+    # and low temperatures; where those are not calculated it directs that a
+    # hot or cold world takes DM-2 and a frozen or boiling one DM-6, so the
+    # extremes get the balance of that penalty here.
+    if temp > 323: dm -= 4
+    elif temp >= 304: dm -= 2
+    elif temp < 273: dm -= 2
+    if temp > 0:
+        if temp < 233:        # Frozen
+            dm -= 4
+        elif temp > 373:      # Boiling
+            dm -= 2
+
+    # Gravity; take the worst DM at a boundary, per the book's footnote
+    if gravity > 0:
+        if gravity < 0.2: dm -= 4
+        elif gravity <= 0.4: dm -= 2
+        elif gravity <= 0.7: dm -= 1
+        elif gravity <= 0.9: dm += 1
+        elif gravity <= 1.1: dm += 0
+        elif gravity <= 1.4: dm -= 1
+        elif gravity <= 2.0: dm -= 3
+        else: dm -= 6
+    else:
+        dm += 1 - abs(6 - size)
+
+    # Miscellaneous surveyor adjustment
+    dm += Utils.D3() - 1
+
+    return max(0, min(12, 10 + dm))
+
 def detail_placed_worlds(system: StellarSystem):
     """Generates size and satellite details for all placed worlds."""
     for world in system.all_worlds:

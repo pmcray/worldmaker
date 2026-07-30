@@ -60,7 +60,7 @@ def generate_travel_zones(sector: Sector):
     Law Level total 20+ are Amber candidates, as are Balkanised worlds
     with ongoing conflicts. Red Zones are rare interdictions."""
     for hex_coord, system in sector.systems.items():
-        mainworld = next((w for w in system.all_worlds if w.is_mainworld), None)
+        mainworld = system.mainworld
         if not mainworld:
             continue
 
@@ -90,7 +90,7 @@ def generate_travel_zones(sector: Sector):
 def generate_bases(sector: Sector):
     """Generates bases for systems based on Starport, Allegiance, and defense indicators (SCG rules)."""
     for hex_coord, system in sector.systems.items():
-        mainworld = next((w for w in system.all_worlds if w.is_mainworld), None)
+        mainworld = system.mainworld
         if not mainworld: continue
         
         uwp = mainworld.uwp

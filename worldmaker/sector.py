@@ -92,8 +92,9 @@ def place_native_sophonts(sector: Sector):
         minor_race = generate_minor_race(hex_coord)
         sector.native_sophonts[hex_coord] = minor_race
 
-def _mainworld_of(system: StellarSystem) -> Optional[PlanetaryBody]:
-    return next((w for w in system.all_worlds if w.is_mainworld), None)
+def _mainworld_of(system: StellarSystem):
+    """The system's mainworld, which may be a planet or a significant moon."""
+    return system.mainworld
 
 def calculate_routes(sector: Sector):
     """Calculates trade routes between adjacent systems."""

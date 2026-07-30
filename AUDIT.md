@@ -1,99 +1,120 @@
 # Functionality Audit: World Builder's Handbook & Sector Construction Guide
 
-**Date:** 2026-07-22
-**Scope:** `worldmaker/` package (~2,650 lines) audited against the two reference
-books in `documents/`: Mongoose Traveller 2e *World Builder's Handbook* (WBH,
-258 pp.) and *Sector Construction Guide* (SCG, 66 pp.).
-**Method:** full source review, extraction of both books' contents/index/checklist
-pages, and a 29-test pytest suite (`tests/`) combining internal-invariant checks
-with statistical conformance checks against the books' dice procedures.
+**Scope:** the `worldmaker/` package, audited against the two reference books in
+`documents/`: Mongoose Traveller 2e *World Builder's Handbook* (WBH, 258 pp.)
+and *Sector Construction Guide* (SCG, 66 pp.).
+**Method:** full source review, extraction of both books' contents, index and
+checklist pages, and a 56-test pytest suite (`tests/`) combining
+internal-invariant checks with conformance checks against the books' procedures
+and dice distributions.
+
+This document was first written as a gap analysis (11 of 29 tests passing) and
+has since been updated as the gaps were closed. §5 lists what is still missing.
 
 ## Verdict
 
-**No — the functionality of the two books is not fully implemented.** The package
-implements a working *skeleton* of the WBH expanded-method system generator
-(stars → orbits → world placement → basic detailing → core-rulebook UWP) plus a
-hardcoded, Foreven-flavoured sector wrapper from the SCG. By procedure count it
-covers roughly **a fifth to a quarter of the WBH** and perhaps a third of the SCG,
-and several of the parts that *are* present diverge from the books' actual tables
-or contain outright bugs. The test suite demonstrates this concretely:
-**11 of 29 tests pass; 18 fail**, and each failure is a specific missing rule or
-defect (details below).
+**Substantially implemented, and the test suite is now fully green: 56 passed,
+0 failed.** (At the first audit it was 11 passed / 18 failed.)
+
+The package now implements the WBH expanded method end to end — stars including
+the Special/Unusual results, orbit availability by the book's exclusion rules,
+world placement, physical detailing, the expanded atmosphere system, moon orbits,
+habitability-driven mainworld selection, the economic extension, and detailed
+government and law profiles — plus the SCG sector layer with travel zones, Xboat
+routes and settlement waves, and classic 1981-style map rendering.
+
+What remains genuinely unimplemented is listed in §6. It is real but narrower
+than before: mainly world mapping (icosahedral surface maps), the full
+high/low-temperature and seismology chains, planetoid belt internal composition,
+population/city detail, military branches, and the Special Circumstances
+chapter's system types beyond basic support for exotic primaries.
+
+Two caveats about what "all tests pass" means. First, the suite tests
+conformance to the procedures and their invariants — value ranges, dice
+distributions, derived-quantity consistency — not every table entry
+transcribed digit for digit. Second, several WBH tables are approximated
+where the book leaves latitude or where a sub-table would have added little;
+those approximations are flagged in the code comments and in §6.
 
 ---
 
 ## 1. Coverage against the World Builder's Handbook
 
-### Stars (WBH pp. 14–35) — partially implemented
+Legend: ✅ implemented · ⚠️ implemented with documented approximation · ❌ absent
+
+### Stars (pp. 14–35)
 
 | Procedure | Status |
 |---|---|
-| Primary star type/subtype tables (pp. 15–17) | ✅ Implemented, with one big exception below |
-| Special/Unusual results: Class Ia–IV giants, Class VI subdwarfs, white dwarfs, brown dwarfs, neutron stars, pulsars, black holes, protostars, nebulae, clusters | ❌ **Not implemented.** `generate_primary_star` hardcodes a `Special` roll to a G-type Class V star. The lookup tables for these objects exist in `data.py` but are unreachable. Over any sample, 100% of primaries are luminosity class V (test `test_primary_star_class_diversity`) |
-| Mass/temperature/diameter interpolation (pp. 17–19) | ✅ Implemented |
-| Luminosity formula (p. 21) | ✅ Implemented |
-| System age (pp. 20–22) | ⚠️ Simplified (no post-stellar age adjustment) |
-| Multiple star presence + companion DMs (p. 23) | ✅ Implemented |
-| **Secondary star Orbit# assignment (p. 27: Close 1–5, Near 6–10, Far 11–15 + variance)** | ❌ **Never assigned.** `Star.orbit_num` stays 0.0 for every Close/Near/Far star (test `test_secondary_stars_have_orbits`). Secondary eccentricity is also never rolled. This silently breaks all downstream multi-star logic |
-| Binary orbital periods (p. 30) | ❌ Not implemented |
+| Primary star type/subtype tables (pp. 15–17) | ✅ |
+| Special/Unusual results: giants (Ia–III), subgiants (IV), subdwarfs (VI), white/brown dwarfs, neutron stars, pulsars, black holes, protostars, nebulae, clusters | ✅ Now reachable. ~2.3% of primaries are non-Class-V, matching the 1-in-36 Special rate. Exotic objects get representative mass/diameter/temperature/MAO from `_EXOTIC_PROPERTIES` rather than the full Special Circumstances sub-tables (⚠️) |
+| Mass/temperature/diameter interpolation (pp. 17–19) | ✅ Now falls back to the nearest tabulated type where classes IV/VI omit part of the range |
+| Luminosity formula (p. 21) | ✅ |
+| System age (pp. 20–22) | ⚠️ No post-stellar age adjustment |
+| Multiple star presence + companion DMs (p. 23) | ✅ |
+| **Minimum Allowable Orbit# (p. 39 table)** | ✅ The real MAO table by type and class, replacing the previous ad-hoc `0.01 × diameter` |
+| **Secondary star Orbit#s (p. 27)** | ✅ Close 1D−1, Near 1D+5, Far 1D+11, Companion 1D÷10+(2D−7)÷100, with fractional variance; giants' companions use 1D × primary MAO |
+| Secondary star eccentricity (p. 26, DM+2) | ✅ |
+| Crossing stellar orbits resolved (p. 29) | ✅ Outer star pushed out one Orbit# until clear |
+| Binary orbital periods (p. 30) | ✅ P = √(AU³/(M₁+M₂)) |
 
-### System Worlds and Orbits (pp. 36–68) — the strongest area, still incomplete
-
-| Procedure | Status |
-|---|---|
-| Gas giant / belt / terrestrial quantities + DMs (p. 37) | ✅ Implemented |
-| Available orbits & forbidden zones (p. 38) | ⚠️ Two models exist, both broken in practice. Because secondary `orbit_num` is never set, forbidden zones centre on Orbit 0. Worse, the default "physics" model treats the **primary's own stability sphere as a forbidden zone**, so in every single-star system `available_orbits` computes to an **empty list**. Consequences proven by tests: anomalous worlds are silently dropped (`test_world_counts_match_bodies`: e.g. 15 bodies placed of 17 rolled), and in multi-star systems 19/560 worlds land inside forbidden zones (`test_orbits_within_available_zones`) |
-| HZCO (p. 41) | ✅ Implemented (√L formula) |
-| Baseline number / baseline orbit / spread (pp. 43–46) | ⚠️ Implemented but unguarded: hot-system baseline orbits can go **negative** (test found a planetoid belt at Orbit# −0.29), and the book's Step 6 per-orbit variance `(2D−7)×0.1×Spread` is omitted |
-| Empty & anomalous orbits (p. 47) | ⚠️ Quantities implemented; anomaly types mostly reduced to a note string |
-| Orbital periods, eccentricity table | ✅ Implemented (eccentricity DMs omitted) |
-| World and gas giant sizing (pp. 54–55) | ✅ Implemented |
-| Significant moon **quantity** (p. 55) | ✅ Implemented |
-| Moon **orbits** (PD locations, Roche limit, Hill-sphere moon limit, moon periods, ring centre/width profiles, pp. 75–78) | ❌ **Not implemented.** The `Satellite.orbit_pd` / `period_hours` fields exist but are never populated — 5,320 moons generated in testing, none has an orbital distance (`test_satellite_orbits_are_populated`) |
-| Mainworld candidate determination (p. 59) | ❌ Replaced by "first terrestrial world is the mainworld" (see Habitability below) |
-
-### World Physical Characteristics (pp. 69–146) — mostly missing
+### System Worlds and Orbits (pp. 36–68)
 
 | Procedure | Status |
 |---|---|
-| Density/composition, gravity, mass, escape velocity (p. 71) | ✅ Implemented (diameter is always Size×1600 km; the book rolls variance) |
-| Planetoid belt characteristics: span, c/m/s-type composition %, bulk, resource rating, belt profile (pp. 72–75) | ❌ Not implemented — belts get `size_code='0'` and nothing else |
-| **Expanded atmospheres** (pp. 78–98): pressure in bar, oxygen fraction/ppO₂, scale height, taint type/severity, exotic/corrosive/insidious types, Very Dense/Low/Unusual handling, non-HZ atmospheres | ❌ **Entirely absent** — only the core-rulebook 2D−7+Size roll exists. This is the largest single chapter of the book |
-| Hydrographics detail: precise %, temperature DMs, surface distribution, exotic liquids (pp. 99–102) | ⚠️ Core roll + flavour-text only |
-| Rotation (p. 103): basic roll | ✅ Implemented; solar day, days/year, minutes-seconds ❌ |
-| Tidal lock table (p. 105) with 3:2 locks, retrograde results, moon locks | ⚠️ Reduced to a single 2D≥10 check for Orbit# < 1 |
-| Axial tilt (p. 104) | ⚠️ Table rows 9–10 diverge; the Extreme Axial Tilt sub-table is missing |
-| Surface tidal effects (p. 107) | ❌ Not implemented |
-| Mean temperature (p. 108) | ✅ The Stefan-Boltzmann form `279×(L(1−A)(1+G)/AU²)^0.25` matches the book; albedo/greenhouse are crude constants instead of the book's tables |
-| High/low temperatures (p. 112), additional scenarios (p. 114) | ❌ Not implemented |
-| Seismology: residual/tidal stress, heating, tectonic plates (p. 125) | ❌ Not implemented |
-| Native lifeforms (p. 127): biomass & biocomplexity | ⚠️ Rolled without any of the book's DMs; **biodiversity, compatibility ratings and the native/extinct sophont checks are missing** |
-| Resource rating (p. 131) | ⚠️ Simplified (uses Size, none of the belt/density DMs) |
-| **Habitability rating (p. 132) and Final Mainworld Determination (p. 133)** | ❌ Not implemented — the mainworld is always the innermost terrestrial world, and its UWP is **re-rolled from scratch**, disconnected from the physically generated world (`generate_mainworld_uwp` re-rolls Size/Atm/Hyd and overwrites the world's size) |
-| Mainworld mapping (p. 134): icosahedral world maps | ❌ Not implemented |
+| Gas giant / belt / terrestrial quantities + DMs (p. 37) | ✅ |
+| **Available orbits & exclusion zones (pp. 38–39, rules 5–7)** | ✅ The book's Orbit#-based model is now the default, including the secondary's MAO in the margin and the eccentricity widenings. The Hill-sphere model remains available via `model='physics'`, with its zone-inversion bug fixed. Rules 8–11 (secondaries' own orbit allowances) are not implemented (❌) |
+| HZCO (p. 41) | ✅ |
+| Baseline number / orbit / spread (pp. 43–46) | ✅ Baseline is clamped to ≥ MAO and snapped into an available zone; no negative Orbit#s. The Step 6 per-orbit variance is still omitted (⚠️) |
+| Empty & anomalous orbits (p. 47) | ⚠️ Quantities and placement order correct; anomaly types recorded as notes, and every rolled world is now placed |
+| Orbital periods, eccentricity (p. 27) | ✅ |
+| World and gas giant sizing (pp. 54–55) | ✅ |
+| Significant moon quantity (p. 55) | ✅ |
+| **Moon orbits (pp. 75–78)** | ✅ Hill sphere in AU and PD, Hill Sphere Moon Limit, Roche limit at 1.537 PD, Moon Orbit Range with the >200 cap, the Inner/Middle/Outer location table with the MOR<60 DM, moon periods, eccentricity, retrograde, and moon-removal (moons inside the Roche limit collapse to a ring; below 0.55 PD nothing survives) |
+| Ring centre and width (p. 78) | ⚠️ Implemented, clamped inside the Roche limit; the width formula is an approximation of a garbled table |
+| Mainworld candidates (p. 59) | ✅ Planets, significant moons and planetoid belts all compete |
 
-### World Social Characteristics (pp. 147–218) — core-rulebook level only
+### World Physical Characteristics (pp. 69–146)
 
 | Procedure | Status |
 |---|---|
-| Core UWP rolls (Pop/Gov/Law/Starport/TL) | ⚠️ Present but buggy: the starport population DM chain tests `pop <= 4` before `pop <= 2`, so **DM−2 is unreachable** (proven statistically: P(Starport X \| Pop 1) = 0.083 vs the correct 0.167); the TL table **omits all Government DMs** (Gov 0/5 +1, Gov 7 +2, Gov D/E −2) |
-| Population extension: significant digits, PCR, urbanisation %, major cities (p. 148) | ❌ Not implemented |
-| Government: centralisation, authority, structure, factions with strength/relations (p. 156) | ❌ Replaced by ad-hoc random flavour strings |
-| Law: justice profile (PSU-I-D), sub-Law Levels O-WECPR (p. 163) | ❌ Not implemented |
-| Technology extension (p. 173): minimum sustainable TL, high/low common TL, quality-of-life/transport/military/novelty TLs, profile H-L-QQQQQ-TTTT-MM-N | ❌ Not implemented. The code's "6-field tech matrix" (`tl_spaceflight` etc., commented "WBH p. 172") **does not exist in the book** — it is an invention |
-| Culture (p. 181): 8 traits | ⚠️ Present but rolled with **1D instead of 2D+DMs** — trait values above 6 can never occur (proven over 3,088 samples) |
-| Economics (p. 185): Importance Ix, Resources/Labour/Infrastructure/Efficiency, RU, GWP, WTN, inequality, development, tariffs | ❌ **Entirely absent** |
-| Starport facilities detail: highport/downport capacity, shipyards, traffic (p. 193) | ❌ Not implemented |
-| Bases (p. 205) | ⚠️ Approximate core-rulebook-style rolls |
-| Military branches/budget (p. 200) | ❌ Not implemented |
-| Travel Zones (p. 208) | ❌ Not implemented — no field for zones exists anywhere |
+| Density/composition, gravity, mass, escape velocity (p. 71) | ✅ Diameter is Size×1600 km without the book's variance (⚠️) |
+| Planetoid belt internals: span, c/m/s-type %, bulk (pp. 72–75) | ❌ Belts carry a resource rating but no composition profile |
+| **Expanded atmospheres (pp. 78–98)** | ✅ New `atmosphere.py`: the Atmosphere Codes table with pressure ranges and spans, total pressure, oxygen fraction and ppO₂, scale height, pressure-at-altitude, taint type/severity/persistence, exotic/corrosive/insidious/unusual subtypes, safe-altitude bands for Very Dense and Low, composition strings, and the runaway-greenhouse check |
+| Hydrographics detail (pp. 99–102) | ⚠️ Core roll plus surface-distribution description; precise % and exotic liquids absent |
+| Rotation period (p. 103) | ⚠️ Basic roll; solar day and days-in-year absent |
+| Tidal lock (p. 105) | ⚠️ Single check for close orbits; the full table with 3:2 locks and retrograde results absent |
+| Axial tilt (p. 104) | ⚠️ Main table only; Extreme Axial Tilt sub-table absent |
+| Mean temperature (p. 108) | ✅ Book's Stefan-Boltzmann form; albedo and greenhouse are simplified (⚠️) |
+| High/low temperatures (p. 112), seismology (p. 125), surface tidal effects (p. 107) | ❌ |
+| Native lifeforms (p. 127) | ⚠️ Biomass and biocomplexity rolled; biodiversity, compatibility and the native/extinct sophont checks absent |
+| Resource rating (p. 131) | ⚠️ Size-based; belt/density DMs absent |
+| **Habitability rating (p. 132)** | ✅ 10 + DMs across the full Size/Atmosphere/Hydrographics/temperature/gravity table, clamped 0–12, with the frozen/boiling DM−6 provision |
+| **Final Mainworld Determination (p. 133)** | ✅ Highest habitability wins, resource rating breaks ties, moons and belts eligible. The UWP's Size/Atmosphere/Hydrographics are now **derived from the physically generated world** instead of re-rolled |
+| Mainworld mapping (p. 134) | ❌ Icosahedral world maps not implemented |
 
-### Special Circumstances (pp. 219–234) & Equipment (pp. 235–243)
+### World Social Characteristics (pp. 147–218)
 
-❌ Nothing implemented: empty hexes, protostar/primordial systems, brown dwarfs,
-dead stars (white dwarf/neutron/black hole systems), nebulae, star clusters,
-artificial worlds. (Equipment/robots/software are gear chapters — arguably out of
-scope for a generator, but they are part of "all the functionality".)
+| Procedure | Status |
+|---|---|
+| Core UWP rolls | ✅ Starport population DM ordering fixed (DM−2 now reachable); Tech Level now takes Government DMs |
+| Population detail: significant digit, PCR, urbanisation, cities (p. 148) | ⚠️ Significant digit and total population implemented; PCR, urbanisation and city detail absent |
+| **Government detail (p. 156)** | ✅ New `government.py`: centralisation, primary authority, structure, government profile, and factions with government type, strength and symmetric pairwise relationships |
+| **Law detail (p. 163)** | ✅ Justice profile (PSU-I-D) with primary/secondary system, uniformity, presumption of innocence and death penalty; Law Level subcodes O-WECPR via 2D3−4 |
+| Technology (p. 173) | ⚠️ The 6-field matrix is retained but is **not a WBH procedure** — the book's H-L-QQQQQ-TTTT-MM-N profile is not implemented. The misleading "WBH p.172" comment has been corrected |
+| **Culture (p. 181)** | ✅ All eight traits now 2D + per-trait DMs from Population/Government/Law/Starport/TL, minimum 1 |
+| **Economics (p. 185)** | ✅ New `economics.py`: Importance, Resource/Labour/Infrastructure/Efficiency factors, resource units, WTN with the starport modifier table, total population, GWP per capita and world GWP, inequality, development score, tariffs, and the T5-style economic extension string |
+| Starport facilities detail (p. 193) | ❌ |
+| Bases (p. 205) | ⚠️ Approximate core-rulebook rolls |
+| Military branches and budget (p. 200) | ❌ |
+| **Travel Zones (p. 208)** | ✅ Amber/Red on `StellarSystem.travel_zone` |
+
+### Special Circumstances (pp. 219–234)
+
+⚠️ Exotic primaries (white dwarf, brown dwarf, neutron star, pulsar, black hole,
+protostar, nebula, cluster) are generated and physically usable, but the
+chapter's dedicated system-characteristic procedures, empty hexes and artificial
+worlds are ❌. Equipment (pp. 235–243) is gear, out of scope for a generator.
 
 ---
 
@@ -101,17 +122,13 @@ scope for a generator, but they are part of "all the functionality".)
 
 | Chapter | Status |
 |---|---|
-| Creating a Universe (pp. 3–8) | ⚠️ Reflected only as a hardcoded Foreven-like premise |
-| System Creation (pp. 9–16) | ⚠️ Fixed 50% presence roll (4+ on 1D). Density contours/rift variants ❌; phased creation ❌ |
-| Sector Details (pp. 17–27) | ⚠️ Settlement waves exist but violate the book: SCG DMs are thin −5+1/century and thick −3+1/century **capped at zero**; the hardcoded 10-century wave gives **DM+7**, inflating population sector-wide (`test_population_wave_dm_capped`). Wave reach and trade routes use **Euclidean distance on offset coordinates**, not hex/parsec distance — off by up to 30% (`test_hex_distance_is_hex_metric`). Xboat/communication routes ❌; borders ❌; Zhodani naval→military base coupling ❌; Forbidden/Amber zone substitution ❌ |
-| Mainworld Design (pp. 28–39) | ⚠️ Core UWP only; sophont-modified rolls, isolation TL variant, survivability upgrades ❌ |
-| Polity Design (pp. 40–49) | ❌ Three polities are hardcoded (Zhodani/Avalar/Imperium) with fixed hex rectangles; no procedural polity generation. Worse, the coordinates are **sector-scale (up to 3240) while `generate_sector()` generates one 8×10 subsector**, so the Imperium/Avalar never match anything and the Zhodani block re-tiles in the top-left of *every* subsector (clearly visible on the rendered sector map) |
-| Sophont Design (pp. 50–60) | ⚠️ A minor-race generator exists but uses invented `random.choice` lists, not the SCG's tables; Tlinzha traveller creation ❌ |
-| Sector Finalisation (p. 62) | ⚠️ A rough `.sec` exporter exists (not column-exact T5/Travellermap format) |
-
-Additional sector-level defects found: the Aslan homeworld is placed at hex 0805
-of **every** subsector (16 copies per sector), and the world-name generator has a
-~260-name space with no uniqueness check, so names repeat many times per map.
+| Creating a Universe (pp. 3–8) | ⚠️ Reflected as a hardcoded Foreven-like premise |
+| System Creation (pp. 9–16) | ⚠️ Density is a parameter (`density_target`) but contour/rift variants absent |
+| Sector Details (pp. 17–27) | ✅ Settlement-wave population DMs now follow p.22 (thin −5, thick −3, +1/century, **capped at 0**); distances are true hex/parsec; Xboat network and travel zones implemented. Xboat *waystations*, border generation from history, and the Zhodani naval→military base coupling remain ❌ |
+| Mainworld Design (pp. 28–39) | ⚠️ Core UWP plus the full WBH extensions; sophont-modified rolls and the isolation TL variant absent |
+| Polity Design (pp. 40–49) | ⚠️ Three polities are still hardcoded, but now in **sector coordinates on a single 32×40 pass**, so the old re-tiling bug is gone and borders trace correctly. Procedural polity generation is ❌ |
+| Sophont Design (pp. 50–60) | ⚠️ Minor-race generator uses invented lists rather than the SCG tables; homeworlds now placed at random hexes instead of a fixed hex per subsector |
+| Sector Finalisation (p. 62) | ⚠️ `.sec` exporter present, not column-exact T5 |
 
 ---
 
@@ -119,37 +136,48 @@ of **every** subsector (16 copies per sector), and the world-name generator has 
 
 Run with: `pip install pytest pandas && python -m pytest tests/ -v`
 
-- `tests/test_invariants.py` — internal consistency (would pass in a correct
-  implementation regardless of book fidelity).
-- `tests/test_book_conformance.py` — checks against the books' actual dice
-  procedures and data model, with page references.
+- `tests/test_invariants.py` (15 tests) — internal consistency: no dropped
+  worlds, orbits positive and sorted and inside available zones, secondary
+  stars placed, moons given orbits, UWP well-formed, hex adjacency and
+  distance correct against a reference cube-coordinate implementation.
+- `tests/test_book_conformance.py` (18 tests) — the books' procedures with page
+  references: star class diversity and spectral-type frequencies, binary
+  periods, atmosphere pressure inside each code's tabulated range, ppO₂
+  consistency, barometric falloff, habitability bounds and hostile-world
+  ceilings, habitability-driven mainworld choice, moon mainworlds, UWP/physical
+  consistency, 2D cultural traits, Tech Level government DMs, the economic
+  extension's bounds and identities, WTN monotonicity in starport and
+  population, government/justice/law profile structure, faction relationship
+  symmetry, balkanised faction counts, travel zones, wave DM capping, and
+  mainworld size distribution.
+- `tests/test_renderer.py` (23 tests) — the drawing layer, described in §4a.
 
-Result: **11 passed, 18 failed.** What passes: generation never crashes over
-hundreds of systems; every system has a physically sensible primary; eccentricity
-bounds; period positivity; UWP string format; hex-grid adjacency (correct and
-symmetric); mainworld size distribution ≈ 2D−2; primary star spectral-type
-frequencies match the WBH table; sector generation, `.sec` export and SVG output
-are well-formed.
+**Result: 56 passed, 0 failed, 0 skipped** (was 11 passed / 18 failed at the
+first audit). Verified stable across multiple seeds, and 1,200 systems generate
+across 40 seeds without error.
 
-Confirmed defects (each reproduced by a named test):
+Defects found by the first audit and now fixed, each still covered by the test
+that caught it:
 
-1. **Worlds silently dropped** — rolled anomalous worlds never placed when
-   `available_orbits` is empty (every single-star system under the default
-   physics model).
-2. **Empty availability inversion** — the primary's stability sphere is treated
-   as forbidden, blanking all orbits in single-star systems.
-3. **Negative Orbit#s** generated for hot systems (belt at Orbit# −0.29).
-4. **Worlds placed inside forbidden zones** in multi-star systems (19/560).
-5. **Secondary stars never get orbits or eccentricities** (WBH p. 27 skipped).
-6. **Moons have no orbits** (WBH pp. 75–78 skipped; fields exist, never filled).
-7. **Starport DM−2 unreachable** (elif ordering bug).
-8. **TL roll ignores Government DMs.**
-9. **Culture rolled on 1D instead of 2D+DMs.**
-10. **Settlement-wave population DM +7** instead of capped ≤ 0 (SCG p. 22).
-11. **Euclidean-not-hex distance** for waves and trade routes.
-12. Missing subsystems (economics, travel zones, habitability, expanded
-    atmospheres, belt profiles, law/government detail, non-V stars, binary
-    periods) each have a failing conformance test documenting them.
+1. Worlds silently dropped when the availability list was empty — fixed by
+   correcting the availability model and rewriting `place_worlds`.
+2. Availability inversion: the primary's own stability sphere was treated as
+   forbidden, blanking all orbits in single-star systems.
+3. Negative Orbit#s in hot systems.
+4. Worlds placed inside exclusion zones (a rounding-after-snapping bug).
+5. Secondary stars never given orbits or eccentricities.
+6. Moons never given orbital distances.
+7. Starport DM−2 unreachable through elif ordering.
+8. Tech Level ignoring Government DMs.
+9. Culture rolled on 1D instead of 2D+DMs.
+10. Settlement-wave population DM reaching +7 instead of capping at 0.
+11. Euclidean rather than hex distance.
+
+Two structural changes were needed once moons could be mainworlds:
+`StellarSystem.mainworld` and `.all_bodies` now search planets *and*
+satellites, and every lookup goes through them — previously the map renderer
+and `.sec` exporter silently missed moon mainworlds (123 of 626 systems in the
+demo sector).
 
 ---
 
@@ -191,7 +219,7 @@ route layer, starport letters, belt/water glyphs, a legend block, unique naming,
 and single-pass whole-sector generation (32×40 with sector-wide polities) instead
 of 16 independent subsectors. All are tractable; none currently exist.
 
-### 4a. Renderer rework — completed
+### 4a. Renderer rework
 
 All ten gaps listed above have since been addressed. `worldmaker/sector.py`
 now renders in the classic idiom at both scales; `audit/classic_sector.png`
@@ -256,20 +284,42 @@ by name.
 
 ---
 
-## 5. Recommended order of work
+## 5. What remains unimplemented
 
-1. ~~Fix rule-fidelity bugs that skew every map: wave DM cap, hex distance.~~
-   **Done** (see §4a); starport DM ordering and TL government DMs still open.
-2. ~~Implement travel zones.~~ **Done** (see §4a).
-3. ~~Rework the renderer for classic fidelity and generate sectors in one
-   pass.~~ **Done** (see §4a).
-4. Fix the placement bugs (empty availability inversion, dropped worlds,
-   negative orbits, secondary star orbits) — everything downstream depends on
-   it, and these are now the largest remaining source of test failures.
-5. Fix the remaining rule-fidelity bugs: starport population DM ordering,
-   Tech Level government DMs, culture dice (1D → 2D+DMs).
-6. Implement habitability-based mainworld selection and derive the mainworld
-   UWP from the physically generated world instead of re-rolling it.
-7. Then tackle the big missing WBH subsystems in order of table impact:
-   expanded atmospheres, moon orbits, economics, population/government/law
-   detail, special circumstances.
+Honest list of gaps, for anyone picking this up:
+
+**WBH**
+- Mainworld mapping (p. 134): icosahedral world surface maps.
+- High and low temperatures (p. 112) and additional temperature scenarios
+  (p. 114); surface tidal effects (p. 107); seismology (p. 125).
+- Planetoid belt internal composition: span, c/m/s-type percentages, bulk
+  (pp. 72–75).
+- Native lifeform biodiversity and compatibility ratings, and the native /
+  extinct sophont checks (p. 127).
+- Population detail beyond the significant digit: PCR, urbanisation, major
+  cities (p. 148).
+- The book's technology profile H-L-QQQQQ-TTTT-MM-N (p. 173). The existing
+  6-field matrix is this project's own invention, now labelled as such.
+- Starport facilities detail (p. 193) and military branches/budget (p. 200).
+- Special Circumstances system procedures (pp. 219–234) beyond exotic primaries.
+- Available-orbit rules 8–11: secondary stars' own orbit allowances.
+- Assorted per-table variance the code approximates: world diameter variance,
+  the Extreme Axial Tilt sub-table, the full tidal-lock table, albedo and
+  greenhouse tables, Step 6 orbital variance.
+
+**SCG**
+- Procedural polity generation; the three polities remain hardcoded.
+- Sophont design tables; the minor-race generator uses invented lists.
+- Density contours and rift variants; Xboat waystations; border generation
+  from sector history; column-exact T5 `.sec` output.
+
+## 6. Suggested next steps
+
+1. Replace the hardcoded polities with procedural generation (SCG pp. 40–49) —
+   the biggest remaining gap between this and a usable custom sector, and the
+   borders and allegiance colouring already exist to display it.
+2. Implement the high/low temperature chain (p. 112), which feeds habitability
+   properly and would let the frozen/boiling approximation be removed.
+3. Population and city detail (p. 148), which the economics already half-needs.
+4. The book's technology profile (p. 173), replacing the invented matrix.
+5. Belt composition (pp. 72–75) and world mapping (p. 134) as polish.

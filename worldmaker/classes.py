@@ -12,7 +12,8 @@ class UWP:
     law_level: str = "0"
     tech_level: str = "0"
     
-    # Expanded 6-field technological matrix (WBH rules)
+    # 6-field technological matrix (this project's own construct, not a WBH
+    # procedure - see generate_expanded_tech_matrix)
     tl_spaceflight: int = 0
     tl_energy: int = 0
     tl_transport: int = 0
@@ -31,6 +32,70 @@ class Satellite:
     size_code: str = ""
     orbit_pd: float = 0.0
     period_hours: float = 0.0
+    eccentricity: float = 0.0
+    retrograde: bool = False
+    ring_width_pd: float = 0.0
+    habitability_rating: int = 0
+    # A significant moon can be the system mainworld, so it carries the same
+    # physical and biological characteristics as a planet.
+    core_composition: str = ""
+    escape_velocity_kms: float = 0.0
+    gases_retained: List[str] = field(default_factory=list)
+    climate_zone: str = ""
+    resource_rating: int = 0
+    biomass_rating: int = 0
+    biocomplexity_rating: int = 0
+    biomes: List[str] = field(default_factory=list)
+    cultural_profile: Any = None
+    # Expanded atmosphere characteristics (WBH pp.78-98)
+    atmosphere_name: str = ""
+    atmos_pressure_bar: float = 0.0
+    oxygen_fraction: float = 0.0
+    partial_pressure_oxygen: float = 0.0
+    scale_height_km: float = 0.0
+    atmosphere_composition: str = ""
+    atmosphere_subtype: str = ""
+    atmosphere_taint: Optional[Dict[str, str]] = None
+    survival_gear: str = ""
+    minimum_safe_altitude_km: float = 0.0
+    safe_altitude_below_mean_km: float = 0.0
+    low_oxygen: bool = False
+    # Economic extension (WBH pp.185-199)
+    importance: int = 0
+    resources: int = 0
+    labour: int = 0
+    infrastructure: int = 0
+    efficiency: int = 0
+    resource_units: int = 0
+    wtn: int = 0
+    population_digit: int = 0
+    total_population: int = 0
+    gwp_per_capita: float = 0.0
+    gwp: float = 0.0
+    inequality_rating: int = 0
+    development_score: float = 0.0
+    tariff_rate: float = 0.0
+    economic_extension: str = ""
+    # Government and law detail (WBH pp.156-172)
+    government_type: str = ""
+    government_structure: str = ""
+    government_profile: str = ""
+    centralisation: str = ""
+    primary_authority: str = ""
+    factions: List[Dict[str, Any]] = field(default_factory=list)
+    justice_primary: str = ""
+    justice_secondary: str = ""
+    justice_profile: str = ""
+    law_uniformity: str = ""
+    law_profile: str = ""
+    law_weapons: int = 0
+    law_economic: int = 0
+    law_criminal: int = 0
+    law_private: int = 0
+    law_personal_rights: int = 0
+    presumption_of_innocence: bool = False
+    death_penalty: bool = False
+
     notes: List[str] = field(default_factory=list)
     # Physical properties
     diameter_km: float = 0.0
@@ -127,6 +192,58 @@ class PlanetaryBody:
     biomass_rating: int = 0
     biocomplexity_rating: int = 0
     biomes: List[str] = field(default_factory=list)
+    habitability_rating: int = 0
+    hill_sphere_pd: float = 0.0
+    hill_sphere_moon_limit_pd: float = 0.0
+    # Expanded atmosphere characteristics (WBH pp.78-98)
+    atmosphere_name: str = ""
+    atmos_pressure_bar: float = 0.0
+    oxygen_fraction: float = 0.0
+    partial_pressure_oxygen: float = 0.0
+    scale_height_km: float = 0.0
+    atmosphere_composition: str = ""
+    atmosphere_subtype: str = ""
+    atmosphere_taint: Optional[Dict[str, str]] = None
+    survival_gear: str = ""
+    minimum_safe_altitude_km: float = 0.0
+    safe_altitude_below_mean_km: float = 0.0
+    low_oxygen: bool = False
+    # Economic extension (WBH pp.185-199)
+    importance: int = 0
+    resources: int = 0
+    labour: int = 0
+    infrastructure: int = 0
+    efficiency: int = 0
+    resource_units: int = 0
+    wtn: int = 0
+    population_digit: int = 0
+    total_population: int = 0
+    gwp_per_capita: float = 0.0
+    gwp: float = 0.0
+    inequality_rating: int = 0
+    development_score: float = 0.0
+    tariff_rate: float = 0.0
+    economic_extension: str = ""
+    # Government and law detail (WBH pp.156-172)
+    government_type: str = ""
+    government_structure: str = ""
+    government_profile: str = ""
+    centralisation: str = ""
+    primary_authority: str = ""
+    factions: List[Dict[str, Any]] = field(default_factory=list)
+    justice_primary: str = ""
+    justice_secondary: str = ""
+    justice_profile: str = ""
+    law_uniformity: str = ""
+    law_profile: str = ""
+    law_weapons: int = 0
+    law_economic: int = 0
+    law_criminal: int = 0
+    law_private: int = 0
+    law_personal_rights: int = 0
+    presumption_of_innocence: bool = False
+    death_penalty: bool = False
+
     # Detailed properties for mainworld candidates
     atmosphere_code: str = ""
     hydrographics_code: str = ""
@@ -186,6 +303,21 @@ class StellarSystem:
             if not star.is_composite:
                 worlds.extend(star.orbiting_bodies)
         return worlds
+
+    @property
+    def all_bodies(self):
+        """Every world in the system plus every satellite, since a significant
+        moon can itself be the mainworld (WBH p.133)."""
+        bodies = []
+        for world in self.all_worlds:
+            bodies.append(world)
+            bodies.extend(world.satellites)
+        return bodies
+
+    @property
+    def mainworld(self):
+        """The system's mainworld, whether it is a planet or a moon."""
+        return next((b for b in self.all_bodies if b.is_mainworld), None)
 
 @dataclass
 class Sector:

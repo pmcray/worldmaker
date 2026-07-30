@@ -152,7 +152,7 @@ def export_sector_sec_file(sector: Sector) -> str:
     lines.append("# ---- ------------ --------- ------- ----------- -----")
     
     for hex_coord, system in sector.systems.items():
-        mainworld = next((w for w in system.all_worlds if w.is_mainworld), None)
+        mainworld = system.mainworld
         if not mainworld: continue
         
         # Format spacing to match standard .sec layout

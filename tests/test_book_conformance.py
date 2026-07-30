@@ -4,6 +4,7 @@ World Builder's Handbook (WBH) and Sector Construction Guide (SCG).
 Each failing test here documents a divergence from, or omission of,
 a book procedure. Page references are to the book PDFs in documents/.
 """
+import math
 import random
 from collections import Counter
 
@@ -74,41 +75,122 @@ def test_planetoid_belt_profile(systems):
 
 
 def test_atmosphere_pressure_and_composition(systems):
-    """WBH pp.78-98: every world with Atmosphere 1+ gets pressure in bar,
-    oxygen fraction, scale height; tainted/exotic/corrosive subtypes.
-    No field for any of this exists on PlanetaryBody."""
-    for attr in ("atmos_pressure_bar", "oxygen_fraction", "scale_height_km",
-                 "atmosphere_taint", "atmosphere_composition"):
-        assert not hasattr(PlanetaryBody(), attr), "field exists - update test"
-    pytest.fail(
-        "WBH expanded atmosphere system (pressure, ppO2, scale height, "
-        "taints, exotic/corrosive/insidious types, non-HZ atmospheres, "
-        "pp.78-98) is entirely unimplemented"
-    )
+    """WBH pp.78-98: every world with an Atmosphere code gets a total pressure
+    in bar drawn from that code's range, an oxygen fraction and partial
+    pressure where free oxygen exists, a scale height, and a subtype for
+    tainted/exotic/corrosive atmospheres."""
+    from worldmaker.atmosphere import ATMOSPHERE_CODES, TAINTED_CODES
+
+    checked = 0
+    tainted_seen = 0
+    for s in systems:
+        for w in s.all_worlds:
+            if w.body_type != "Terrestrial" or not w.atmosphere_code:
+                continue
+            atm = Utils.from_eHex(w.atmosphere_code)
+            entry = ATMOSPHERE_CODES.get(atm)
+            if not entry:
+                continue
+            checked += 1
+
+            # Pressure must fall inside the code's tabulated range
+            lo, hi = entry["min"], entry["min"] + entry["span"]
+            assert lo - 1e-6 <= w.atmos_pressure_bar <= hi + 1e-6, (
+                f"Atmosphere {w.atmosphere_code}: pressure "
+                f"{w.atmos_pressure_bar} outside {lo}-{hi} bar"
+            )
+            assert w.atmosphere_name == entry["name"]
+            assert w.atmosphere_composition, "no composition recorded"
+
+            # Breathable-range atmospheres carry oxygen
+            if atm in (2, 3, 4, 5, 6, 7, 8, 9, 13, 14):
+                assert 0.05 <= w.oxygen_fraction <= 0.30, w.oxygen_fraction
+                # Recorded to four decimal places, so compare absolutely
+                assert w.partial_pressure_oxygen == pytest.approx(
+                    w.oxygen_fraction * w.atmos_pressure_bar, abs=1e-4)
+
+            # Scale height needs gravity and temperature, both computed
+            if w.gravity > 0 and w.mean_temperature > 0:
+                assert w.scale_height_km > 0
+
+            if atm in TAINTED_CODES:
+                tainted_seen += 1
+                assert w.atmosphere_taint, "tainted atmosphere has no taint detail"
+                assert set(w.atmosphere_taint) == {"type", "severity", "persistence"}
+
+    assert checked > 100, f"only {checked} atmospheres examined"
+    assert tainted_seen > 0, "no tainted atmospheres in sample"
+
+
+def test_atmosphere_pressure_falls_with_altitude():
+    """Pressure(a) = Pressure(mean) / e^(height / H) (WBH p.81)."""
+    from worldmaker.atmosphere import pressure_at_altitude
+
+    h = 8.5
+    assert pressure_at_altitude(1.0, 0, h) == pytest.approx(1.0, rel=1e-6)
+    assert pressure_at_altitude(1.0, h, h) == pytest.approx(1 / math.e, rel=1e-3)
+    assert pressure_at_altitude(1.0, 2 * h, h) < pressure_at_altitude(1.0, h, h)
 
 
 def test_habitability_rating(systems):
-    """WBH p.132: Habitability Rating = 10 + DMs decides the mainworld
-    (p.133 Final Mainworld Determination). Code picks the first
-    terrestrial world regardless of habitability."""
-    assert not hasattr(PlanetaryBody(), "habitability_rating")
-    # Demonstrate the consequence: mainworlds are chosen ignoring
-    # habitability - count mainworlds that are the innermost terrestrial.
-    first_count = 0
+    """WBH p.132: Habitability Rating = 10 + DMs, clamped to 0-12."""
+    rated = [w for s in systems for w in s.all_worlds
+             if w.body_type == "Terrestrial"]
+    assert rated
+    for w in rated:
+        assert 0 <= w.habitability_rating <= 12, w.habitability_rating
+
+    # Airless rocks and frozen worlds must not score highly.
+    for w in rated:
+        atm = Utils.from_eHex(w.atmosphere_code)
+        if atm in (0, 1) or (w.mean_temperature and w.mean_temperature < 233):
+            assert w.habitability_rating <= 7, (
+                f"hostile world (atm {w.atmosphere_code}, "
+                f"{w.mean_temperature}K) rated {w.habitability_rating}"
+            )
+
+    ratings = {w.habitability_rating for w in rated}
+    assert len(ratings) >= 4, f"habitability barely varies: {sorted(ratings)}"
+
+
+def test_mainworld_is_chosen_by_habitability(systems):
+    """WBH p.133: the mainworld is selected on habitability (resource rating
+    breaking ties), not by orbital position."""
     mw_count = 0
+    innermost_count = 0
     for s in systems:
-        terr = [w for w in s.all_worlds if w.body_type == "Terrestrial"]
-        mws = [w for w in terr if w.is_mainworld]
-        if not mws:
+        mw = s.mainworld
+        if mw is None:
+            continue
+        candidates = [w for w in s.all_worlds if w.body_type == "Terrestrial"]
+        if len(candidates) < 2:
             continue
         mw_count += 1
-        if mws[0] is terr[0]:
-            first_count += 1
-    assert first_count < mw_count, (
-        f"mainworld is always the innermost terrestrial world "
-        f"({first_count}/{mw_count}); WBH habitability-based mainworld "
-        "selection (pp.132-133) is not implemented"
+
+        # The chosen world must be at least as habitable as every planetary
+        # candidate; a moon can win outright, hence the membership check.
+        best = max(c.habitability_rating for c in candidates)
+        assert mw.habitability_rating >= best or mw not in candidates, (
+            f"{s.name}: chose habitability {mw.habitability_rating} "
+            f"over an available {best}"
+        )
+        if mw is candidates[0]:
+            innermost_count += 1
+
+    assert mw_count > 20, "too few multi-candidate systems to judge"
+    assert innermost_count < mw_count, (
+        "mainworld is still always the innermost terrestrial world"
     )
+
+
+def test_moons_can_be_mainworlds(systems):
+    """A significant moon is a legitimate mainworld candidate (WBH p.59)."""
+    moon_mainworlds = [s for s in systems
+                       if s.mainworld is not None
+                       and s.mainworld not in s.all_worlds]
+    assert moon_mainworlds, "no moon was ever selected as a mainworld"
+    for s in moon_mainworlds:
+        assert s.mainworld.uwp.starport
 
 
 def test_mainworld_uwp_matches_physical_world(systems):
@@ -165,25 +247,112 @@ def test_tech_level_government_dms():
     )
 
 
-def test_economics_implemented():
-    """WBH pp.185-199: Importance (Ix), Resources/Labour/Infrastructure/
-    Efficiency (Ex), RU, GWP, WTN, inequality, development score, tariffs."""
-    missing = [a for a in ("importance", "resources", "labour",
-                           "infrastructure", "efficiency", "gwp",
-                           "wtn", "resource_units")
-               if not hasattr(PlanetaryBody(), a)]
-    assert not missing, f"WBH economic extension not implemented: {missing}"
+def test_economics_implemented(systems):
+    """WBH pp.185-199: Importance (Ix), the Resources/Labour/Infrastructure/
+    Efficiency extension (Ex), resource units, GWP and the world trade
+    number."""
+    mains = [s.mainworld for s in systems if s.mainworld is not None]
+    assert mains
+
+    for mw in mains:
+        # Importance runs roughly -3 to +5
+        assert -4 <= mw.importance <= 6, mw.importance
+        # Labour Factor = Population code - 1
+        pop = Utils.from_eHex(mw.uwp.population)
+        assert mw.labour == max(0, pop - 1)
+        # Efficiency is bounded -5..+5 and never a bare 0
+        assert -5 <= mw.efficiency <= 5 and mw.efficiency != 0
+        # Resource factor has a floor of 2
+        assert mw.resources >= 2
+        assert mw.wtn >= 0
+        assert 5 <= mw.inequality_rating <= 95
+        assert mw.economic_extension.startswith("(")
+
+        if pop == 0:
+            assert mw.efficiency == -5
+            assert mw.total_population == 0
+        else:
+            # Population code and significant digit give the headcount
+            assert mw.total_population >= 10 ** pop
+            assert mw.gwp == pytest.approx(
+                mw.gwp_per_capita * mw.total_population, rel=1e-6)
+
+    # The sample must show real variation, not a constant
+    assert len({mw.importance for mw in mains}) >= 3
+    assert len({mw.wtn for mw in mains}) >= 4
+    assert any(mw.gwp > 0 for mw in mains), "no world has any economic output"
 
 
-def test_law_and_government_detail():
-    """WBH pp.156-172: government structure/factions with strength,
-    justice system profile (PSU-I-D), Law Level subcodes (O-WECPR)."""
-    for attr in ("government_structure", "law_profile", "justice_profile"):
-        assert not hasattr(PlanetaryBody(), attr), "field exists - update test"
-    pytest.fail(
-        "WBH detailed government/law procedures (factions table, justice "
-        "profile, law subcodes W/E/C/P/R) are unimplemented"
-    )
+def test_wtn_responds_to_starport_and_population():
+    """WTN = Base WTN (population + TL DMs) + starport modifier (WBH p.191)."""
+    from worldmaker.economics import calculate_wtn
+
+    def world(port, pop, tl):
+        w = PlanetaryBody()
+        w.uwp = UWP(starport=port, population=Utils.eHex(pop),
+                    tech_level=Utils.eHex(tl))
+        return w
+
+    # A better starport never lowers the WTN
+    for pop in range(0, 12):
+        a = calculate_wtn(world("A", pop, 12))
+        x = calculate_wtn(world("X", pop, 12))
+        assert a >= x, f"pop {pop}: class A ({a}) below class X ({x})"
+
+    # More population raises it
+    assert calculate_wtn(world("C", 9, 10)) > calculate_wtn(world("C", 3, 10))
+
+
+def test_law_and_government_detail(systems):
+    """WBH pp.156-172: government centralisation/authority/structure, factions
+    with strength and relationships, the justice profile (PSU-I-D) and the Law
+    Level subcodes (O-WECPR)."""
+    mains = [s.mainworld for s in systems if s.mainworld is not None]
+    inhabited = [mw for mw in mains
+                 if Utils.from_eHex(mw.uwp.population) > 0]
+    assert inhabited
+
+    for mw in inhabited:
+        assert mw.government_type, "no government type named"
+        assert mw.centralisation in ("Confederal", "Federal", "Unitary")
+        assert mw.primary_authority in ("Legislative", "Executive",
+                                        "Judicial", "Balanced")
+        assert mw.government_structure
+
+        # Justice profile: PSU-I-D
+        assert mw.justice_primary in ("Inquisitional", "Adversarial",
+                                      "Traditional")
+        assert mw.law_uniformity in ("Personal", "Territorial", "Universal")
+        assert len(mw.justice_profile.split("-")) == 3, mw.justice_profile
+
+        # Law Level profile: O-WECPR, five subcodes around the overall level
+        overall, subcodes = mw.law_profile.split("-")
+        assert overall == mw.uwp.law_level
+        assert len(subcodes) == 5, mw.law_profile
+        law = Utils.from_eHex(mw.uwp.law_level)
+        for code in subcodes:
+            # 2D3-4 spans -2..+2 around the overall Law Level
+            assert abs(Utils.from_eHex(code) - law) <= 2 or law < 2
+
+        # Factions
+        assert mw.factions, "inhabited world has no factions"
+        for f in mw.factions:
+            assert f["strength"] in ("Obscure", "Fringe", "Minor", "Notable",
+                                     "Significant", "Dominant")
+            assert f["government_type"]
+        if len(mw.factions) > 1:
+            # Relationships are recorded symmetrically between every pair
+            for f in mw.factions:
+                assert len(f["relations"]) == len(mw.factions) - 1
+            a, b = mw.factions[0], mw.factions[1]
+            assert a["relations"][b["id"]] == b["relations"][a["id"]]
+
+    # Balkanised worlds should carry more factions than average
+    balk = [mw for mw in inhabited if Utils.from_eHex(mw.uwp.government) == 7]
+    if balk:
+        avg_all = sum(len(mw.factions) for mw in inhabited) / len(inhabited)
+        avg_balk = sum(len(mw.factions) for mw in balk) / len(balk)
+        assert avg_balk > avg_all
 
 
 def test_travel_zones():

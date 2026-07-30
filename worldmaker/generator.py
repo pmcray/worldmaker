@@ -22,8 +22,13 @@ from .geophysics import (
     generate_rotation_period,
     calculate_mean_temperature,
     generate_surface_features,
-    generate_life
+    generate_life,
+    place_satellites,
+    calculate_habitability_rating
 )
+from .atmosphere import generate_atmosphere_details
+from .economics import generate_economics
+from .government import generate_government_details
 from .society import (
     generate_mainworld_uwp,
     generate_trade_codes,
@@ -131,7 +136,7 @@ def generate_full_system(name="Random System", population_dm=0) -> StellarSystem
     
     # Phase 2: System Architecture & Population
     determine_world_counts(system)
-    calculate_available_orbits(system, model='physics')
+    calculate_available_orbits(system, model='simple')
     calculate_baseline_and_spread(system)
     handle_anomalies_and_empties(system)
     
@@ -144,58 +149,95 @@ def generate_full_system(name="Random System", population_dm=0) -> StellarSystem
     # Phase 4: Detailing
     detail_placed_worlds(system)
     
-    # Designate a mainworld among Terrestrial bodies (typically the most habitable or first)
-    terrestrial_worlds = [w for w in system.all_worlds if w.body_type == 'Terrestrial']
-    mainworld = None
-    if terrestrial_worlds:
-        mainworld = terrestrial_worlds[0] # Pick the first terrestrial as mainworld
-        mainworld.is_mainworld = True
-        # Generate full society UWP for mainworld
-        mainworld.uwp = generate_mainworld_uwp(population_dm)
-        mainworld.size_code = mainworld.uwp.size
-        mainworld.atmosphere_code = mainworld.uwp.atmosphere
-        mainworld.hydrographics_code = mainworld.uwp.hydrographics
-        
-        # Calculate WBH 6-field technological matrix
-        generate_expanded_tech_matrix(mainworld.uwp, mainworld)
-    
+    # Phase 5: Physical detailing of every world, before any mainworld is
+    # chosen - the choice depends on the physical results (WBH p.133).
     for world in system.all_worlds:
         if world.body_type == 'Terrestrial':
             size_val = Utils.from_eHex(world.size_code)
-            if not world.atmosphere_code:
-                atm_val = generate_atmosphere(size_val)
-                world.atmosphere_code = Utils.eHex(atm_val)
-            else:
-                atm_val = Utils.from_eHex(world.atmosphere_code)
-
-            if not world.hydrographics_code:
-                hydro_val = generate_hydrographics(size_val, atm_val)
-                world.hydrographics_code = Utils.eHex(hydro_val)
+            atm_val = generate_atmosphere(size_val)
+            world.atmosphere_code = Utils.eHex(atm_val)
+            hydro_val = generate_hydrographics(size_val, atm_val)
+            world.hydrographics_code = Utils.eHex(hydro_val)
 
             generate_geophysics(world, system)
             generate_rotation_period(world, system)
             world.mean_temperature = calculate_mean_temperature(world, system)
+            generate_atmosphere_details(world)
             world.surface_features = generate_surface_features(world)
             world.life_details = generate_life(world)
-            generate_trade_codes(world)
-            if world.is_mainworld:
-                generate_social_details(world)
+            world.habitability_rating = calculate_habitability_rating(world, system)
 
-        # Detail Satellites
+        # Place and detail satellites
+        place_satellites(world, system)
         for sat in world.satellites:
-            if sat.size_code in ['S', 'R']: continue
-            
+            if sat.is_ring or sat.size_code == 'S':
+                continue
+
             tilt_roll = Utils.D6(2)
             sat.axial_tilt = DATA['axial_tilt'].get(min(10, max(2, tilt_roll)))()
             sat.rotation_period_hours = Utils.D6(2) * 24
-            
+
             # Physics-based temperature for satellites
             sat.mean_temperature = calculate_mean_temperature(sat, system)
+            generate_atmosphere_details(sat)
             sat.surface_features = generate_surface_features(sat)
             sat.life_details = generate_life(sat)
-            generate_trade_codes(sat)
+            sat.habitability_rating = calculate_habitability_rating(sat, system)
+
+    # Phase 6: Final mainworld determination (WBH p.133). Candidates are
+    # terrestrial worlds and significant moons; the most habitable wins, with
+    # resource rating breaking ties.
+    mainworld = select_mainworld(system)
+    if mainworld is not None:
+        mainworld.is_mainworld = True
+        # The UWP describes the world that was actually generated: Size,
+        # Atmosphere and Hydrographics come from its physical characteristics,
+        # and only the social codes are rolled here.
+        mainworld.uwp = generate_mainworld_uwp(
+            population_dm,
+            size=Utils.from_eHex(mainworld.size_code),
+            atmosphere=Utils.from_eHex(mainworld.atmosphere_code),
+            hydrographics=Utils.from_eHex(mainworld.hydrographics_code),
+        )
+        generate_expanded_tech_matrix(mainworld.uwp, mainworld)
+        generate_economics(mainworld)
+        generate_government_details(mainworld)
+        generate_social_details(mainworld)
+
+    for world in system.all_worlds:
+        if world.body_type == 'Terrestrial':
+            generate_trade_codes(world)
+        for sat in world.satellites:
+            if not sat.is_ring:
+                generate_trade_codes(sat)
 
     assign_final_designations(system)
     flag_points_of_interest(system)
 
     return system
+
+def select_mainworld(system: StellarSystem):
+    """Chooses the system mainworld by the WBH p.133 criteria: highest
+    habitability rating, then highest resource rating. Significant moons are
+    eligible alongside planets."""
+    candidates = []
+    for world in system.all_worlds:
+        # Planetoid belts are legitimate mainworlds - Charted Space is full of
+        # asteroid-belt settlements - but they are never habitable, so they win
+        # only where nothing better exists.
+        if world.body_type in ('Terrestrial', 'Planetoid Belt'):
+            candidates.append(world)
+        for sat in world.satellites:
+            # Significant moons only: Size 1+ bodies, not rings or specks
+            if sat.is_ring or sat.size_code in ('S', 'R', ''):
+                continue
+            if Utils.from_eHex(sat.size_code) >= 1:
+                candidates.append(sat)
+
+    if not candidates:
+        # A gas-giant-only system still needs a body to carry the UWP
+        return system.all_worlds[0] if system.all_worlds else None
+
+    return max(candidates,
+               key=lambda w: (getattr(w, 'habitability_rating', 0),
+                              getattr(w, 'resource_rating', 0)))

@@ -10,6 +10,16 @@ from .system import (
     generate_orbital_slots,
     place_worlds
 )
+from .atmosphere import (
+    generate_atmosphere_details,
+    total_pressure,
+    oxygen_fraction,
+    scale_height,
+    pressure_at_altitude,
+    check_runaway_greenhouse
+)
+from .economics import generate_economics, calculate_wtn, calculate_importance
+from .government import generate_government_details, generate_factions
 from .geophysics import (
     detail_placed_worlds,
     generate_atmosphere,
@@ -18,13 +28,17 @@ from .geophysics import (
     generate_rotation_period,
     calculate_mean_temperature,
     generate_surface_features,
-    generate_life
+    generate_life,
+    place_satellites,
+    calculate_habitability_rating,
+    calculate_hill_sphere_pd
 )
 from .society import (
     generate_mainworld_uwp,
     generate_trade_codes,
     generate_social_details,
-    generate_expanded_tech_matrix
+    generate_expanded_tech_matrix,
+    generate_cultural_profile
 )
 from .sophont import get_major_race, generate_minor_race
 from .polity import define_polities, generate_bases, generate_travel_zones
@@ -37,4 +51,4 @@ from .sector import (
     calculate_xboat_routes,
 )
 from .exporters import create_system_dataframe, export_system_markdown, export_sector_sec_file
-from .generator import generate_full_system
+from .generator import generate_full_system, select_mainworld

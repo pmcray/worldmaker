@@ -129,8 +129,9 @@ def test_starport_letters_are_drawn(sector, subsector_svg):
     assert ports, "no starport letters rendered"
     assert set(ports) <= set("ABCDEX"), f"unexpected starport codes: {set(ports)}"
     # Every system in the window must contribute exactly one letter
-    in_window = [h for h in sector.systems
-                 if int(h[:2]) <= 8 and int(h[2:]) <= 10]
+    in_window = [h for h, sy in sector.systems.items()
+                 if int(h[:2]) <= 8 and int(h[2:]) <= 10
+                 and sy.mainworld is not None]
     assert len(ports) == len(in_window)
 
 
@@ -163,21 +164,42 @@ def test_wet_and_dry_world_glyphs_differ(sector, sector_svg):
     dry = _map_elements(sector_svg, "circle", "cm-world-dry")
     assert wet and dry, "both wet and dry world glyphs must appear"
     exp_dry = sum(1 for s in sector.systems.values()
-                  for w in s.all_worlds
-                  if w.is_mainworld and w.uwp.size != '0'
-                  and Utils.from_eHex(w.uwp.hydrographics) == 0)
+                  if s.mainworld is not None
+                  and s.mainworld.uwp.size != '0'
+                  and Utils.from_eHex(s.mainworld.uwp.hydrographics) == 0)
     assert len(dry) == exp_dry
 
 
-def test_belt_glyph_used_for_size_zero_mainworlds(sector, sector_svg):
-    """Asteroid-belt mainworlds get a scatter of dots, not an ordinary disc."""
-    belts = [h for h, s in sector.systems.items()
-             for w in s.all_worlds
-             if w.is_mainworld and w.uwp.size == '0']
-    if not belts:
-        pytest.skip("no belt mainworlds in this sample")
-    n_belt_dots = len(_map_elements(sector_svg, "circle", "cm-belt"))
-    assert n_belt_dots == 5 * len(belts)  # five dots per belt glyph
+def test_belt_glyph_used_for_size_zero_mainworlds():
+    """Asteroid-belt mainworlds get a scatter of dots, not an ordinary disc.
+
+    Habitability-based selection (WBH p.133) rarely picks a vacuum belt, so
+    the case is built explicitly rather than waited for."""
+    from worldmaker.classes import PlanetaryBody, Sector, Star, StellarSystem, UWP
+
+    sec = Sector(name="Belt Test", width=8, height=10)
+    for hex_coord, size in (("0101", "0"), ("0202", "6")):
+        system = StellarSystem(name=f"Sys{hex_coord}")
+        star = Star(designation="A", spectral_type="G2 V", mass=1.0)
+        body = PlanetaryBody(
+            name="Testworld",
+            body_type="Planetoid Belt" if size == "0" else "Terrestrial",
+            size_code=size,
+            is_mainworld=True,
+            uwp=UWP(starport="C", size=size, atmosphere="0" if size == "0" else "6",
+                    hydrographics="0" if size == "0" else "5",
+                    population="4", government="2", law_level="3",
+                    tech_level="9"),
+        )
+        star.orbiting_bodies.append(body)
+        system.stars.append(star)
+        sec.systems[hex_coord] = system
+
+    svg = generate_subsector_svg(sec, "Belt Test")
+    n_belt_dots = len(_map_elements(svg, "circle", "cm-belt"))
+    assert n_belt_dots == 5, f"expected one 5-dot belt glyph, got {n_belt_dots}"
+    # The Size 6 world is drawn as an ordinary disc, not a belt
+    assert len(_map_elements(svg, "circle", "cm-world")) == 1
 
 
 def test_gas_giant_marker_is_upper_right(sector, subsector_svg):
@@ -187,7 +209,7 @@ def test_gas_giant_marker_is_upper_right(sector, subsector_svg):
     expected = sum(1 for h, s in sector.systems.items()
                    if int(h[:2]) <= 8 and int(h[2:]) <= 10
                    and s.gas_giant_count > 0
-                   and any(w.is_mainworld for w in s.all_worlds))
+                   and s.mainworld is not None)
     assert len(ggs) == expected
     # Confirm offset direction against the hex centres
     hexnums = {t.text: (float(t.get("x")), float(t.get("y")))
@@ -206,7 +228,7 @@ def test_base_glyphs_match_generated_bases(sector, subsector_svg):
     scout = _texts(subsector_svg, "cm-base").count("▲")
     in_window = [s for h, s in sector.systems.items()
                  if int(h[:2]) <= 8 and int(h[2:]) <= 10
-                 and any(w.is_mainworld for w in s.all_worlds)]
+                 and s.mainworld is not None]
     exp_naval = sum(1 for s in in_window
                     if any(b in s.bases for b in ("Naval", "Zhodani Naval")))
     exp_scout = sum(1 for s in in_window if "Scout" in s.bases)
@@ -245,7 +267,7 @@ def test_xboat_routes_drawn_and_within_jump_range(sector, sector_svg):
     for h1, h2, _ in xboat:
         assert hex_distance(h1, h2) <= 4, f"{h1}-{h2} exceeds jump-4"
         for h in (h1, h2):
-            mw = next(w for w in sector.systems[h].all_worlds if w.is_mainworld)
+            mw = sector.systems[h].mainworld
             assert mw.uwp.starport in ("A", "B"), \
                 f"Xboat stop {h} has starport {mw.uwp.starport}"
     drawn = _map_elements(sector_svg, "line", "cm-xboat")
@@ -255,8 +277,8 @@ def test_xboat_routes_drawn_and_within_jump_range(sector, sector_svg):
 def test_xboat_network_is_acyclic_and_connects_hubs(sector):
     """Kruskal over jump-range edges: one link per merge, so edges < hubs."""
     hubs = {h for h, s in sector.systems.items()
-            for w in s.all_worlds
-            if w.is_mainworld and w.uwp.starport in ("A", "B")}
+            if s.mainworld is not None
+            and s.mainworld.uwp.starport in ("A", "B")}
     xboat = [r for r in sector.routes if r[2] == "xboat"]
     assert len(xboat) < len(hubs), "Xboat network contains cycles"
 
@@ -300,8 +322,8 @@ def test_full_sector_is_coherent(sector):
     """Single-pass generation: unique names sector-wide and one set of
     polities placed in sector coordinates (the old code re-tiled a
     subsector-scale polity block into all sixteen subsectors)."""
-    names = [w.name for s in sector.systems.values()
-             for w in s.all_worlds if w.is_mainworld]
+    names = [s.mainworld.name for s in sector.systems.values()
+             if s.mainworld is not None]
     assert len(names) == len(set(names)), "duplicate mainworld names"
     assert sector.polities
     imperium = next(p for p in sector.polities if p.allegiance_code == "Im")
