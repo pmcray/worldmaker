@@ -373,7 +373,14 @@ def generate_stellar_system_stars(system: StellarSystem):
                     star.spectral_type = f"M{Utils.d10()} V"
 
             elif star_type_info == 'Sibling':
-                parent_type = star.parent.spectral_type.split(' ')[0]
+                parent_type = spectral_str_of(star.parent.spectral_type)
+                if not parent_type:
+                    # An exotic parent (brown dwarf, post-stellar object) has
+                    # no subtype to step down from; WBH p.29 gives brown dwarfs
+                    # siblings of their own kind.
+                    star.spectral_type = star.parent.spectral_type
+                    _apply_exotic_properties(star, star.parent.spectral_type)
+                    continue
                 parent_subtype = int(parent_type[1:])
                 new_subtype = parent_subtype - Utils.D6()
                 new_type = parent_type[0]

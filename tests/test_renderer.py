@@ -319,20 +319,34 @@ def test_subsector_window_selects_correct_hexes(sector):
 
 
 def test_full_sector_is_coherent(sector):
-    """Single-pass generation: unique names sector-wide and one set of
-    polities placed in sector coordinates (the old code re-tiled a
-    subsector-scale polity block into all sixteen subsectors)."""
+    """Single-pass generation: unique names sector-wide and polities placed in
+    sector coordinates (the old code re-tiled a subsector-scale polity block
+    into all sixteen subsectors)."""
     names = [s.mainworld.name for s in sector.systems.values()
              if s.mainworld is not None]
     assert len(names) == len(set(names)), "duplicate mainworld names"
     assert sector.polities
-    imperium = next(p for p in sector.polities if p.allegiance_code == "Im")
-    assert all(int(h[:2]) > 16 for h in imperium.controlled_systems), \
-        "Imperial territory is not in sector coordinates"
-    # Each allegiance forms one contiguous block, not sixteen copies
-    zh = {h for h, s in sector.systems.items() if s.allegiance == "Zh"}
-    assert zh, "no Zhodani systems assigned"
-    assert max(int(h[2:]) for h in zh) <= 10, "Zhodani block re-tiled downward"
+
+    for polity in sector.polities:
+        # Capital and territory must lie inside the sector
+        assert polity.capital_hex in sector.systems
+        for h in polity.controlled_systems:
+            col, row = int(h[:2]), int(h[2:])
+            assert 1 <= col <= sector.width and 1 <= row <= sector.height
+
+    # Allegiance codes are unique and territory does not overlap
+    codes = [p.allegiance_code for p in sector.polities]
+    assert len(codes) == len(set(codes))
+    all_claimed = [h for p in sector.polities for h in p.controlled_systems]
+    assert len(all_claimed) == len(set(all_claimed)), "overlapping territory"
+
+    # Every claimed system carries its polity's allegiance, and there is
+    # genuinely independent space left over
+    for polity in sector.polities:
+        for h in polity.controlled_systems:
+            assert sector.systems[h].allegiance == polity.allegiance_code
+    unaligned = sum(1 for s in sector.systems.values() if s.allegiance == "Na")
+    assert unaligned > 0, "no independent worlds left in the sector"
 
 
 def test_legacy_subsector_list_still_renders():

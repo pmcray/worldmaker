@@ -24,9 +24,11 @@ from .geophysics import (
     generate_surface_features,
     generate_life,
     place_satellites,
-    calculate_habitability_rating
+    calculate_habitability_rating,
+    assign_climate_zone
 )
-from .atmosphere import generate_atmosphere_details
+from .atmosphere import generate_atmosphere_details, refresh_scale_height
+from .temperature import detail_temperatures
 from .economics import generate_economics
 from .government import generate_government_details
 from .society import (
@@ -161,8 +163,13 @@ def generate_full_system(name="Random System", population_dm=0) -> StellarSystem
 
             generate_geophysics(world, system)
             generate_rotation_period(world, system)
-            world.mean_temperature = calculate_mean_temperature(world, system)
+            # Atmosphere pressure first (albedo and greenhouse depend on it),
+            # then the full temperature chain, then the values that depend on
+            # the final temperature.
             generate_atmosphere_details(world)
+            detail_temperatures(world, system)
+            refresh_scale_height(world)
+            assign_climate_zone(world)
             world.surface_features = generate_surface_features(world)
             world.life_details = generate_life(world)
             world.habitability_rating = calculate_habitability_rating(world, system)
@@ -177,9 +184,10 @@ def generate_full_system(name="Random System", population_dm=0) -> StellarSystem
             sat.axial_tilt = DATA['axial_tilt'].get(min(10, max(2, tilt_roll)))()
             sat.rotation_period_hours = Utils.D6(2) * 24
 
-            # Physics-based temperature for satellites
-            sat.mean_temperature = calculate_mean_temperature(sat, system)
             generate_atmosphere_details(sat)
+            detail_temperatures(sat, system, is_moon=True)
+            refresh_scale_height(sat)
+            assign_climate_zone(sat)
             sat.surface_features = generate_surface_features(sat)
             sat.life_details = generate_life(sat)
             sat.habitability_rating = calculate_habitability_rating(sat, system)

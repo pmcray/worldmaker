@@ -75,9 +75,11 @@ def total_pressure(atm_code: int) -> float:
     if not entry:
         return 0.0
     if entry['span'] <= 0:
-        return round(entry['min'], 4)
+        return round(entry['min'], 6)
     r = random.randint(1, 100) / 100.0
-    return round(entry['min'] + entry['span'] * r, 4)
+    # Six decimal places, so the trace pressures of Atmosphere 0-1 do not
+    # round away to an exact vacuum.
+    return round(entry['min'] + entry['span'] * r, 6)
 
 
 def oxygen_fraction(atm_code: int) -> float:
@@ -134,6 +136,21 @@ def _composition_for(atm_code: int, o2_fraction: float) -> str:
     if 2 <= atm_code <= 9 or atm_code in (13, 14):
         return f"Nitrogen-oxygen ({o2_fraction * 100:.0f}% O2), trace argon and CO2"
     return "Mixed gases"
+
+
+def refresh_scale_height(world: Any) -> None:
+    """Recomputes scale height and the altitude bands after the final mean
+    temperature is known, without re-rolling pressure or composition."""
+    atm = Utils.from_eHex(getattr(world, 'atmosphere_code', '') or 0)
+    if not getattr(world, 'atmos_pressure_bar', 0.0):
+        return
+    world.scale_height_km = scale_height(
+        getattr(world, 'mean_temperature', 0.0) or 0.0,
+        getattr(world, 'gravity', 0.0) or 0.0)
+    if atm == 13:
+        world.minimum_safe_altitude_km = _safe_altitude_very_dense(world)
+    elif atm == 14:
+        world.safe_altitude_below_mean_km = _safe_altitude_low(world)
 
 
 def generate_atmosphere_details(world: Any) -> None:

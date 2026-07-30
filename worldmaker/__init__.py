@@ -41,7 +41,13 @@ from .society import (
     generate_cultural_profile
 )
 from .sophont import get_major_race, generate_minor_race
-from .polity import define_polities, generate_bases, generate_travel_zones
+from .polity import (
+    define_polities,
+    define_foreven_polities,
+    generate_polities,
+    generate_bases,
+    generate_travel_zones,
+)
 from .sector import (
     generate_sector,
     generate_full_sector,

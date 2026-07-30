@@ -119,8 +119,15 @@ def generate_geophysics(world: PlanetaryBody, system: StellarSystem):
     tilt_func = DATA['axial_tilt'].get(min(10, max(2, tilt_roll)))
     world.axial_tilt = tilt_func()
 
-    # Climate Zones and Biomes based on Temperature & Moisture
-    temp = world.mean_temperature
+    # Resource Rating (WBH p. 102)
+    world.resource_rating = max(0, Utils.D6(2) - 7 + Utils.from_eHex(world.size_code))
+
+def assign_climate_zone(world: Any) -> None:
+    """Assigns a climate zone and biome list from the world's final mean
+    temperature and hydrographics."""
+    temp = getattr(world, 'mean_temperature', 0.0) or 0.0
+    hyd = Utils.from_eHex(getattr(world, 'hydrographics_code', 0) or 0)
+
     if temp < 200:
         world.climate_zone = "Cryogenic (Glacial)"
         world.biomes = ["Ice Cap", "Frozen Wasteland"]
@@ -129,16 +136,15 @@ def generate_geophysics(world: PlanetaryBody, system: StellarSystem):
         world.biomes = ["Tundra", "Glacial Seas"]
     elif temp < 310:
         world.climate_zone = "Temperate"
-        world.biomes = ["Grassland", "Forest", "Oceanic"] if Utils.from_eHex(world.hydrographics_code) > 3 else ["Steppe", "Dry Shrubland"]
+        world.biomes = (["Grassland", "Forest", "Oceanic"] if hyd > 3
+                        else ["Steppe", "Dry Shrubland"])
     elif temp < 350:
         world.climate_zone = "Hot (Tropical)"
-        world.biomes = ["Jungle", "Wetlands", "Warm Seas"] if Utils.from_eHex(world.hydrographics_code) > 4 else ["Savannah", "Arid Grassland"]
+        world.biomes = (["Jungle", "Wetlands", "Warm Seas"] if hyd > 4
+                        else ["Savannah", "Arid Grassland"])
     else:
         world.climate_zone = "Torrid (Scorched)"
         world.biomes = ["Desert", "Volcanic Ashfields"]
-
-    # Resource Rating (WBH p. 102)
-    world.resource_rating = max(0, Utils.D6(2) - 7 + Utils.from_eHex(world.size_code))
 
 def generate_rotation_period(world: PlanetaryBody, system: StellarSystem):
     """Generates the rotation period (day length) for a world."""
@@ -369,17 +375,24 @@ def calculate_habitability_rating(world: Any, system: StellarSystem) -> int:
     if any('Tidally Locked' in n for n in getattr(world, 'notes', [])):
         dm -= 2
 
-    # Mean temperature. The book also draws DMs from separately computed high
-    # and low temperatures; where those are not calculated it directs that a
-    # hot or cold world takes DM-2 and a frozen or boiling one DM-6, so the
-    # extremes get the balance of that penalty here.
+    # Mean temperature
     if temp > 323: dm -= 4
     elif temp >= 304: dm -= 2
     elif temp < 273: dm -= 2
-    if temp > 0:
-        if temp < 233:        # Frozen
-            dm -= 4
-        elif temp > 373:      # Boiling
+
+    # High and low temperature DMs, using the values computed in
+    # temperature.py where available. The book's fallback (DM-2 hot/cold,
+    # DM-6 frozen/boiling) applies only when they were never calculated.
+    high = getattr(world, 'high_temperature', 0.0) or 0.0
+    low = getattr(world, 'low_temperature', 0.0) or 0.0
+    if high or low:
+        if high > 323: dm -= 2
+        if high and high < 279: dm -= 2
+        if low and low < 200: dm -= 2
+    elif temp > 0:
+        if temp < 233 or temp > 373:   # Frozen or boiling
+            dm -= 6
+        elif temp < 273 or temp > 323: # Cold or hot
             dm -= 2
 
     # Gravity; take the worst DM at a boundary, per the book's footnote

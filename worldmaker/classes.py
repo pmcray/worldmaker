@@ -47,6 +47,24 @@ class Satellite:
     biocomplexity_rating: int = 0
     biomes: List[str] = field(default_factory=list)
     cultural_profile: Any = None
+    # Detailed temperature and seismology (WBH pp.107-128)
+    albedo: float = 0.0
+    greenhouse_factor: float = 0.0
+    high_temperature: float = 0.0
+    low_temperature: float = 0.0
+    axial_tilt_factor: float = 0.0
+    rotation_factor: float = 0.0
+    geographic_factor: float = 0.0
+    variance_factors: float = 0.0
+    atmospheric_factor: float = 0.0
+    luminosity_modifier: float = 0.0
+    residual_seismic_stress: float = 0.0
+    surface_tide_metres: float = 0.0
+    tidal_stress_factor: float = 0.0
+    tidal_heating_factor: float = 0.0
+    total_seismic_stress: float = 0.0
+    tectonic_plates: int = 0
+    seismic_activity: str = ""
     # Expanded atmosphere characteristics (WBH pp.78-98)
     atmosphere_name: str = ""
     atmos_pressure_bar: float = 0.0
@@ -195,6 +213,24 @@ class PlanetaryBody:
     habitability_rating: int = 0
     hill_sphere_pd: float = 0.0
     hill_sphere_moon_limit_pd: float = 0.0
+    # Detailed temperature and seismology (WBH pp.107-128)
+    albedo: float = 0.0
+    greenhouse_factor: float = 0.0
+    high_temperature: float = 0.0
+    low_temperature: float = 0.0
+    axial_tilt_factor: float = 0.0
+    rotation_factor: float = 0.0
+    geographic_factor: float = 0.0
+    variance_factors: float = 0.0
+    atmospheric_factor: float = 0.0
+    luminosity_modifier: float = 0.0
+    residual_seismic_stress: float = 0.0
+    surface_tide_metres: float = 0.0
+    tidal_stress_factor: float = 0.0
+    tidal_heating_factor: float = 0.0
+    total_seismic_stress: float = 0.0
+    tectonic_plates: int = 0
+    seismic_activity: str = ""
     # Expanded atmosphere characteristics (WBH pp.78-98)
     atmosphere_name: str = ""
     atmos_pressure_bar: float = 0.0

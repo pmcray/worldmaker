@@ -109,8 +109,8 @@ def test_atmosphere_pressure_and_composition(systems):
                 assert w.partial_pressure_oxygen == pytest.approx(
                     w.oxygen_fraction * w.atmos_pressure_bar, abs=1e-4)
 
-            # Scale height needs gravity and temperature, both computed
-            if w.gravity > 0 and w.mean_temperature > 0:
+            # Scale height needs gravity, temperature and actual atmosphere
+            if w.gravity > 0 and w.mean_temperature > 0 and w.atmos_pressure_bar > 0:
                 assert w.scale_height_km > 0
 
             if atm in TAINTED_CODES:
@@ -140,14 +140,27 @@ def test_habitability_rating(systems):
     for w in rated:
         assert 0 <= w.habitability_rating <= 12, w.habitability_rating
 
-    # Airless rocks and frozen worlds must not score highly.
+    # Atmospheres 0, 1 and A carry DM-8, B is DM-10, C and F+ are DM-12; none
+    # can be lifted back into the habitable range by the positive DMs. Note D
+    # and E are only DM-3 and DM-4, so they are not in this set.
     for w in rated:
         atm = Utils.from_eHex(w.atmosphere_code)
-        if atm in (0, 1) or (w.mean_temperature and w.mean_temperature < 233):
+        if atm in (0, 1, 10, 11, 12) or atm >= 15:
             assert w.habitability_rating <= 7, (
-                f"hostile world (atm {w.atmosphere_code}, "
-                f"{w.mean_temperature}K) rated {w.habitability_rating}"
+                f"world with atmosphere {w.atmosphere_code} rated "
+                f"{w.habitability_rating}"
             )
+
+    # Temperature must still tell: clement worlds should out-score frozen ones
+    # on average, even though positive DMs can offset a cold world.
+    clement = [w.habitability_rating for w in rated
+               if 273 <= (w.mean_temperature or 0) <= 323]
+    frozen = [w.habitability_rating for w in rated
+              if 0 < (w.mean_temperature or 0) < 233]
+    if clement and frozen:
+        assert (sum(clement) / len(clement)
+                > sum(frozen) / len(frozen)), (
+            "habitability does not favour temperate worlds")
 
     ratings = {w.habitability_rating for w in rated}
     assert len(ratings) >= 4, f"habitability barely varies: {sorted(ratings)}"
