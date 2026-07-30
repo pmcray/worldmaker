@@ -136,11 +136,31 @@ _EXOTIC_PROPERTIES = {
 
 def _apply_exotic_properties(star: Star, kind: str):
     """Fills in mass, diameter, temperature, luminosity, HZCO and MAO for a
-    post-stellar or pre-stellar object."""
+    post-stellar or pre-stellar object (WBH pp.224-231).
+
+    White and brown dwarf masses are rolled; the remaining object types use
+    representative values, since their tables are largely descriptive."""
     props = _EXOTIC_PROPERTIES.get(kind, _EXOTIC_PROPERTIES['D'])
-    star.mass = props['mass']
-    star.diameter = props['diameter']
-    star.temp_k = props['temp_k']
+
+    if kind in ('D', 'D*'):
+        # White Dwarf Mass = (2D-1)/10 solar masses: median 0.6, and below the
+        # 1.44 Chandrasekhar limit. Diameter follows an inverse mass
+        # distribution and lands in the terrestrial planet range.
+        star.mass = round(max(0.17, min(1.44, (Utils.D6(2) - 1) / 10.0)), 3)
+        star.diameter = round(0.01 / (star.mass ** (1 / 3)), 5)
+        # Temperatures run from about 40,000K down to 4,000K as they cool
+        star.temp_k = float(random.choice(
+            [40000, 30000, 20000, 15000, 12000, 10000, 8000, 7000, 6000, 5000, 4000]))
+    elif kind == 'BD':
+        # Brown dwarfs span roughly 0.013 to 0.08 solar masses; the largest
+        # share the diameter of a large gas giant
+        star.mass = round(0.012 + (Utils.D6(2) - 2) / 150.0, 4)
+        star.diameter = round(0.1 * (0.8 if star.mass < 0.07 else 1.0), 4)
+        star.temp_k = float(random.choice([2200, 1800, 1500, 1200, 900, 600, 400]))
+    else:
+        star.mass = props['mass']
+        star.diameter = props['diameter']
+        star.temp_k = props['temp_k']
     temp_ratio = star.temp_k / 5772
     star.luminosity = max(1e-9, (star.diameter ** 2) * (temp_ratio ** 4))
     star.hzco = Utils.calculate_hzco(star.luminosity)

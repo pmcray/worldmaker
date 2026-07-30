@@ -82,9 +82,16 @@ def generate_geophysics(world: PlanetaryBody, system: StellarSystem):
     world.density = comp_data['density']
     world.core_composition = comp_data['comp']
     
-    # Diameter
+    # Precise diameter. Each Size code spans a range around its average of
+    # Size x 1,600km: Size 5 covers 7,200-8,799km, and so on (WBH p.70).
     if not world.diameter_km:
-        world.diameter_km = size_val * 1600 # Simple average
+        if world.size_code == 'S':
+            world.diameter_km = random.randint(400, 799)
+        elif size_val <= 0:
+            world.diameter_km = 0
+        else:
+            average = size_val * 1600
+            world.diameter_km = average + random.randint(-800, 799)
     
     # Gravity = (Density x Diameter) / Diameter(Terra) (Earth radius ~6371km, Earth average density ~5.51 g/cm3)
     world.gravity = round((world.density * world.diameter_km) / 12742, 2)
@@ -400,16 +407,37 @@ def place_satellites(world: PlanetaryBody, system: StellarSystem):
         mor = 200 + len(world.satellites)
     mor = max(1.0, float(mor))
 
+    rings = [s for s in world.satellites if s.is_ring]
+    for sat in rings:
+        # Ring Centre Location (PD) = 0.4 + ((1D-1) x 5 + 1D-1) / 30, and a
+        # span of at least 0.07 PD (WBH p.78). The span's dice operand is
+        # illegible in the source text, so a d100 fraction is used.
+        centre = 0.4 + ((Utils.D6() - 1) * 5 + (Utils.D6() - 1)) / 30.0
+        span = random.randint(1, 100) / 100.0 * 0.5 + 0.07
+        sat.orbit_pd = round(max(0.2, centre), 3)
+        sat.ring_width_pd = round(span, 3)
+
+    # Where rings overlap, the outer ring moves out until its inner edge meets
+    # the inner ring's outer edge (WBH p.78).
+    rings.sort(key=lambda s: s.orbit_pd)
+    for i in range(1, len(rings)):
+        inner, outer = rings[i - 1], rings[i]
+        inner_outer_edge = inner.orbit_pd + inner.ring_width_pd / 2
+        if outer.orbit_pd - outer.ring_width_pd / 2 < inner_outer_edge:
+            outer.orbit_pd = round(
+                inner.orbit_pd + (inner.ring_width_pd + outer.ring_width_pd) / 2, 3)
+
+    for sat in rings:
+        sat.period_hours = _moon_period_hours(sat.orbit_pd, size_equiv, mass)
+
+    if rings:
+        # Ring profile R0#:C-S,C-S, ...
+        world.ring_profile = (
+            f"R{len(rings):02d}:" +
+            ",".join(f"{r.orbit_pd:.2f}-{r.ring_width_pd:.2f}" for r in rings))
+
     for sat in world.satellites:
         if sat.is_ring:
-            # Ring centre and width in PD (WBH p.78); kept inside the Roche
-            # limit, which is where rings form.
-            centre = 0.4 + ((Utils.D6() - 1) * 5 + (Utils.D6() - 1)) / 30.0
-            width = random.randint(1, 100) / 100.0 * 0.5 + 0.07
-            centre = min(centre, ROCHE_LIMIT_PD - width / 2)
-            sat.orbit_pd = round(max(0.2, centre), 3)
-            sat.ring_width_pd = round(width, 3)
-            sat.period_hours = _moon_period_hours(sat.orbit_pd, size_equiv, mass)
             continue
 
         # Significant moons sit outside the Roche limit

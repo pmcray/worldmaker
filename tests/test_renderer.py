@@ -284,15 +284,55 @@ def test_travel_zone_rings_drawn(sector, sector_svg):
 
 
 def test_polity_borders_drawn_as_dashed_lines(sector, sector_svg):
-    borders = _map_elements(sector_svg, "line", "cm-border")
+    """Borders are dashed and chained into continuous polylines rather than
+    drawn as one disconnected segment per hex edge."""
+    borders = _map_elements(sector_svg, "polyline", "cm-border")
     assert borders, "no polity borders traced"
-    assert all(l.get("stroke-dasharray") for l in borders)
-    # Border segments run along hex edges (length R), not centre-to-centre hops
-    lengths = {round(math.dist((float(l.get("x1")), float(l.get("y1"))),
-                               (float(l.get("x2")), float(l.get("y2")))), 1)
-               for l in borders}
-    assert max(lengths) - min(lengths) < 0.2, \
-        f"border segments vary in length: {lengths}"
+    assert all(b.get("stroke-dasharray") for b in borders)
+
+    # Every segment of every chain runs along a hex edge, so all segments are
+    # the same length (the hex radius).
+    lengths = set()
+    total_segments = 0
+    for polyline in borders:
+        pts = [tuple(float(v) for v in p.split(","))
+               for p in polyline.get("points").split()]
+        assert len(pts) >= 2
+        for i in range(len(pts) - 1):
+            lengths.add(round(math.dist(pts[i], pts[i + 1]), 1))
+            total_segments += 1
+    assert max(lengths) - min(lengths) < 0.2, (
+        f"border segments vary in length: {sorted(lengths)}")
+
+    # Chaining must actually reduce the element count well below the number
+    # of segments drawn
+    assert len(borders) < total_segments / 2, (
+        f"{len(borders)} polylines for {total_segments} segments - "
+        "edges are not being chained")
+
+
+def test_border_edges_chain_into_paths():
+    """_chain_edges links shared endpoints into the longest runs it can."""
+    from worldmaker.sector import _chain_edges
+
+    # A square traced as four separate edges should come back as one loop
+    square = [((0.0, 0.0), (1.0, 0.0)), ((1.0, 0.0), (1.0, 1.0)),
+              ((1.0, 1.0), (0.0, 1.0)), ((0.0, 1.0), (0.0, 0.0))]
+    chains = _chain_edges(square)
+    assert len(chains) == 1
+    assert len(chains[0]) == 5          # four edges, closed back to the start
+
+    # Two edges sharing no endpoint stay separate
+    disjoint = [((5.0, 5.0), (6.0, 5.0)), ((9.0, 9.0), (9.0, 8.0))]
+    assert len(_chain_edges(disjoint)) == 2
+
+    # Every distinct input edge is represented exactly once
+    chains = _chain_edges(square + disjoint)
+    segments = sum(len(c) - 1 for c in chains)
+    assert segments == len(square) + len(disjoint)
+
+    # A repeated edge is drawn only once
+    assert sum(len(c) - 1 for c in _chain_edges(square + square)) == len(square)
 
 
 def test_xboat_routes_drawn_and_within_jump_range(sector, sector_svg):

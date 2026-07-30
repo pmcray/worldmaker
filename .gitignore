@@ -10,3 +10,9 @@ __pycache__/
 
 # IDE / editor
 .antigravitycli/
+
+# Generated output
+sector_map.svg
+subsector_map.svg
+sector.sec
+subsectors/

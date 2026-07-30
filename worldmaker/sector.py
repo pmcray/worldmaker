@@ -201,6 +201,30 @@ def generate_sector(width=8, height=10):
 
     return sector
 
+def name_subsectors(sector: Sector):
+    """Names the sixteen subsectors A-P, conventionally after a notable world
+    in each."""
+    if sector.width != 32 or sector.height != 40:
+        return
+    for idx in range(16):
+        letter = chr(ord('A') + idx)
+        scol, srow = (idx % 4) * 8, (idx // 4) * 10
+        best = None
+        best_score = -1
+        for c in range(scol + 1, scol + 9):
+            for r in range(srow + 1, srow + 11):
+                system = sector.systems.get(f"{c:02d}{r:02d}")
+                mw = system.mainworld if system else None
+                if mw is None:
+                    continue
+                score = (Utils.from_eHex(mw.uwp.population) * 2
+                         + Utils.from_eHex(mw.uwp.tech_level))
+                if score > best_score:
+                    best_score = score
+                    best = mw
+        sector.subsector_names[letter] = best.name if best else f"Subsector {letter}"
+
+
 def generate_full_sector(name="Generated Sector", width=32, height=40, density_target=4):
     """Generates a complete sector (default 32x40 hexes) in a single pass so
     polities, sophonts, settlement waves, routes and names are coherent
@@ -217,6 +241,7 @@ def generate_full_sector(name="Generated Sector", width=32, height=40, density_t
     generate_bases(sector)
     calculate_routes(sector)
     calculate_xboat_routes(sector)
+    name_subsectors(sector)
 
     return sector
 
@@ -279,6 +304,7 @@ _CLASSIC_STYLE = '''<style>
     .cm-legend-box { stroke: #000; stroke-width: 1.2; fill: #fdfcf8; }
     .cm-legend-text { font-family: Helvetica, Arial, sans-serif; fill: #000; }
     .cm-sslabel { font-family: Helvetica, Arial, sans-serif; fill: #999; }
+    .cm-ssname { font-family: Helvetica, Arial, sans-serif; fill: #aaa; letter-spacing: 0.08em; }
 </style>
 '''
 
@@ -380,14 +406,19 @@ def _draw_routes(svg: List[str], sector: Sector, R: float, ox: float, oy: float,
 
 def _draw_borders(svg: List[str], sector: Sector, R: float, ox: float, oy: float,
                   window: Tuple[int, int, int, int], scale: float):
-    """Dashed polity border lines traced along hex edges between territory
-    and non-territory hexes."""
+    """Dashed polity border lines.
+
+    Edges are collected first and then chained head-to-tail into continuous
+    polylines, so a border reads as one sweeping line rather than a chain of
+    disconnected dashes."""
     c0, r0, c1, r1 = window
     territory: Dict[Tuple[int, int], str] = {}
     for polity in sector.polities:
         for h in polity.controlled_systems:
             territory[hex_to_coords(h)] = polity.allegiance_code
 
+    # Collect the boundary edges of each polity separately
+    by_polity: Dict[str, List[Tuple[Tuple[float, float], Tuple[float, float]]]] = {}
     for (col, row), alleg in territory.items():
         if not (c0 <= col <= c1 and r0 <= row <= r1):
             continue
@@ -397,10 +428,61 @@ def _draw_borders(svg: List[str], sector: Sector, R: float, ox: float, oy: float
             if territory.get(neighbor) == alleg:
                 continue
             i, j = _EDGE_OF[direction]
-            (xa, ya), (xb, yb) = verts[i], verts[j]
-            svg.append(f'<line x1="{xa:.1f}" y1="{ya:.1f}" x2="{xb:.1f}" y2="{yb:.1f}" '
-                       f'class="cm-border" stroke-width="{1.8*scale:.1f}" '
-                       f'stroke-dasharray="{5*scale:.1f},{3*scale:.1f}" />')
+            a = (round(verts[i][0], 2), round(verts[i][1], 2))
+            b = (round(verts[j][0], 2), round(verts[j][1], 2))
+            by_polity.setdefault(alleg, []).append((a, b))
+
+    dash = f'{5 * scale:.1f},{3 * scale:.1f}'
+    width = f'{1.8 * scale:.1f}'
+
+    for edges in by_polity.values():
+        for chain in _chain_edges(edges):
+            pts = " ".join(f"{x:.1f},{y:.1f}" for x, y in chain)
+            svg.append(f'<polyline points="{pts}" class="cm-border" '
+                       f'stroke-width="{width}" stroke-dasharray="{dash}" />')
+
+
+def _chain_edges(edges: List[Tuple[Tuple[float, float], Tuple[float, float]]]
+                 ) -> List[List[Tuple[float, float]]]:
+    """Chains a set of undirected edges into the longest possible polylines."""
+    adjacency: Dict[Tuple[float, float], List[Tuple[float, float]]] = {}
+    remaining = set()
+    for a, b in edges:
+        if a == b:
+            continue
+        key = (a, b) if a <= b else (b, a)
+        if key in remaining:
+            continue
+        remaining.add(key)
+        adjacency.setdefault(a, []).append(b)
+        adjacency.setdefault(b, []).append(a)
+
+    chains = []
+    while remaining:
+        a, b = next(iter(remaining))
+        remaining.discard((a, b))
+        chain = [a, b]
+
+        # Extend forward, then backward, consuming edges as we go
+        for _ in range(2):
+            while True:
+                tail = chain[-1]
+                nxt = None
+                for candidate in adjacency.get(tail, []):
+                    key = (tail, candidate) if tail <= candidate else (candidate, tail)
+                    if key in remaining:
+                        nxt = candidate
+                        remaining.discard(key)
+                        break
+                if nxt is None:
+                    break
+                chain.append(nxt)
+            chain.reverse()
+
+        chains.append(chain)
+
+    return chains
+
 
 _LEGEND_ITEMS = ["world_wet", "world_dry", "belt", "gg", "naval", "scout",
                  "amber", "red", "xboat", "border"]
@@ -513,12 +595,19 @@ def _render_window(sector: Sector, name: str, window: Tuple[int, int, int, int],
             gy = oy + row_h * 10 * k + row_h / 4
             svg.append(f'<line x1="{ox:.1f}" y1="{gy:.1f}" x2="{ox + grid_w:.1f}" '
                        f'y2="{gy:.1f}" class="cm-subgrid" opacity="0.55" />')
+        names = getattr(sector, 'subsector_names', None) or {}
         for idx in range(16):
             sc, sr = idx % 4, idx // 4
+            letter = chr(ord("A") + idx)
             lx = ox + 1.5 * R * (8 * sc) + 0.75 * R
             ly = oy + row_h * 10 * sr + row_h * 0.9
             svg.append(f'<text x="{lx:.1f}" y="{ly:.1f}" class="cm-sslabel" '
-                       f'font-size="{row_h * 0.85:.1f}">{chr(ord("A") + idx)}</text>')
+                       f'font-size="{row_h * 0.85:.1f}">{letter}</text>')
+            label = names.get(letter)
+            if label:
+                svg.append(f'<text x="{lx + row_h * 0.75:.1f}" y="{ly:.1f}" '
+                           f'class="cm-ssname" font-size="{row_h * 0.34:.1f}">'
+                           f'{label.upper()}</text>')
 
     # Frame and legend
     svg.append(f'<rect x="{ox:.1f}" y="{oy:.1f}" width="{grid_w:.1f}" '
@@ -527,6 +616,12 @@ def _render_window(sector: Sector, name: str, window: Tuple[int, int, int, int],
 
     svg.append('</svg>')
     return "\n".join(svg)
+
+def subsector_letter(origin_col: int, origin_row: int) -> str:
+    """The A-P letter of the subsector whose top-left hex is given."""
+    idx = ((origin_row - 1) // 10) * 4 + ((origin_col - 1) // 8)
+    return chr(ord('A') + idx) if 0 <= idx < 16 else '?'
+
 
 def generate_subsector_svg(sector, name="Subsector Map", origin_col=1, origin_row=1):
     """Renders one 8x10 subsector in the classic Supplement-page style.

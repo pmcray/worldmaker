@@ -81,6 +81,8 @@ from .sector import (
     generate_sector_svg,
     generate_subsector_svg,
     calculate_xboat_routes,
+    name_subsectors,
+    subsector_letter,
 )
 from .exporters import create_system_dataframe, export_system_markdown, export_sector_sec_file
 from .generator import generate_full_system, select_mainworld

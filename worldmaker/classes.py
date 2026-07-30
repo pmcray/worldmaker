@@ -266,6 +266,7 @@ class PlanetaryBody:
     habitability_rating: int = 0
     hill_sphere_pd: float = 0.0
     hill_sphere_moon_limit_pd: float = 0.0
+    ring_profile: str = ""
     # Native lifeform ratings (WBH pp.127-131)
     biodiversity_rating: int = 0
     compatibility_rating: int = 0
@@ -463,3 +464,4 @@ class Sector:
     settlement_waves: List[Wave] = field(default_factory=list)
     routes: List[Tuple[str, str, str]] = field(default_factory=list) # (hex1, hex2, type)
     polities: List[Polity] = field(default_factory=list)
+    subsector_names: Dict[str, str] = field(default_factory=dict)
