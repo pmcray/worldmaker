@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "worldmaker"
+description = "A star system and sector generator for Mongoose Traveller 2nd edition"
+readme = "README.md"
+requires-python = ">=3.10"
+dynamic = ["version"]
+dependencies = ["pandas>=2.0"]
+
+[project.optional-dependencies]
+notebooks = ["jupyterlab>=4.0", "ipywidgets>=8.0"]
+test = ["pytest>=7.0"]
+
+[project.urls]
+Homepage = "https://github.com/pmcray/worldmaker"
+
+[tool.setuptools]
+packages = ["worldmaker"]
+
+[tool.setuptools.dynamic]
+version = {attr = "worldmaker.__version__"}

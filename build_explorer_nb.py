@@ -5,16 +5,20 @@ hand-edited as JSON.
 """
 import json
 
+import colab_cells
+
 cells = []
 
 
 def md(text):
-    cells.append({"cell_type": "markdown", "metadata": {},
+    cells.append({"cell_type": "markdown", "id": f"cell-{len(cells):02d}",
+                  "metadata": {},
                   "source": text.strip("\n").splitlines(keepends=True)})
 
 
 def code(text):
-    cells.append({"cell_type": "code", "execution_count": None,
+    cells.append({"cell_type": "code", "id": f"cell-{len(cells):02d}",
+                  "execution_count": None,
                   "metadata": {}, "outputs": [],
                   "source": text.strip("\n").splitlines(keepends=True)})
 
@@ -31,7 +35,8 @@ sector that cell built, so you can re-run any of them freely.
 
 **Requirements**: `pip install -r requirements.txt`. For the dropdown
 pickers also `pip install ipywidgets` — without it the same views are
-available as plain function calls, which every cell shows.
+available as plain function calls, which every cell shows. On Google Colab
+nothing needs installing by hand: the next cell does it.
 """)
 
 # ---------------------------------------------------------------- setup
@@ -508,7 +513,13 @@ notebook = {
     "nbformat_minor": 5,
 }
 
-with open("Traveller_Sector_Explorer.ipynb", "w") as handle:
+PATH = "Traveller_Sector_Explorer.ipynb"
+
+with open(PATH, "w") as handle:
     json.dump(notebook, handle, indent=1)
 
-print(f"wrote Traveller_Sector_Explorer.ipynb with {len(cells)} cells")
+# The badge, the Colab bootstrap and the download cell, so the rebuilt
+# notebook still runs on Colab.
+total = colab_cells.ensure(PATH, download=colab_cells.EXPLORER_DOWNLOAD)
+
+print(f"wrote {PATH} with {total} cells")

@@ -7,9 +7,33 @@ Classic Traveller originals.
 
 ## Quick start
 
+### In the browser, with nothing installed
+
+Open a notebook in Google Colab and run the cells. Its first cell installs
+the package into the Colab runtime; nothing else is needed, and nothing is
+installed on your own machine.
+
+| Notebook | |
+|---|---|
+| **Sector Explorer** — a sector, its maps and everything in it | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pmcray/worldmaker/blob/master/Traveller_Sector_Explorer.ipynb) |
+| System Builder — one system in full detail | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pmcray/worldmaker/blob/master/Traveller_System_Builder.ipynb) |
+| Sector Generator — polities, maps and universes | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pmcray/worldmaker/blob/master/traveller_world_generator.ipynb) |
+
+Colab's runtime is discarded when the session ends, so each notebook ends
+with a cell that downloads what it generated — the sector data, the maps
+and the dossiers — to your own machine.
+
+### Locally
+
 ```bash
 pip install -r requirements.txt
 jupyter lab                      # then open Traveller_Sector_Explorer.ipynb
+```
+
+Or as a library, without the repository:
+
+```bash
+pip install git+https://github.com/pmcray/worldmaker.git
 ```
 
 **`Traveller_Sector_Explorer.ipynb` is the place to start.** Run its cells in
@@ -207,6 +231,12 @@ was flagged.
 | `sector.py` | Sector assembly and the classic map renderers |
 | `t5.py` | Traveller5 Second Survey column and tab output |
 | `exporters.py` | DataFrame, markdown dossier and `.sec` output |
+
+The notebooks are generated rather than hand-edited as JSON:
+`build_explorer_nb.py` builds the Sector Explorer from source, and
+`colab_cells.py` inserts the Colab badge, the bootstrap cell and the
+download cell into all three. Both are idempotent — re-run them after
+changing a notebook's structure.
 
 ## Fidelity
 
