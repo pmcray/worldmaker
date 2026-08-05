@@ -311,6 +311,59 @@ def calculate_major_cities(world: Any, pcr: int, urban_pct: int,
     return cities
 
 
+def enforce_sustainable_tech_level(world: Any,
+                                   max_tech_level: int = None) -> bool:
+    """Applies the Minimal Sustainable Tech Levels rule (WBH pp.173-174).
+
+    "In general, a world cannot sustain a population unless it meets minimum
+    Tech Level limits based on environment." The book allows a world to hang
+    on one or two levels below, at the cost of being "economically unviable
+    and prone to the dangers of life support failures" - which is left as an
+    occasional outcome, flagged on the world, because a colony clinging on
+    with failing life support is worth more at the table than a tidy number.
+
+    Where a setting's technology ceiling is itself below what the
+    environment demands, nobody lives there at all.
+
+    Returns True if anything changed."""
+    uwp = world.uwp
+    population = Utils.from_eHex(uwp.population)
+    if population <= 0:
+        return False
+
+    floor = minimum_sustainable_tl(world)
+    tech_level = Utils.from_eHex(uwp.tech_level)
+    if tech_level >= floor:
+        return False
+
+    if max_tech_level is not None and floor > max_tech_level:
+        # The environment is beyond anything this setting can build
+        uwp.population = '0'
+        uwp.government = '0'
+        uwp.law_level = '0'
+        world.population_digit = 0
+        world.total_population = 0
+        world.notes.append(
+            f"Uninhabited: surviving here needs TL{Utils.eHex(floor)}, above "
+            f"this setting's ceiling of TL{Utils.eHex(max_tech_level)}")
+        return True
+
+    # A minority hang on below the limit on prototype and jury-rigged gear
+    if floor - tech_level <= 2 and Utils.D6() == 6:
+        world.notes.append(
+            f"Precarious settlement: the environment demands "
+            f"TL{Utils.eHex(floor)} and this world runs at "
+            f"TL{Utils.eHex(tech_level)} on jury-rigged equipment - "
+            f"economically unviable and prone to life support failures")
+        return False
+
+    uwp.tech_level = Utils.eHex(floor)
+    world.notes.append(
+        f"Tech Level raised to TL{Utils.eHex(floor)}: the minimum its "
+        f"environment can be survived at")
+    return True
+
+
 def generate_population_details(world: Any) -> None:
     """Computes and records population concentration, urbanisation and major
     cities for a world."""

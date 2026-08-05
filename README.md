@@ -8,8 +8,25 @@ Classic Traveller originals.
 ## Quick start
 
 ```bash
-pip install pytest pandas
-python -m pytest tests/          # 359 tests
+pip install -r requirements.txt
+jupyter lab                      # then open Traveller_Sector_Explorer.ipynb
+```
+
+**`Traveller_Sector_Explorer.ipynb` is the place to start.** Run its cells in
+order and you get a generated sector, the sector and subsector maps, a
+sortable table of every system, a picker that shows any system in full —
+including its secondary worlds and the nations of a balkanised one — the
+candidates for Erith, and a scan of the worlds worth a Referee's attention,
+each with the reasons it was flagged.
+
+Two narrower notebooks remain: `Traveller_System_Builder.ipynb` for one
+system in detail with its temperature scenarios and world map, and
+`traveller_world_generator.ipynb` for a sector's polities and maps.
+
+Everything is also a plain library, used from the repository root:
+
+```bash
+python -m pytest tests/          # 385 tests
 ```
 
 ```python
@@ -74,10 +91,6 @@ the whole workflow: find the closest Earth-like world in the habitable zone
 of an F, G or K star outside Zhodani space, make it match exactly, rebuild
 its nations and record the family that holds the freehold.
 
-The two notebooks are thin front-ends over the package:
-
-- `Traveller_System_Builder.ipynb` — one system in detail, with its world map.
-- `traveller_world_generator.ipynb` — a sector, its polities and its maps.
 
 ## What it generates
 
@@ -156,6 +169,12 @@ with water and open circles for dry ones, belt scatters, gas giant markers,
 base glyphs, travel-zone rings, dashed polity borders, Xboat route lines,
 subsector divisions and a legend. Also icosahedral world surface maps.
 
+**Notability** — a scan that reads a whole sector and surfaces the places
+that would change what happens at the table: native sophonts, the ruins of
+extinct ones, magma oceans, tidally locked worlds, interdictions, dead
+stars, and habitable worlds nobody has settled — each with the reasons it
+was flagged.
+
 ## Layout
 
 | Module | Contents |
@@ -184,6 +203,7 @@ subsector divisions and a legend. Also icosahedral world surface maps.
 | `nations.py` | Sovereign nations on balkanised worlds |
 | `cultures.py` | Procedural cultures and the template palette |
 | `findworld.py` | Weighted world matching, and the Erith workflow |
+| `notable.py` | Surfacing the worlds worth a Referee's attention |
 | `sector.py` | Sector assembly and the classic map renderers |
 | `t5.py` | Traveller5 Second Survey column and tab output |
 | `exporters.py` | DataFrame, markdown dossier and `.sec` output |

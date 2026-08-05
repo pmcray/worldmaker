@@ -19,3 +19,4 @@ subsectors/
 
 # Cached canonical sector data (Traveller canon, not redistributed)
 canon_cache/
+output/

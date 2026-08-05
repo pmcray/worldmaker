@@ -33,7 +33,8 @@ from .scenarios import detail_temperature_scenarios
 from .belts import detail_system_belts
 from .economics import generate_economics
 from .government import generate_government_details
-from .population import generate_population_details
+from .population import (generate_population_details,
+                         enforce_sustainable_tech_level)
 from .technology import generate_technology_profile
 from .starport import detail_starport_and_military
 from .secondary import generate_secondary_populations
@@ -237,6 +238,9 @@ def generate_full_system(name="Random System", population_dm=0,
         if (max_tech_level is not None
                 and Utils.from_eHex(mainworld.uwp.tech_level) > max_tech_level):
             mainworld.uwp.tech_level = Utils.eHex(max(0, max_tech_level))
+        # A world cannot sustain a population below the Tech Level its own
+        # environment demands (WBH pp.173-174).
+        enforce_sustainable_tech_level(mainworld, max_tech_level)
         generate_expanded_tech_matrix(mainworld.uwp, mainworld)
         # Government and law first: the technology profile's personal-weapons
         # bound depends on the weapons Law Level.

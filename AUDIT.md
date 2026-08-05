@@ -4,7 +4,7 @@
 `documents/`: Mongoose Traveller 2e *World Builder's Handbook* (WBH, 258 pp.)
 and *Sector Construction Guide* (SCG, 66 pp.).
 **Method:** full source review, extraction of both books' contents, index and
-checklist pages, and a 359-test pytest suite (`tests/`) combining
+checklist pages, and a 385-test pytest suite (`tests/`) combining
 internal-invariant checks with conformance checks against the books' procedures
 and dice distributions.
 
@@ -14,7 +14,7 @@ has been updated as the gaps were closed. §5 lists what is still missing.
 ## Verdict
 
 **Both books are now implemented to the level this generator can usefully
-reach, and the suite is green: 359 passed, 0 failed.** (The first audit found
+reach, and the suite is green: 385 passed, 0 failed.** (The first audit found
 11 passed / 18 failed.)
 
 Every procedure the two books define for generating a system, a world, its
@@ -105,6 +105,7 @@ NO absent
 | Government detail (p.156) | OK - centralisation, authority, structure, profile, factions with strength and symmetric relationships |
 | Law detail (p.163) | OK - justice profile PSU-I-D and Law Level subcodes O-WECPR |
 | Technology profile (pp.173-180) | OK - H-L-QQQQQ-TTTT-MM-N with the TLM table and every subcategory bound |
+| Minimal Sustainable Tech Levels (pp.173-174) | OK - the Tech Level and Environment table is enforced on populated worlds, with the book's allowance for hanging on one or two levels below on jury-rigged equipment kept as an occasional, flagged outcome |
 | Culture (pp.181-185) | OK - eight traits at 2D + DMs, rolled procedurally by default; `cultures.py` adds an opt-in palette of 50 named cultural templates, which is this project's own construct rather than a book procedure |
 | Economics (pp.185-199) | OK - importance, resources, labour, infrastructure, efficiency, resource units, WTN, GWP, inequality, development, tariffs |
 | Starport facilities (pp.193-196) | OK - highport, fuel, repair, shipyard, bases including waystations and corsairs, capacities, traffic |
@@ -168,9 +169,10 @@ Run with `pip install -r requirements.txt && python -m pytest tests/`.
 | `test_secondary.py` | 21 | The population cap and its shortcut, the 1D per-body method, Tech Level habitation limits, candidate filtering, colonies versus independents, and that every body now presents its own physical UWP |
 | `test_nations.py` | 30 | Nation counts and both escalations, per-nation law and technology, the starport state carrying the UWP values, territory covering the land without overlap, cities assigned to nations, and the culture palette's breadth, gating and variance |
 | `test_findworld.py` | 33 | Scoring and tolerances, physical Earth-likeness outweighing law and tech, every hard filter, ranking, imposing a profile, proprietorship on balkanised and unified worlds, and the full make_erith workflow |
+| `test_notable.py` | 25 | Every notability signal and its ranking, deduplication of repeated stellar reasons, scan filtering, and the Tech Level and Environment table with its floor enforcement, precarious allowance and setting-ceiling case |
 | `test_universe.py` | 29 | Density targets and the playable range, Tech Level ceilings holding across a sector, trajectory DMs, preset validity, sophont prevalence scaling, every anomaly's effect on the worlds it covers, rift and cluster density changes, timeline ordering and content, and that a universe-driven sector still exports and renders |
 
-**359 passed, 0 failed.** Verified across multiple seeds; 1,200 systems
+**385 passed, 0 failed.** Verified across multiple seeds; 1,200 systems
 generate across 40 seeds without error.
 
 The eleven defects the first audit found are all fixed and each is still

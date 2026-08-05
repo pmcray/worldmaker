@@ -25,6 +25,7 @@ from .population import (
     calculate_pcr,
     calculate_urbanisation,
     minimum_sustainable_tl,
+    enforce_sustainable_tech_level,
 )
 from .technology import generate_technology_profile, tlm
 from .belts import detail_belt, detail_system_belts
@@ -218,5 +219,17 @@ from .findworld import (
     GARDEN_WORLD,
     REFUELLING_STOP,
 )
-from .exporters import create_system_dataframe, export_system_markdown, export_sector_sec_file
+from .notable import (
+    Notable,
+    find_notable,
+    find_exotic_systems,
+    notability,
+    describe_notable,
+)
+from .exporters import (
+    create_system_dataframe,
+    create_sector_dataframe,
+    export_system_markdown,
+    export_sector_sec_file,
+)
 from .generator import generate_full_system, select_mainworld

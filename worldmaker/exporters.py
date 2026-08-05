@@ -70,6 +70,41 @@ def create_system_dataframe(system: StellarSystem) -> pd.DataFrame:
                 
     return pd.DataFrame(rows)
 
+def create_sector_dataframe(sector: Sector) -> pd.DataFrame:
+    """One row per system in a sector: the map's own table, sortable and
+    filterable. Includes the count of inhabited secondary worlds, which the
+    UWP alone never shows."""
+    from .t5 import t5_bases, t5_pbg, t5_stellar
+
+    rows = []
+    for hex_coord in sorted(sector.systems):
+        system = sector.systems[hex_coord]
+        mainworld = system.mainworld
+        if mainworld is None:
+            continue
+
+        secondaries = [b for b in system.all_bodies
+                       if getattr(b, 'is_secondary_world', False)]
+        rows.append({
+            "Hex": hex_coord,
+            "Name": mainworld.name or system.name,
+            "UWP": str(mainworld.uwp),
+            "Bases": t5_bases(system),
+            "Zone": system.travel_zone,
+            "Allegiance": system.allegiance,
+            "PBG": t5_pbg(system),
+            "Trade codes": " ".join(mainworld.trade_codes),
+            "Stars": t5_stellar(system),
+            "Worlds": len(system.all_worlds),
+            "Inhabited": 1 + len(secondaries),
+            "Pop": mainworld.total_population,
+            "Hab": mainworld.habitability_rating,
+            "Temp K": mainworld.mean_temperature,
+            "Nations": getattr(mainworld, 'nation_count', 0),
+        })
+    return pd.DataFrame(rows)
+
+
 def export_system_markdown(system: StellarSystem) -> str:
     """Returns a highly detailed markdown dossier for a stellar system including advanced WBH outputs."""
     md = []
