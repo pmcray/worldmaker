@@ -491,3 +491,6 @@ class Sector:
     subsector_names: Dict[str, str] = field(default_factory=dict)
     # Empty-hex surveys (WBH pp.219-223): hex -> EmptyHexSurvey
     deep_space: Dict[str, Any] = field(default_factory=dict)
+    # Worlds served by a courier network based outside this sector:
+    # (hex, route style)
+    off_sector_routes: List[Tuple[str, str]] = field(default_factory=list)

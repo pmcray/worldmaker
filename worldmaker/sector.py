@@ -135,20 +135,41 @@ def calculate_routes(sector: Sector):
             if route_type:
                 sector.routes.append((hex1, hex2, route_type))
 
-def calculate_xboat_routes(sector: Sector, max_jump: int = 4):
-    """Builds the express boat (Xboat) network: a minimal set of links, each
-    at most jump-4, spanning the Class A and B starports - the heavy solid
-    route lines of the classic sector maps."""
-    hubs = []
-    for hex_coord, system in sector.systems.items():
-        mw = _mainworld_of(system)
-        if mw and mw.uwp.starport in ('A', 'B'):
-            hubs.append(hex_coord)
+# A courier network is a polity's own infrastructure, not a feature of
+# space. The Imperium runs Xboats; the Zhodani run their own relay network;
+# unaligned space has neither. Route styles are recorded separately so the
+# map can draw them differently.
+ROUTE_STYLES = {
+    'xboat': "Imperial express boat route",
+    'relay': "Consular relay network",
+    'courier': "Courier route",
+}
 
+# Which style a polity's network takes, by allegiance code prefix.
+_STYLE_FOR_ALLEGIANCE = (
+    ('Im', 'xboat'), ('Cs', 'xboat'),
+    ('Zh', 'relay'),
+)
+
+
+def route_style_for(allegiance: str) -> str:
+    """The kind of courier network a polity runs."""
+    allegiance = (allegiance or '').strip()
+    for prefix, style in _STYLE_FOR_ALLEGIANCE:
+        if allegiance.startswith(prefix):
+            return style
+    return 'courier'
+
+
+def _network_span(hubs: List[str], max_jump: int,
+                  style: str) -> List[Tuple[str, str, str]]:
+    """A minimal set of links spanning `hubs`, each within jump range.
+
+    A jump does not transit the hexes it crosses, so a leg between two of a
+    polity's own worlds never trespasses; restricting the hubs is enough."""
     if len(hubs) < 2:
-        return
+        return []
 
-    # Kruskal's algorithm restricted to jump-range edges
     parent = {h: h for h in hubs}
 
     def find(h):
@@ -160,16 +181,65 @@ def calculate_xboat_routes(sector: Sector, max_jump: int = 4):
     edges = []
     for i in range(len(hubs)):
         for j in range(i + 1, len(hubs)):
-            d = hex_distance(hubs[i], hubs[j])
-            if d <= max_jump:
-                edges.append((d, hubs[i], hubs[j]))
+            distance = hex_distance(hubs[i], hubs[j])
+            if distance <= max_jump:
+                edges.append((distance, hubs[i], hubs[j]))
     edges.sort()
 
-    for d, h1, h2 in edges:
+    routes = []
+    for distance, h1, h2 in edges:
         r1, r2 = find(h1), find(h2)
         if r1 != r2:
             parent[r1] = r2
-            sector.routes.append((h1, h2, "xboat"))
+            routes.append((h1, h2, style))
+    return routes
+
+
+def calculate_xboat_routes(sector: Sector, max_jump: int = 4):
+    """Builds each polity's courier network.
+
+    A courier route is a state's own infrastructure: express boats run
+    between stations that somebody pays for, along corridors that somebody
+    controls. So the network is built once per polity, over that polity's
+    own Class A and B starports, and never through a rival's territory.
+    Client states attach to their patron's network, which is how the
+    Imperium reaches worlds beyond its own border. Unaligned space gets no
+    courier service at all - only the trade routes of
+    `calculate_routes`."""
+    by_allegiance: Dict[str, List[str]] = {}
+    for hex_coord, system in sector.systems.items():
+        allegiance = (system.allegiance or '').strip()
+        if not allegiance or allegiance == 'Na':
+            continue      # nobody runs a postal service through free space
+        by_allegiance.setdefault(allegiance, []).append(hex_coord)
+
+    # A client state's worlds join the network of the power they answer to,
+    # so an Imperial route can reach a client world outside the border.
+    patrons: Dict[str, str] = {}
+    for allegiance in by_allegiance:
+        if allegiance.startswith('Cs') and len(allegiance) >= 4:
+            patron = allegiance[2:4]
+            for candidate in by_allegiance:
+                if candidate.startswith(patron):
+                    patrons[allegiance] = candidate
+                    break
+
+    networks: Dict[str, List[str]] = {}
+    for allegiance, hexes in by_allegiance.items():
+        owner = patrons.get(allegiance, allegiance)
+        networks.setdefault(owner, []).extend(hexes)
+
+    for owner, territory in networks.items():
+        hubs = [h for h in territory
+                if (_mainworld_of(sector.systems[h]) is not None
+                    and _mainworld_of(sector.systems[h]).uwp.starport in ('A', 'B'))]
+        style = route_style_for(owner)
+        sector.routes.extend(_network_span(hubs, max_jump, style))
+
+        # A client state whose patron holds no territory in this sector is
+        # served from outside it: the route runs off the edge of the map.
+        if owner.startswith('Cs') and len(hubs) == 1:
+            sector.off_sector_routes.append((hubs[0], style))
 
 def _generate_systems(sector: Sector, density_target: int = 4, universe=None,
                       canon=None):
@@ -369,6 +439,8 @@ _CLASSIC_STYLE = '''<style>
     .cm-zone-amber { fill: none; stroke: #b22222; }
     .cm-zone-red { fill: none; stroke: #b22222; }
     .cm-xboat { stroke: #000; fill: none; }
+    .cm-relay { stroke: #000; fill: none; }
+    .cm-courier { stroke: #333; fill: none; }
     .cm-border { stroke: #8b0000; fill: none; }
     .cm-legend-box { stroke: #000; stroke-width: 1.2; fill: #fdfcf8; }
     .cm-legend-text { font-family: Helvetica, Arial, sans-serif; fill: #000; }
@@ -454,9 +526,20 @@ def _world_glyphs(svg: List[str], system: StellarSystem, x: float, y: float,
     svg.append(f'<text x="{x:.1f}" y="{y + 0.48*R:.1f}" class="cm-name" '
                f'font-size="{0.21*R:.1f}"{weight}>{name}</text>')
 
+# How each courier network is drawn: class, width multiplier, dash pattern.
+_ROUTE_DRAW = {
+    'xboat':   ('cm-xboat', 2.6, None),
+    'relay':   ('cm-relay', 2.2, (7, 3)),
+    'courier': ('cm-courier', 1.6, (2, 3)),
+}
+
+
 def _draw_routes(svg: List[str], sector: Sector, R: float, ox: float, oy: float,
                  window: Tuple[int, int, int, int], scale: float):
-    """Xboat route lines (drawn beneath the hex grid)."""
+    """Courier route lines (drawn beneath the hex grid).
+
+    Each polity's network is drawn in its own weight, so an Imperial Xboat
+    route and a Zhodani relay line are told apart at a glance."""
     c0, r0, c1, r1 = window
 
     def in_window(h):
@@ -464,14 +547,30 @@ def _draw_routes(svg: List[str], sector: Sector, R: float, ox: float, oy: float,
         return c0 <= c <= c1 and r0 <= r <= r1
 
     for h1, h2, rtype in sector.routes:
-        if rtype != "xboat" or not in_window(h1) or not in_window(h2):
+        style = _ROUTE_DRAW.get(rtype)
+        if style is None or not in_window(h1) or not in_window(h2):
             continue
+        css, weight, dash = style
         ca, ra = hex_to_coords(h1)
         cb, rb = hex_to_coords(h2)
         xa, ya = _hex_center(ca - c0, ra - r0, R, ox, oy)
         xb, yb = _hex_center(cb - c0, rb - r0, R, ox, oy)
+        dash_attr = (f' stroke-dasharray="{dash[0]*scale:.1f},{dash[1]*scale:.1f}"'
+                     if dash else '')
         svg.append(f'<line x1="{xa:.1f}" y1="{ya:.1f}" x2="{xb:.1f}" y2="{yb:.1f}" '
-                   f'class="cm-xboat" stroke-width="{2.6*scale:.1f}" />')
+                   f'class="{css}" stroke-width="{weight*scale:.1f}"{dash_attr} />')
+
+    # Worlds served from beyond the sector: a stub running off the map
+    for hex_coord, rtype in getattr(sector, 'off_sector_routes', []):
+        style = _ROUTE_DRAW.get(rtype)
+        if style is None or not in_window(hex_coord):
+            continue
+        css, weight, dash = style
+        c, r = hex_to_coords(hex_coord)
+        x, y = _hex_center(c - c0, r - r0, R, ox, oy)
+        svg.append(f'<line x1="{x:.1f}" y1="{y:.1f}" x2="{x + 1.4*R:.1f}" '
+                   f'y2="{y:.1f}" class="{css}" '
+                   f'stroke-width="{weight*scale:.1f}" opacity="0.65" />')
 
 def _draw_borders(svg: List[str], sector: Sector, R: float, ox: float, oy: float,
                   window: Tuple[int, int, int, int], scale: float):
@@ -554,12 +653,13 @@ def _chain_edges(edges: List[Tuple[Tuple[float, float], Tuple[float, float]]]
 
 
 _LEGEND_ITEMS = ["world_wet", "world_dry", "belt", "gg", "naval", "scout",
-                 "amber", "red", "xboat", "border"]
+                 "amber", "red", "xboat", "relay", "courier", "border"]
 _LEGEND_LABELS = {
     "world_wet": "World (water present)", "world_dry": "World (no water)",
     "belt": "Asteroid belt", "gg": "Gas giant", "naval": "Naval base",
     "scout": "Scout base", "amber": "Amber zone", "red": "Red zone",
-    "xboat": "Xboat route", "border": "Polity border",
+    "xboat": "Xboat route", "relay": "Relay network",
+    "courier": "Courier route", "border": "Polity border",
 }
 
 def _legend_layout(width: float, font: float) -> Tuple[int, int, float]:
@@ -599,6 +699,10 @@ def _draw_legend(svg: List[str], x: float, y: float, width: float, font: float):
             svg.append(f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{g:.1f}" class="cm-zone-red cm-legend-glyph" stroke-width="2" />')
         elif item == "xboat":
             svg.append(f'<line x1="{cx - g:.1f}" y1="{cy:.1f}" x2="{cx + g:.1f}" y2="{cy:.1f}" class="cm-xboat cm-legend-glyph" stroke-width="2.4" />')
+        elif item == "relay":
+            svg.append(f'<line x1="{cx - g:.1f}" y1="{cy:.1f}" x2="{cx + g:.1f}" y2="{cy:.1f}" class="cm-relay cm-legend-glyph" stroke-width="2.0" stroke-dasharray="6,2.6" />')
+        elif item == "courier":
+            svg.append(f'<line x1="{cx - g:.1f}" y1="{cy:.1f}" x2="{cx + g:.1f}" y2="{cy:.1f}" class="cm-courier cm-legend-glyph" stroke-width="1.5" stroke-dasharray="1.8,2.6" />')
         elif item == "border":
             svg.append(f'<line x1="{cx - g:.1f}" y1="{cy:.1f}" x2="{cx + g:.1f}" y2="{cy:.1f}" class="cm-border cm-legend-glyph" stroke-width="1.8" stroke-dasharray="4,2.5" />')
         svg.append(f'<text x="{cx + font*1.3:.1f}" y="{cy + font*0.4:.1f}" '

@@ -9,7 +9,7 @@ Classic Traveller originals.
 
 ```bash
 pip install pytest pandas
-python -m pytest tests/          # 273 tests
+python -m pytest tests/          # 359 tests
 ```
 
 ```python
@@ -59,6 +59,20 @@ For Foreven that fixes all 358 star positions, the Zhodani Consulate's
 worlds — while everything else is generated. `canon_mode` selects how much
 to honour: `pin` (all of it), `seed` (positions and borders only, worlds are
 yours to invent) or `positions` (star placements alone).
+
+Looking for one particular kind of world in a sector of hundreds:
+
+```python
+match = wm.make_erith(sector, culture_family="terrestrial")
+print(match.body.uwp)                    # C867871-1
+print(wm.describe_nations(match.body))   # its sovereign states
+```
+
+`find_worlds` scores every body — secondary worlds included — against a
+`WorldProfile` of hard filters and weighted UWP targets. `make_erith` runs
+the whole workflow: find the closest Earth-like world in the habitable zone
+of an F, G or K star outside Zhodani space, make it match exactly, rebuild
+its nations and record the family that holds the freehold.
 
 The two notebooks are thin front-ends over the package:
 
@@ -110,10 +124,24 @@ infrastructure, efficiency, resource units, GWP, world trade number,
 inequality, tariffs); starport facilities and capacities; military branches
 and budget; cultural traits.
 
+**Societies beyond the mainworld** — secondary world populations, capped
+below the mainworld's and restricted by what a Tech Level can survive;
+colonies and independent settlements with their own government, law and
+technology. On a balkanised world, the sovereign nations the UWP hides,
+each with its own law level, technology, culture, territory and cities —
+because a world's single Law Level digit only ever described the
+government nearest the starport.
+
+**Cultural character** — the handbook's eight traits rolled procedurally by
+default, plus an opt-in palette of 50 templates: 16 terrestrial historical
+periods, 11 starfaring, and 23 with no terrestrial parallel at all, from
+hive collectives and distributed minds to nomad fleets, clade lineages and
+worlds where the dead remain legal persons.
+
 **Sectors** — system placement at configurable density; settlement waves;
 native sophonts generated from the SCG's D66 tables; procedural polities that
 expand from a capital along jump links bounded by their drive technology;
-travel zones; trade and Xboat routes; subsector naming.
+travel zones; trade routes; per-polity courier networks; subsector naming.
 
 **Universes** — a guided entry point that turns a handful of high-level
 choices (theme, star density, maximum Tech Level, trajectory, sophont
@@ -152,6 +180,10 @@ subsector divisions and a legend. Also icosahedral world surface maps.
 | `special.py` | Special Circumstances: empty hexes, dead stars, protostars |
 | `universe.py` | Guided universe creation, anomalies and timelines |
 | `canon.py` | Canonical sector overlays: published positions, borders and worlds |
+| `secondary.py` | Secondary world populations |
+| `nations.py` | Sovereign nations on balkanised worlds |
+| `cultures.py` | Procedural cultures and the template palette |
+| `findworld.py` | Weighted world matching, and the Erith workflow |
 | `sector.py` | Sector assembly and the classic map renderers |
 | `t5.py` | Traveller5 Second Survey column and tab output |
 | `exporters.py` | DataFrame, markdown dossier and `.sec` output |

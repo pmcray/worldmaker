@@ -335,26 +335,56 @@ def test_border_edges_chain_into_paths():
     assert sum(len(c) - 1 for c in _chain_edges(square + square)) == len(square)
 
 
-def test_xboat_routes_drawn_and_within_jump_range(sector, sector_svg):
-    xboat = [r for r in sector.routes if r[2] == "xboat"]
-    assert xboat, "no Xboat network generated"
-    for h1, h2, _ in xboat:
+def test_courier_routes_drawn_and_within_jump_range(sector, sector_svg):
+    """Every courier network - Xboat, relay or plain courier - is drawn in
+    its own style, and every leg is a jump a courier could make."""
+    from worldmaker.sector import ROUTE_STYLES
+
+    courier = [r for r in sector.routes if r[2] in ROUTE_STYLES]
+    assert courier, "no courier network generated"
+    for h1, h2, _ in courier:
         assert hex_distance(h1, h2) <= 4, f"{h1}-{h2} exceeds jump-4"
         for h in (h1, h2):
             mw = sector.systems[h].mainworld
             assert mw.uwp.starport in ("A", "B"), \
-                f"Xboat stop {h} has starport {mw.uwp.starport}"
-    drawn = _map_elements(sector_svg, "line", "cm-xboat")
-    assert len(drawn) == len(xboat)
+                f"courier stop {h} has starport {mw.uwp.starport}"
+
+    drawn = 0
+    for style, css in (("xboat", "cm-xboat"), ("relay", "cm-relay"),
+                       ("courier", "cm-courier")):
+        lines = _map_elements(sector_svg, "line", css)
+        # The legend carries one glyph of each style as well
+        drawn += len([l for l in lines if "cm-legend-glyph" not in l])
+    assert drawn == len(courier)
 
 
-def test_xboat_network_is_acyclic_and_connects_hubs(sector):
-    """Kruskal over jump-range edges: one link per merge, so edges < hubs."""
-    hubs = {h for h, s in sector.systems.items()
-            if s.mainworld is not None
-            and s.mainworld.uwp.starport in ("A", "B")}
-    xboat = [r for r in sector.routes if r[2] == "xboat"]
-    assert len(xboat) < len(hubs), "Xboat network contains cycles"
+def test_courier_routes_never_cross_a_border(sector):
+    """A courier network is a polity's own infrastructure. It does not run
+    into a rival's space, and nobody runs one through unaligned space."""
+    from worldmaker.sector import ROUTE_STYLES
+
+    courier = [r for r in sector.routes if r[2] in ROUTE_STYLES]
+    assert courier
+    for h1, h2, _ in courier:
+        a1 = sector.systems[h1].allegiance
+        a2 = sector.systems[h2].allegiance
+        assert a1 == a2, f"{h1} ({a1}) linked to {h2} ({a2})"
+        assert a1 not in ("", "Na"), f"courier route through free space at {h1}"
+
+
+def test_courier_network_is_acyclic(sector):
+    """Kruskal over jump-range edges: one link per merge, so each polity's
+    network has fewer edges than hubs."""
+    from worldmaker.sector import ROUTE_STYLES
+
+    courier = [r for r in sector.routes if r[2] in ROUTE_STYLES]
+    by_allegiance = {}
+    for h1, h2, _ in courier:
+        by_allegiance.setdefault(sector.systems[h1].allegiance, []).append((h1, h2))
+
+    for allegiance, legs in by_allegiance.items():
+        hubs = {h for leg in legs for h in leg}
+        assert len(legs) < len(hubs), f"{allegiance} network contains cycles"
 
 
 def test_legend_lists_every_convention(sector_svg, subsector_svg):
@@ -362,7 +392,7 @@ def test_legend_lists_every_convention(sector_svg, subsector_svg):
         labels = " ".join(_texts(svg, "cm-legend-text"))
         for term in ("World", "Asteroid belt", "Gas giant", "Naval base",
                      "Scout base", "Amber zone", "Red zone", "Xboat route",
-                     "Polity border"):
+                     "Relay network", "Courier route", "Polity border"):
             assert term in labels, f"legend missing {term!r}"
 
 

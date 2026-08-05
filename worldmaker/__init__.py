@@ -107,6 +107,8 @@ from .sector import (
     generate_sector_svg,
     generate_subsector_svg,
     calculate_xboat_routes,
+    route_style_for,
+    ROUTE_STYLES,
     name_subsectors,
     subsector_letter,
 )
