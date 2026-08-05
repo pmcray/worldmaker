@@ -4,7 +4,7 @@
 `documents/`: Mongoose Traveller 2e *World Builder's Handbook* (WBH, 258 pp.)
 and *Sector Construction Guide* (SCG, 66 pp.).
 **Method:** full source review, extraction of both books' contents, index and
-checklist pages, and a 233-test pytest suite (`tests/`) combining
+checklist pages, and a 273-test pytest suite (`tests/`) combining
 internal-invariant checks with conformance checks against the books' procedures
 and dice distributions.
 
@@ -14,7 +14,7 @@ has been updated as the gaps were closed. §5 lists what is still missing.
 ## Verdict
 
 **Both books are now implemented to the level this generator can usefully
-reach, and the suite is green: 233 passed, 0 failed.** (The first audit found
+reach, and the suite is green: 273 passed, 0 failed.** (The first audit found
 11 passed / 18 failed.)
 
 Every procedure the two books define for generating a system, a world, its
@@ -138,6 +138,7 @@ NO absent
 |---|---|
 | Creating a Universe (pp.3-8) | OK - `create_universe()` takes the book's high-level choices (theme, density, maximum Tech Level, trajectory, sophont prevalence, polity count) and drives generation from them; anomalies and a rough timeline are modelled. See `universe.py` |
 | System Creation (pp.9-16) | OK - density is a parameter, and rift and cluster anomalies vary it by region; the book's density *contour* drawing is NO |
+| Canonical overlays | OK - `canon.py` loads published sector data (travellermap.com T5 tab) and the Guide's own Foreven table, and applies positions, borders and established worlds. Not a book procedure: the books assume the Referee applies canon by hand |
 | Sector Details (pp.17-27) | OK - settlement waves per p.22 with DMs capped at zero, true hex distances, Xboat network, travel zones. Xboat waystations come from the starport table; border generation from sector history is NO |
 | Mainworld Design (pp.28-39) | OK via the WBH extensions; the isolation TL variant is NO |
 | Polity Design (pp.40-49) | OK - procedural capitals, jump-range-bounded expansion, government form, naming, type and defence index. `define_foreven_polities()` retains the book's worked example |
@@ -161,9 +162,10 @@ Run with `pip install -r requirements.txt && python -m pytest tests/`.
 | `test_scenarios.py` | 30 | Worst-case temperatures against the book's Terra and Zed Prime checks, seasonal cycling and lag, latitude zones and adjustments for both tilt cases, the diurnal curve and its continuity across dusk, sunlight portion at the equator and poles, twilight-zone monotonicity, altitude cooling, the temperature addition equation against the book's own table, gas giant residual heat |
 | `test_special.py` | 34 | Dead star mass and diameter formulas and their limits, the aging table, brown dwarf types against the book's table, dead-star system existence DMs, pulsar taint, protostar and primordial conditions, rogue world sizes, empty-hex object frequencies, nebula and cluster generation, artificial world tech gating, jump DMs |
 | `test_t5_export.py` | 21 | The format specification's own example parsed field for field, T5SS field order, separator-defined column widths and minimums, every row's alignment, round-tripping, field syntax, and agreement between the column and tab formats |
+| `test_canon.py` | 40 | Parsing travellermap T5 tab data including placeholder rows, allegiance grouping, overlay merging, canonical polities and client states, pinned UWPs/bases/zones/stars/PBG, the three canon modes, polity expansion, and that procedural polities never claim canonical space |
 | `test_universe.py` | 29 | Density targets and the playable range, Tech Level ceilings holding across a sector, trajectory DMs, preset validity, sophont prevalence scaling, every anomaly's effect on the worlds it covers, rift and cluster density changes, timeline ordering and content, and that a universe-driven sector still exports and renders |
 
-**233 passed, 0 failed.** Verified across multiple seeds; 1,200 systems
+**273 passed, 0 failed.** Verified across multiple seeds; 1,200 systems
 generate across 40 seeds without error.
 
 The eleven defects the first audit found are all fixed and each is still

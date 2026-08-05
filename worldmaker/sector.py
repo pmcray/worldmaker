@@ -171,14 +171,25 @@ def calculate_xboat_routes(sector: Sector, max_jump: int = 4):
             parent[r1] = r2
             sector.routes.append((h1, h2, "xboat"))
 
-def _generate_systems(sector: Sector, density_target: int = 4, universe=None):
+def _generate_systems(sector: Sector, density_target: int = 4, universe=None,
+                      canon=None):
     """Rolls system presence per hex (1D >= density_target) and generates
     systems with unique mainworld names.
 
     A Universe (SCG pp.3-8) supplies a per-hex density target, so rifts and
     clusters thin or thicken their own regions, plus the universe-wide
-    population DM and Tech Level ceiling."""
+    population DM and Tech Level ceiling.
+
+    A CanonicalSector replaces the density roll entirely: where a published
+    source says the stars are is not something to roll for."""
     used_names = set()
+    canonical_hexes = canon.hexes if canon is not None else None
+
+    # Canonical world names are reserved up front so a generated world can
+    # never be handed a name canon has already used elsewhere.
+    if canon is not None:
+        used_names.update(w.name.strip() for w in canon.named_worlds())
+
     for col in range(1, sector.width + 1):
         for row in range(1, sector.height + 1):
             hex_coord = f"{col:02d}{row:02d}"
@@ -191,7 +202,12 @@ def _generate_systems(sector: Sector, density_target: int = 4, universe=None):
                 population_dm += universe.population_dm
                 max_tech_level = universe.max_tech_level
 
-            if Utils.D6() >= target:
+            if canonical_hexes is not None:
+                present = hex_coord in canonical_hexes
+            else:
+                present = Utils.D6() >= target
+
+            if present:
                 name = generate_world_name(used_names)
                 system = generate_full_system(name, population_dm,
                                               max_tech_level=max_tech_level)
@@ -243,14 +259,21 @@ def name_subsectors(sector: Sector):
 
 
 def generate_full_sector(name="Generated Sector", width=32, height=40,
-                         density_target=4, universe=None):
+                         density_target=4, universe=None, canon=None,
+                         canon_mode='pin', canon_expand=None):
     """Generates a complete sector (default 32x40 hexes) in a single pass so
     polities, sophonts, settlement waves, routes and names are coherent
     across all sixteen subsectors.
 
     Pass a Universe (SCG pp.3-8) to drive density, sophont prevalence,
     polity count, the Tech Level ceiling and any anomalies from a handful of
-    high-level choices."""
+    high-level choices.
+
+    Pass a CanonicalSector to honour a published sector's established facts:
+    system positions, polity borders and the profiles of named worlds. See
+    worldmaker.canon for what each canon_mode preserves. canon_expand maps an
+    allegiance code to a target world count, for a polity canon gives a
+    capital but no extent."""
     sector = Sector(name=name, width=width, height=height)
 
     define_settlement_waves(sector)
@@ -259,17 +282,31 @@ def generate_full_sector(name="Generated Sector", width=32, height=40,
     else:
         place_native_sophonts(sector)
 
-    _generate_systems(sector, density_target, universe)
+    _generate_systems(sector, density_target, universe, canon)
+
+    # Canonical borders are established, not rolled: lay that territory down
+    # first so the procedural states fill in around it rather than over it.
+    reserved = set()
+    canonical_polities_list = None
+    if canon is not None and canon_mode != 'positions':
+        from .canon import establish_canon_polities
+        canonical_polities_list, reserved = establish_canon_polities(
+            sector, canon, canon_expand)
 
     if universe is not None:
-        generate_polities(sector, max_polities=universe.polity_count)
+        generate_polities(sector, max_polities=universe.polity_count,
+                          reserved=reserved)
     else:
-        define_polities(sector)
+        define_polities(sector, reserved=reserved)
     generate_travel_zones(sector)
     generate_bases(sector)
 
     if universe is not None:
         universe.apply_anomalies(sector)
+
+    if canon is not None:
+        from .canon import apply_canon
+        apply_canon(sector, canon, canon_mode, canonical_polities_list)
 
     calculate_routes(sector)
     calculate_xboat_routes(sector)

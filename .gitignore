@@ -16,3 +16,6 @@ sector_map.svg
 subsector_map.svg
 sector.sec
 subsectors/
+
+# Cached canonical sector data (Traveller canon, not redistributed)
+canon_cache/

@@ -129,6 +129,23 @@ from .special import (
     BROWN_DWARF_TYPES,
     WHITE_DWARF_AGING,
 )
+from .canon import (
+    CanonicalWorld,
+    CanonicalSector,
+    parse_travellermap_tab,
+    fetch_canonical_sector,
+    load_canonical_sector,
+    scg_foreven,
+    merge_canon,
+    apply_canon,
+    canonical_polities,
+    apply_canonical_world,
+    expand_polity_from_capital,
+    NON_ALIGNED_CODES,
+    cache_dir,
+    ALLEGIANCE_NAMES,
+    SCG_FOREVEN,
+)
 from .universe import (
     Universe,
     Anomaly,

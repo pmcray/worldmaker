@@ -166,6 +166,47 @@ def _apply_exotic_properties(star: Star, kind: str):
     star.hzco = Utils.calculate_hzco(star.luminosity)
     star.mao = props['mao']
 
+def build_star_from_type(designation: str, spectral_type: str) -> Optional[Star]:
+    """Builds a Star from a Morgan-Keenan classification such as 'M1 V',
+    'K9 V', 'D' or 'BD', filling in the physical values the tables give.
+
+    Used when a published source states a system's stars and the generator
+    must adopt them rather than roll its own."""
+    spectral_type = (spectral_type or '').strip()
+    if not spectral_type:
+        return None
+
+    star = Star(designation=designation, spectral_type=spectral_type)
+
+    # Post-stellar and pre-stellar objects carry a bare token
+    token = spectral_type.split(' ')[0]
+    if is_exotic(spectral_type) or token in EXOTIC_TYPES:
+        star.spectral_type = token if token in EXOTIC_TYPES else spectral_type
+        _apply_exotic_properties(star, star.spectral_type)
+        return star
+
+    spectral_str = spectral_str_of(spectral_type)
+    lum_class = lum_class_of(spectral_type) or 'V'
+    if not spectral_str or len(spectral_str) < 2 or not spectral_str[1].isdigit():
+        return None
+
+    if lum_class not in DATA['star_mass']:
+        lum_class = 'V'
+        star.spectral_type = f"{spectral_str} V"
+
+    try:
+        star.mass = _interpolate_stellar_data(spectral_str, DATA['star_mass'][lum_class])
+        star.temp_k = _interpolate_stellar_data(spectral_str, DATA['star_temp'][lum_class])
+        star.diameter = _interpolate_stellar_data(spectral_str, DATA['star_diameter'][lum_class])
+    except (KeyError, ValueError, IndexError):
+        return None
+
+    star.luminosity = (star.diameter ** 2) * ((star.temp_k / 5772) ** 4)
+    star.hzco = Utils.calculate_hzco(star.luminosity)
+    star.mao = _lookup_mao(star.spectral_type)
+    return star
+
+
 def generate_primary_star(special_roll=None) -> Star:
     """Implements the primary star generation sequence."""
     primary = Star(designation="A")

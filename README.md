@@ -9,7 +9,7 @@ Classic Traveller originals.
 
 ```bash
 pip install pytest pandas
-python -m pytest tests/          # 233 tests
+python -m pytest tests/          # 273 tests
 ```
 
 ```python
@@ -41,6 +41,24 @@ print(universe.describe())
 
 sector = wm.generate_universe_sector(universe, "Foreven")
 ```
+
+Published sectors carry facts a generator must not overwrite. The canon
+overlay honours them and generates the rest:
+
+```python
+canon = wm.fetch_canonical_sector("Foreven")      # travellermap.com, cached
+canon = wm.merge_canon(canon, wm.scg_foreven())   # plus the Guide's own worlds
+print(canon.summary())
+
+sector = wm.generate_full_sector("Foreven", canon=canon, canon_mode="pin",
+                                 canon_expand={"Av": 14})
+```
+
+For Foreven that fixes all 358 star positions, the Zhodani Consulate's
+143-hex border, three Imperial client states and the seven established
+worlds — while everything else is generated. `canon_mode` selects how much
+to honour: `pin` (all of it), `seed` (positions and borders only, worlds are
+yours to invent) or `positions` (star placements alone).
 
 The two notebooks are thin front-ends over the package:
 
@@ -133,6 +151,7 @@ subsector divisions and a legend. Also icosahedral world surface maps.
 | `scenarios.py` | Season, latitude, time of day, twilight and altitude temperatures |
 | `special.py` | Special Circumstances: empty hexes, dead stars, protostars |
 | `universe.py` | Guided universe creation, anomalies and timelines |
+| `canon.py` | Canonical sector overlays: published positions, borders and worlds |
 | `sector.py` | Sector assembly and the classic map renderers |
 | `t5.py` | Traveller5 Second Survey column and tab output |
 | `exporters.py` | DataFrame, markdown dossier and `.sec` output |
