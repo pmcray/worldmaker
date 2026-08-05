@@ -47,5 +47,23 @@ jobs:
           mainworld = next(s.mainworld for s in sector.systems.values()
                            if s.mainworld is not None)
           ET.fromstring(wm.render_world_map_svg(mainworld))
-          print(f"{len(sector.systems)} systems, {len(sector.polities)} polities")
+
+          rows = wm.parse_t5_column(wm.export_sector_sec_file(sector))
+          assert len(rows) == sum(1 for s in sector.systems.values()
+                                  if s.mainworld is not None)
+
+          universe = wm.create_universe("CI Universe", preset="frontier")
+          universe.add_anomaly("barren", "Quiet Zone", centre="1124", radius=2)
+          wm.build_default_timeline(universe)
+          assert universe.describe()
+          small = wm.generate_universe_sector(universe, "CI", width=8, height=10)
+          assert small.systems, "no systems in the universe-driven sector"
+
+          for factory in (wm.generate_protostar_system,
+                          wm.generate_primordial_system,
+                          wm.generate_brown_dwarf_system):
+              assert factory().stars, f"{factory.__name__} produced no stars"
+
+          print(f"{len(sector.systems)} systems, {len(sector.polities)} polities, "
+                f"{len(rows)} T5 rows")
           PY

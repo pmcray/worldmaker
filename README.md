@@ -9,7 +9,7 @@ Classic Traveller originals.
 
 ```bash
 pip install pytest pandas
-python -m pytest tests/          # 229 tests
+python -m pytest tests/          # 233 tests
 ```
 
 ```python

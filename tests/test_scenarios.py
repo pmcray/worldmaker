@@ -178,6 +178,42 @@ def test_latitude_temperature_gradient():
     assert mid == pytest.approx(288, abs=3)
 
 
+def test_scenarios_carry_the_worlds_inherent_heat(systems):
+    """Inherent (seismic) heat is a background global effect applied to all
+    high, low, mean, local and periodic temperatures (WBH pp.125-126). On a
+    cold, seismically active world it dominates, so a scenario that skipped
+    it would report a temperature far below the world's own mean."""
+    checked = 0
+    for s in systems:
+        for w in s.all_worlds:
+            if w.body_type != "Terrestrial" or not w.mean_temperature:
+                continue
+            if w.total_seismic_stress <= w.mean_temperature / 2:
+                continue     # inherent heat is negligible on this world
+            checked += 1
+            # The mean is defined as the temperature at 45 degrees latitude
+            assert w.latitude_temperatures[45] == pytest.approx(
+                w.mean_temperature, abs=0.6)
+            assert w.worst_case_low >= w.total_seismic_stress - 0.6
+            for temperature in w.latitude_temperatures.values():
+                assert temperature >= w.total_seismic_stress - 0.6
+    assert checked, "no seismically dominated worlds in the sample"
+
+
+def test_mean_is_the_temperature_at_45_degrees(systems):
+    """The book defines a world's mean temperature as its mean at 45 degrees
+    latitude (WBH p.116)."""
+    checked = 0
+    for s in systems:
+        for w in s.all_worlds:
+            if w.body_type != "Terrestrial" or not w.latitude_temperatures:
+                continue
+            checked += 1
+            assert w.latitude_temperatures[45] == pytest.approx(
+                w.mean_temperature, rel=0.02, abs=0.6)
+    assert checked > 50
+
+
 def test_latitude_profile_recorded_on_generated_worlds(systems):
     checked = 0
     for s in systems:

@@ -395,6 +395,22 @@ def _snap_into_available(orbit: float, zones: List[Tuple[float, float]]) -> floa
                 best = edge
     return best if best is not None else max(0.01, orbit)
 
+def _next_available_orbit(after: float, zones: List[Tuple[float, float]],
+                          step: float = 0.01) -> float:
+    """The smallest available Orbit# strictly beyond `after`, stepping over
+    an exclusion zone into the next band when the current one is full.
+    Returns `after` unchanged when there is nowhere left to go."""
+    for start, end in sorted(zones):
+        if after < start:
+            # Rounding must never drop the value back below the zone's edge
+            rounded = round(start, 2)
+            return rounded if rounded >= start else start
+        if start <= after < end:
+            candidate = round(after + step, 2)
+            if candidate <= end:
+                return candidate
+    return after
+
 def generate_orbital_slots(system: StellarSystem) -> List[dict]:
     """Generates the final list of all orbital slots for the system."""
     primary_group = next((s for s in system.stars if not s.parent), None)
@@ -404,10 +420,21 @@ def generate_orbital_slots(system: StellarSystem) -> List[dict]:
     total_slots_needed = system.total_worlds + system.empty_orbit_count
 
     slots = []
-    current_orbit = max(0.01, primary_group.mao)
+    start_orbit = max(0.01, primary_group.mao)
+    current_orbit = start_orbit
     spread = max(0.01, system.spread)
 
-    for i in range(total_slots_needed - len(system.anomalous_planets)):
+    regular_slots = total_slots_needed - len(system.anomalous_planets)
+
+    # A wide spread can walk the outer worlds past the end of the orbit
+    # table, where snapping would stack every one of them on the outermost
+    # Orbit#. Narrow the spread so the last world still lands inside the
+    # available orbits, keeping the book's evenly spread placement.
+    outer_bound = max((end for _, end in zones), default=20.0)
+    if regular_slots > 0 and start_orbit + regular_slots * spread > outer_bound:
+        spread = max(0.01, (outer_bound - start_orbit) / regular_slots)
+
+    for i in range(regular_slots):
         if i + 1 == system.baseline_number:
             current_orbit = system.baseline_orbit
         else:
@@ -416,8 +443,12 @@ def generate_orbital_slots(system: StellarSystem) -> List[dict]:
         current_orbit = _snap_into_available(current_orbit, zones)
         # Round before the final snap: rounding a value that sits exactly on a
         # zone boundary can otherwise nudge it just outside the zone.
-        slots.append({'orbit_num': _snap_into_available(
-            round(max(0.01, current_orbit), 2), zones), 'type': 'regular'})
+        orbit = _snap_into_available(round(max(0.01, current_orbit), 2), zones)
+        # Two worlds cannot share an orbit; move outward to the next
+        # available one if snapping has landed this world on the last.
+        if slots and orbit <= slots[-1]['orbit_num']:
+            orbit = _next_available_orbit(slots[-1]['orbit_num'], zones)
+        slots.append({'orbit_num': orbit, 'type': 'regular'})
 
     # Add anomalous slots
     for anomaly in system.anomalous_planets:

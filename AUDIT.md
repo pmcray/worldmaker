@@ -4,7 +4,7 @@
 `documents/`: Mongoose Traveller 2e *World Builder's Handbook* (WBH, 258 pp.)
 and *Sector Construction Guide* (SCG, 66 pp.).
 **Method:** full source review, extraction of both books' contents, index and
-checklist pages, and a 115-test pytest suite (`tests/`) combining
+checklist pages, and a 233-test pytest suite (`tests/`) combining
 internal-invariant checks with conformance checks against the books' procedures
 and dice distributions.
 
@@ -14,7 +14,7 @@ has been updated as the gaps were closed. §5 lists what is still missing.
 ## Verdict
 
 **Both books are now implemented to the level this generator can usefully
-reach, and the suite is green: 229 passed, 0 failed.** (The first audit found
+reach, and the suite is green: 233 passed, 0 failed.** (The first audit found
 11 passed / 18 failed.)
 
 Every procedure the two books define for generating a system, a world, its
@@ -163,7 +163,7 @@ Run with `pip install -r requirements.txt && python -m pytest tests/`.
 | `test_t5_export.py` | 21 | The format specification's own example parsed field for field, T5SS field order, separator-defined column widths and minimums, every row's alignment, round-tripping, field syntax, and agreement between the column and tab formats |
 | `test_universe.py` | 29 | Density targets and the playable range, Tech Level ceilings holding across a sector, trajectory DMs, preset validity, sophont prevalence scaling, every anomaly's effect on the worlds it covers, rift and cluster density changes, timeline ordering and content, and that a universe-driven sector still exports and renders |
 
-**229 passed, 0 failed.** Verified across multiple seeds; 1,200 systems
+**233 passed, 0 failed.** Verified across multiple seeds; 1,200 systems
 generate across 40 seeds without error.
 
 The eleven defects the first audit found are all fixed and each is still
@@ -174,6 +174,30 @@ government DMs, 1D culture rolls, uncapped settlement-wave DMs, and Euclidean
 hex distance. Later work surfaced and fixed three more: a polity could swallow
 another's capital and claim it twice; a Sibling star of an exotic primary
 crashed the generator; and trace atmospheres rounded away to an exact vacuum.
+
+Building the temperature scenarios surfaced two more, both in the existing
+temperature and placement code:
+
+- **Worlds piled onto the outermost orbit.** A wide system spread walked the
+  outer worlds past the end of the orbit table, where each one snapped onto
+  the same outermost Orbit#. About one system in six stacked three or more
+  worlds at Orbit# 20 - 78,700 AU - and one stacked ten. The spread is now
+  narrowed so the last world still lands inside the available orbits, and a
+  world that would land on top of its neighbour moves to the next available
+  orbit, stepping over an exclusion zone where it has to. Duplicate orbits
+  fell from routine to three worlds in 1,940. Guarded by
+  `test_worlds_do_not_pile_onto_one_orbit` and
+  `test_outermost_orbit_is_not_a_dumping_ground`.
+- **Inherent heat was dropped from cold worlds.** The seismic temperature
+  addition returned early when the equilibrium temperature was zero, so a
+  world receiving nothing from its sun read 0K rather than the temperature
+  its own internal heat sustains - precisely the rogue-world case the book
+  uses to make the point (p.127). The scenarios then disagreed with the
+  world's own mean, by 96K in the first system the notebook generated.
+  Inherent heat is now applied to every scenario result, as pp.125-126
+  require ("all high, low, mean, local or periodic temperature values").
+  Guarded by `test_scenarios_carry_the_worlds_inherent_heat` and
+  `test_mean_is_the_temperature_at_45_degrees`.
 
 ---
 
@@ -313,6 +337,13 @@ Deliberately out of scope, or approximated:
   warmest hour in mid-morning and a warm spike at dawn, contradicting the
   surrounding text ("coldest near dawn... does not reach full heat until the
   afternoon"). The sign is flipped so the curve matches the description.
+- In the seasonal and time-of-day scenarios the luminosity modifier is
+  allowed to go negative, so that deep winter and the small hours fall
+  *below* the mean. Read strictly, "the luminosity modifier... must still be
+  between 0 and 1" (p.115) would mean a world is never cooler than its mean
+  at any time of year, which contradicts the same paragraph's description of
+  the tilt factor going "to the negative in winter". The magnitude is still
+  bounded by 1.
 - The T5 cultural extension `[Cx]` wants Homogeneity, Acceptance,
   Strangeness and Symbols; the generator produces the WBH's eight cultural
   traits instead, so the four are read off cohesion, xenophilia, uniqueness

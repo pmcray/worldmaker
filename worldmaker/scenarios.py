@@ -17,6 +17,18 @@ from .atmosphere import pressure_at_altitude
 STANDARD_YEAR_DAYS = 365.25
 
 
+def _with_inherent_heat(world: Any, temperature: float) -> float:
+    """Adds the world's inherent (seismic) heat to a computed temperature.
+
+    WBH p.125 calls this a background global effect that "should be computed
+    last", and p.126 applies it to "all high, low, mean, local or periodic
+    temperature values" - so every scenario result carries it, not just the
+    three global figures. On a warm world it is negligible; on a cold one it
+    can be the whole story."""
+    stress = getattr(world, 'total_seismic_stress', 0.0) or 0.0
+    return apply_seismic_temperature(temperature, stress)
+
+
 # ------------------------------------------------------------- worst case
 
 def worst_case_luminosity_modifier(pressure_bar: float) -> float:
@@ -78,8 +90,8 @@ def seasonal_temperature(world: Any, system: Any,
     variance = seasonal + params['rotation_factor'] + params['geographic_factor']
     raw = variance / params['atmospheric_factor']
     luminosity = params['luminosity'] * (1 + max(-1.0, min(1.0, raw)))
-    return round(_base_temperature(luminosity, params['albedo'],
-                                   params['greenhouse'], params['au']), 1)
+    return _with_inherent_heat(world, _base_temperature(
+        luminosity, params['albedo'], params['greenhouse'], params['au']))
 
 
 def season_is_significant(tilt_factor: float, atmospheric_factor: float) -> bool:
@@ -153,8 +165,8 @@ def latitude_temperature(world: Any, system: Any, latitude: float) -> float:
     adjustment = latitude_luminosity_adjustment(params['axial_tilt'], latitude)
     modifier = adjustment / params['atmospheric_factor']
     luminosity = params['luminosity'] * (1 + modifier)
-    return round(_base_temperature(luminosity, params['albedo'],
-                                   params['greenhouse'], params['au']), 1)
+    return _with_inherent_heat(world, _base_temperature(
+        luminosity, params['albedo'], params['greenhouse'], params['au']))
 
 
 def latitude_temperature_profile(world: Any, system: Any,
@@ -214,8 +226,8 @@ def time_of_day_temperature(world: Any, system: Any, hours_since_dawn: float,
     variance = params['axial_tilt_factor'] + hourly + params['geographic_factor']
     raw = variance / params['atmospheric_factor']
     luminosity = params['luminosity'] * (1 + max(-1.0, min(1.0, raw)))
-    return round(_base_temperature(luminosity, params['albedo'],
-                                   params['greenhouse'], params['au']), 1)
+    return _with_inherent_heat(world, _base_temperature(
+        luminosity, params['albedo'], params['greenhouse'], params['au']))
 
 
 # ------------------------------------------- sunlight portion and hours
@@ -361,8 +373,8 @@ def altitude_temperature(world: Any, system: Any, altitude_km: float) -> float:
     greenhouse = altitude_greenhouse_factor(
         params['greenhouse'], params['pressure_bar'], altitude_km,
         params['scale_height_km'])
-    return round(_base_temperature(params['luminosity'], params['albedo'],
-                                   greenhouse, params['au']), 1)
+    return _with_inherent_heat(world, _base_temperature(
+        params['luminosity'], params['albedo'], greenhouse, params['au']))
 
 
 # ------------------------------------- multiple stars and inherent heat
