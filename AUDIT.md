@@ -14,7 +14,7 @@ has been updated as the gaps were closed. §5 lists what is still missing.
 ## Verdict
 
 **Both books are now implemented to the level this generator can usefully
-reach, and the suite is green: 115 passed, 0 failed.** (The first audit found
+reach, and the suite is green: 229 passed, 0 failed.** (The first audit found
 11 passed / 18 failed.)
 
 Every procedure the two books define for generating a system, a world, its
@@ -85,6 +85,7 @@ NO absent
 | Albedo and greenhouse (p.110) | OK - both tables with all their modifiers |
 | Mean temperature (p.108) | OK - validated against Terra |
 | High and low temperatures (pp.112-115) | OK - axial tilt, rotation and geographic factors, atmospheric damping, luminosity modifier, near and far AU |
+| Temperature scenarios (pp.114-124) | OK - worst case, by season, by latitude (Parts A and B), by time of day (both methods), sunlight portion and hours, twilight zone worlds, altitude factor, multiple-star contributions, gas giant residual heat. See `scenarios.py` |
 | Surface tidal effects (pp.107, 126) | OK |
 | Seismology (pp.125-128) | OK - residual stress, tidal stress, tidal heating, total stress, tectonic plates, seismic temperature addition |
 | Native lifeforms (pp.127-131) | OK - biomass with its DMs, biocomplexity, biodiversity, compatibility, and the native and extinct sophont checks |
@@ -111,9 +112,23 @@ NO absent
 
 ### Special Circumstances (pp. 219-234)
 
-APPROX - exotic primaries are generated and physically usable, with white and
-brown dwarf properties rolled. The chapter's dedicated system-characteristic
-procedures, empty hexes and artificial worlds are NO.
+| Procedure | Status |
+|---|---|
+| Empty hexes: object types and probabilities (pp.219-221) | OK - the full sequence (neutron star/black hole on 3D 18, white dwarf on 1D 6, brown dwarf, then rogue planets) each gated on the region's system-density check |
+| Empty Hex Objects table: survey indices and detection points (p.221) | OK as data. The detection *procedure* (accumulating points, sensor checks) is a referee/player activity, not generation, and is NO |
+| Jumping to empty hexes (p.223) | OK for the target-type DMs and the prepared-template DM; the arrival-variance task chain is NO |
+| Protostar systems (pp.224-225) | OK - DM+1 star type, inflated diameter with luminosity scaling, debris belt in every planetary orbit, age-capped world sizes, magma oceans, DM+2 eccentricity, atmosphere DM+4 and remap, no native life |
+| Primordial systems (pp.225-226) | OK - DM+1 eccentricity, belt existence DM+4, doubled belt spans, co-orbital planets on a 1D 6, atmosphere DM+2 and remap, magma oceans, no native life |
+| Brown dwarfs (pp.226-227) | OK - mass formula, gas-giant diameter roll with the 0.05-0.07 DM, the L/T/Y types table with subtype ageing, MAO 0.005, gas giant present on 7- |
+| Dead stars: white dwarfs (p.227) | OK - mass and inverse-mass diameter formulas, the White Dwarf Aging table interpolated and mass-scaled |
+| Dead stars: neutron stars, pulsars, magnetars (p.228) | OK - mass formula under the 2.16 limit, 19+1D km diameter, pulsar and magnetar frequencies |
+| Dead stars: black holes (p.228) | OK - exploding-sixes mass formula, 5.9km x Mass diameter, no radiation |
+| Dead star planetary systems (p.229) | OK - the 8+ existence check with its DMs and the natural-12 rule, rarer gas giants, commoner belts, 1D-2 terrestrials, MAO 0.001, radioactive taint at severity and persistence 9 around pulsars |
+| Nebulae (pp.229-230) | OK for the Random Nebula Type table, the planetary nebula's new white dwarf and the supernova remnant's central object. Multi-hex expansion is left to the referee (the book calls it a map-drawing choice) |
+| Star clusters (p.231) | OK - 2D+5 systems in a hex, all sharing an age of 1D x 1D x 50 million years |
+| Artificial worlds (pp.231-232) | OK as the full Artificial World Types table, gated by Tech Level |
+| M-drive efficiency in deep space (p.224) | NO - a ship-operations table, not a generation procedure |
+| Profile forms (pp.233-234) | NO - a presentation format; the markdown dossier covers the same ground |
 
 ---
 
@@ -121,13 +136,13 @@ procedures, empty hexes and artificial worlds are NO.
 
 | Chapter | Status |
 |---|---|
-| Creating a Universe (pp.3-8) | APPROX - reflected in the generation parameters rather than as a guided process |
-| System Creation (pp.9-16) | OK - density is a parameter; contour and rift variants are NO |
+| Creating a Universe (pp.3-8) | OK - `create_universe()` takes the book's high-level choices (theme, density, maximum Tech Level, trajectory, sophont prevalence, polity count) and drives generation from them; anomalies and a rough timeline are modelled. See `universe.py` |
+| System Creation (pp.9-16) | OK - density is a parameter, and rift and cluster anomalies vary it by region; the book's density *contour* drawing is NO |
 | Sector Details (pp.17-27) | OK - settlement waves per p.22 with DMs capped at zero, true hex distances, Xboat network, travel zones. Xboat waystations come from the starport table; border generation from sector history is NO |
 | Mainworld Design (pp.28-39) | OK via the WBH extensions; the isolation TL variant is NO |
 | Polity Design (pp.40-49) | OK - procedural capitals, jump-range-bounded expansion, government form, naming, type and defence index. `define_foreven_polities()` retains the book's worked example |
 | Sophont Design (pp.50-60) | OK - the full D66 Sophont Physical Characteristics table, with senses, psychology and characteristic DMs derived from the results |
-| Sector Finalisation (p.62) | APPROX - `.sec` exporter present, not column-exact T5 |
+| Sector Finalisation (p.62) | OK - column-exact T5 Second Survey output, plus the tab-delimited interchange format. See `t5.py` |
 
 ---
 
@@ -143,8 +158,12 @@ Run with `pip install -r requirements.txt && python -m pytest tests/`.
 | `test_world_detail.py` | 21 | Belt composition and bulk, lifeform profiles, sophont thresholds, population profiles and urbanisation caps, city populations, technology profile structure and bounds |
 | `test_polity.py` | 14 | Jump ranges, capital selection and separation, non-overlapping contiguous territory, allegiance recording, independent space, defence index scaling |
 | `test_renderer.py` | 29 | Every map convention checked against the generated data, hex geometry, viewBox containment, border chaining, legend reflow, windowing, and regression guards against UWP strings and pastel fills |
+| `test_scenarios.py` | 30 | Worst-case temperatures against the book's Terra and Zed Prime checks, seasonal cycling and lag, latitude zones and adjustments for both tilt cases, the diurnal curve and its continuity across dusk, sunlight portion at the equator and poles, twilight-zone monotonicity, altitude cooling, the temperature addition equation against the book's own table, gas giant residual heat |
+| `test_special.py` | 34 | Dead star mass and diameter formulas and their limits, the aging table, brown dwarf types against the book's table, dead-star system existence DMs, pulsar taint, protostar and primordial conditions, rogue world sizes, empty-hex object frequencies, nebula and cluster generation, artificial world tech gating, jump DMs |
+| `test_t5_export.py` | 21 | The format specification's own example parsed field for field, T5SS field order, separator-defined column widths and minimums, every row's alignment, round-tripping, field syntax, and agreement between the column and tab formats |
+| `test_universe.py` | 29 | Density targets and the playable range, Tech Level ceilings holding across a sector, trajectory DMs, preset validity, sophont prevalence scaling, every anomaly's effect on the worlds it covers, rift and cluster density changes, timeline ordering and content, and that a universe-driven sector still exports and renders |
 
-**115 passed, 0 failed.** Verified across multiple seeds; 1,200 systems
+**229 passed, 0 failed.** Verified across multiple seeds; 1,200 systems
 generate across 40 seeds without error.
 
 The eleven defects the first audit found are all fixed and each is still
@@ -271,27 +290,40 @@ surface map; `audit/gen_*.png` are the original "before" renders.
 Deliberately out of scope, or approximated:
 
 **Not implemented**
-- Special Circumstances system procedures beyond exotic primaries (pp.219-234):
-  empty hexes, artificial worlds, and the dedicated characteristics of
-  protostar, nebula and dead-star systems.
 - Equipment, vehicles, robots and software (pp.235-243) - gear chapters, not
   generation procedures.
 - Precise hydrographic percentages and exotic liquid composition (pp.99-102).
 - Solar day and days-in-year (p.104); the full Tidal Lock Status table with
   3:2 locks (p.105); the Extreme Axial Tilt sub-table.
-- Per-season and per-latitude temperature scenarios (pp.116-124). The global
-  high, mean and low are implemented; the scenario machinery on top is not.
-- SCG density contours and rift variants; border generation from sector
-  history; column-exact T5 `.sec` output.
+- The empty-hex *detection* procedure (pp.221-222) and the empty-hex arrival
+  variance task chain (p.223): both are play procedures rather than
+  generation, though the tables they need are present as data.
+- M-drive efficiency in deep space (p.224) and the IISS profile forms
+  (pp.233-234).
+- SCG density contour drawing; border generation from sector history.
 
 **Approximated, and flagged in the code**
 - The ring span formula's dice operand is illegible in the source PDF; a d100
   fraction is used. Ring centre location and the overlap rule are exact.
-- Rarer exotic objects (neutron stars, black holes, protostars, nebulae,
-  clusters) use representative masses and diameters rather than rolled ones.
 - System age ignores post-stellar adjustment.
 - The Step 6 per-orbit variance in world placement is omitted.
 - Anomalous orbit types are recorded as notes rather than modelled.
+- The time-of-day thermal lag is applied as a lag rather than the lead the
+  printed formula's `+0.15` would produce: taken literally it puts the
+  warmest hour in mid-morning and a warm spike at dawn, contradicting the
+  surrounding text ("coldest near dawn... does not reach full heat until the
+  afternoon"). The sign is flipped so the curve matches the description.
+- The T5 cultural extension `[Cx]` wants Homogeneity, Acceptance,
+  Strangeness and Symbols; the generator produces the WBH's eight cultural
+  traits instead, so the four are read off cohesion, xenophilia, uniqueness
+  and symbology, which cover the same ground.
+- T5 nobility codes are assigned from the world's Importance rather than
+  from the Traveller5 rulebook's own table, which is outside these two
+  books.
+- The `Star Cluster` and `Nebula` results on the primary star table still
+  use representative stellar values, since a hex-scale structure has no
+  single set of stellar characteristics; `special.py` generates the real
+  thing for callers who want it.
 
 **Retained but not from the books**
 - The 6-field technology matrix on `UWP` (`tl_spaceflight` and friends) is this
@@ -301,9 +333,21 @@ Deliberately out of scope, or approximated:
 
 ## 6. Suggested next steps
 
-1. Per-season and per-latitude temperature scenarios (pp.116-124), which would
-   build directly on the variance factors already computed.
-2. The Special Circumstances system types (pp.219-234).
-3. Column-exact T5 `.sec` output for Travellermap compatibility.
-4. A guided "creating a universe" entry point (SCG pp.3-8) that sets the
-   generation parameters from a few high-level choices.
+The four items this section previously listed - the temperature scenarios,
+the Special Circumstances system types, column-exact T5 output and the
+guided universe entry point - are all implemented; see §1, §2 and §3. What
+is left is smaller and largely a matter of taste:
+
+1. Precise hydrographic percentages and exotic liquid composition
+   (pp.99-102), the one remaining physical characteristic still rolled at
+   UWP granularity.
+2. Solar day, days-in-year and the full Tidal Lock Status table (pp.104-105).
+   The scenario code already takes a solar day as an argument, so this would
+   feed it real values rather than the rotation period.
+3. Border generation from sector history (SCG p.26): borders are currently
+   traced from the polity territory the generator produces, not from the
+   sequence of wars and treaties that would explain their shape.
+4. A play-side layer over the empty-hex data: the detection procedure
+   (pp.221-222) and the arrival-variance task chain (p.223) are the only
+   parts of Special Circumstances left out, and both are about resolving a
+   scene rather than building a sector.

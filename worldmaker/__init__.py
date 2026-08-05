@@ -129,6 +129,21 @@ from .special import (
     BROWN_DWARF_TYPES,
     WHITE_DWARF_AGING,
 )
+from .universe import (
+    Universe,
+    Anomaly,
+    TimelineEvent,
+    create_universe,
+    generate_universe_sector,
+    build_default_timeline,
+    UNIVERSE_PRESETS,
+    DENSITY_TARGETS,
+    TECHNOLOGY_LEVELS,
+    TRAJECTORIES,
+    SOPHONT_PREVALENCE,
+    THEMES,
+    ANOMALY_KINDS,
+)
 from .t5 import (
     export_sector_t5_column,
     export_sector_t5_tab,

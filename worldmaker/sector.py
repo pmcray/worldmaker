@@ -5,7 +5,8 @@ from typing import List, Dict, Any, Tuple, Optional
 from .classes import Sector, StellarSystem, Wave, Sophont, PlanetaryBody, Satellite
 from .utils import Utils
 from .generator import generate_full_system
-from .polity import define_polities, generate_bases, generate_travel_zones
+from .polity import (define_polities, generate_bases, generate_polities,
+                     generate_travel_zones)
 from .sophont import get_major_race, generate_minor_race
 from .stellar import generate_world_name
 
@@ -74,18 +75,22 @@ def define_settlement_waves(sector: Sector):
     )
     sector.settlement_waves.append(wave1)
 
-def place_native_sophonts(sector: Sector):
-    """Places native sophonts in the sector using the hybrid Major/Minor generator."""
+def place_native_sophonts(sector: Sector, minor_races: int = None,
+                          major_races: int = 1):
+    """Places native sophonts in the sector using the hybrid Major/Minor
+    generator. `minor_races` overrides the default of roughly one homeworld
+    per two subsectors, and `major_races` the single Major Race homeworld -
+    both are the "how widespread are native sophonts" dial of SCG p.4."""
     def random_hex():
         return f"{random.randint(1, sector.width):02d}{random.randint(1, sector.height):02d}"
 
-    # Place a Major Race homeworld
-    aslan_homeworld = get_major_race("Aslan", random_hex())
-    sector.native_sophonts[aslan_homeworld.homeworld_hex] = aslan_homeworld
+    for _ in range(max(0, major_races)):
+        homeworld = get_major_race("Aslan", random_hex())
+        sector.native_sophonts[homeworld.homeworld_hex] = homeworld
 
-    # Place procedurally generated Minor Race homeworlds (~1 per 2 subsectors)
-    num_minor = max(1, (sector.width * sector.height) // 160)
-    for _ in range(num_minor):
+    if minor_races is None:
+        minor_races = max(1, (sector.width * sector.height) // 160)
+    for _ in range(max(0, minor_races)):
         hex_coord = random_hex()
         if hex_coord in sector.native_sophonts:
             continue
@@ -166,18 +171,30 @@ def calculate_xboat_routes(sector: Sector, max_jump: int = 4):
             parent[r1] = r2
             sector.routes.append((h1, h2, "xboat"))
 
-def _generate_systems(sector: Sector, density_target: int = 4):
+def _generate_systems(sector: Sector, density_target: int = 4, universe=None):
     """Rolls system presence per hex (1D >= density_target) and generates
-    systems with unique mainworld names."""
+    systems with unique mainworld names.
+
+    A Universe (SCG pp.3-8) supplies a per-hex density target, so rifts and
+    clusters thin or thicken their own regions, plus the universe-wide
+    population DM and Tech Level ceiling."""
     used_names = set()
     for col in range(1, sector.width + 1):
         for row in range(1, sector.height + 1):
             hex_coord = f"{col:02d}{row:02d}"
             population_dm = calculate_population_dm(hex_coord, sector)
 
-            if Utils.D6() >= density_target:
+            target = density_target
+            max_tech_level = None
+            if universe is not None:
+                target = universe.density_target_for(hex_coord)
+                population_dm += universe.population_dm
+                max_tech_level = universe.max_tech_level
+
+            if Utils.D6() >= target:
                 name = generate_world_name(used_names)
-                system = generate_full_system(name, population_dm)
+                system = generate_full_system(name, population_dm,
+                                              max_tech_level=max_tech_level)
                 mainworld = _mainworld_of(system)
                 if mainworld:
                     mainworld.name = name
@@ -225,20 +242,35 @@ def name_subsectors(sector: Sector):
         sector.subsector_names[letter] = best.name if best else f"Subsector {letter}"
 
 
-def generate_full_sector(name="Generated Sector", width=32, height=40, density_target=4):
+def generate_full_sector(name="Generated Sector", width=32, height=40,
+                         density_target=4, universe=None):
     """Generates a complete sector (default 32x40 hexes) in a single pass so
     polities, sophonts, settlement waves, routes and names are coherent
-    across all sixteen subsectors."""
+    across all sixteen subsectors.
+
+    Pass a Universe (SCG pp.3-8) to drive density, sophont prevalence,
+    polity count, the Tech Level ceiling and any anomalies from a handful of
+    high-level choices."""
     sector = Sector(name=name, width=width, height=height)
 
     define_settlement_waves(sector)
-    place_native_sophonts(sector)
+    if universe is not None:
+        place_native_sophonts(sector, *universe.sophont_counts(sector))
+    else:
+        place_native_sophonts(sector)
 
-    _generate_systems(sector, density_target)
+    _generate_systems(sector, density_target, universe)
 
-    define_polities(sector)
+    if universe is not None:
+        generate_polities(sector, max_polities=universe.polity_count)
+    else:
+        define_polities(sector)
     generate_travel_zones(sector)
     generate_bases(sector)
+
+    if universe is not None:
+        universe.apply_anomalies(sector)
+
     calculate_routes(sector)
     calculate_xboat_routes(sector)
     name_subsectors(sector)

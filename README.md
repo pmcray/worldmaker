@@ -9,7 +9,7 @@ Classic Traveller originals.
 
 ```bash
 pip install pytest pandas
-python -m pytest tests/          # 114 tests
+python -m pytest tests/          # 229 tests
 ```
 
 ```python
@@ -28,6 +28,18 @@ sector = wm.generate_full_sector("Foreven Reach")
 open("sector.svg", "w").write(wm.generate_sector_svg(sector))
 open("subsector.svg", "w").write(wm.generate_subsector_svg(sector, "Subsector A"))
 open("sector.sec", "w").write(wm.export_sector_sec_file(sector))
+```
+
+Or start from the high-level choices the *Sector Construction Guide* asks
+for, and let them drive generation:
+
+```python
+universe = wm.create_universe("Foreven Reach", preset="frontier")
+universe.add_anomaly("barren", "The Quiet Zone", centre="1124", radius=2)
+wm.build_default_timeline(universe)
+print(universe.describe())
+
+sector = wm.generate_universe_sector(universe, "Foreven")
 ```
 
 The two notebooks are thin front-ends over the package:
@@ -56,6 +68,18 @@ and tectonic plates; native lifeforms (biomass, biocomplexity, biodiversity,
 compatibility) with native and extinct sophont checks; resource and
 habitability ratings.
 
+**Temperature scenarios** — worst-case extremes, temperature by season,
+mean temperature by latitude, temperature by time of day with sunlight
+hours, twilight-zone mapping for tidally locked worlds, the altitude
+temperature factor, and per-star contributions combined with the
+temperature addition equation.
+
+**Special circumstances** — white dwarf, neutron star, pulsar and black
+hole systems; brown dwarfs by L/T/Y type; protostar and primordial systems
+with magma oceans and debris belts; the empty-hex survey, with rogue gas
+giants, terrestrials and small bodies; nebulae, star clusters and
+artificial worlds from station modules to Dyson spheres.
+
 **Moons and belts** — significant moon counts, Hill sphere and Roche limits,
 moon orbits in planetary diameters, periods and rings; planetoid belt span,
 composition, bulk, resource rating and significant bodies.
@@ -72,6 +96,13 @@ and budget; cultural traits.
 native sophonts generated from the SCG's D66 tables; procedural polities that
 expand from a capital along jump links bounded by their drive technology;
 travel zones; trade and Xboat routes; subsector naming.
+
+**Universes** — a guided entry point that turns a handful of high-level
+choices (theme, star density, maximum Tech Level, trajectory, sophont
+prevalence, polity count) into generation parameters, with anomalies —
+rifts, clusters, supernova-sterilised regions, barren zones, plagues,
+tech-suppressed regions and war-wrecked worlds — that reshape the sector
+they cover, plus a rough timeline.
 
 **Maps** — sector and subsector maps in the Classic Traveller idiom: black ink
 on cream, flat-topped hexes, starport class letters, solid discs for worlds
@@ -99,7 +130,11 @@ subsector divisions and a legend. Also icosahedral world surface maps.
 | `worldmap.py` | Icosahedral world surface maps |
 | `sophont.py` | Major races and the SCG sophont design tables |
 | `polity.py` | Procedural polities, travel zones, bases |
+| `scenarios.py` | Season, latitude, time of day, twilight and altitude temperatures |
+| `special.py` | Special Circumstances: empty hexes, dead stars, protostars |
+| `universe.py` | Guided universe creation, anomalies and timelines |
 | `sector.py` | Sector assembly and the classic map renderers |
+| `t5.py` | Traveller5 Second Survey column and tab output |
 | `exporters.py` | DataFrame, markdown dossier and `.sec` output |
 
 ## Fidelity
