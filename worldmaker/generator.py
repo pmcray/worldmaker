@@ -36,6 +36,7 @@ from .government import generate_government_details
 from .population import generate_population_details
 from .technology import generate_technology_profile
 from .starport import detail_starport_and_military
+from .secondary import generate_secondary_populations
 from .society import (
     generate_mainworld_uwp,
     generate_trade_codes,
@@ -246,6 +247,11 @@ def generate_full_system(name="Random System", population_dm=0,
         # Starport facilities and military come last: both draw on the
         # economic and cultural results.
         detail_starport_and_military(mainworld, system)
+
+        # Phase 7: the rest of the system's inhabited worlds (WBH p.155).
+        # The mainworld's Population and Tech Level bound them, so this runs
+        # once the mainworld is complete.
+        generate_secondary_populations(system)
 
     for world in system.all_worlds:
         if world.body_type == 'Terrestrial':

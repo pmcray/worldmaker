@@ -158,7 +158,9 @@ def test_dead_star_system_uses_dead_star_rules():
     for s in populated:
         assert s.primary_star.spectral_type == 'D'
         assert s.primary_star.mao == 0.001
-        assert s.terrestrial_planet_count <= 4  # 1D-2 caps at 4
+        # 1D-2 caps the rolled count at 4; anomalous orbits then add worlds
+        # of their own on top, so they have to be allowed for.
+        assert s.terrestrial_planet_count <= 4 + len(s.anomalous_planets)
         for w in s.all_worlds:
             assert w.orbit_num > 0
 

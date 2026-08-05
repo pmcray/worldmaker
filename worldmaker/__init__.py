@@ -28,6 +28,14 @@ from .population import (
 )
 from .technology import generate_technology_profile, tlm
 from .belts import detail_belt, detail_system_belts
+from .secondary import (
+    generate_secondary_populations,
+    max_secondary_population,
+    secondary_population_code,
+    settlement_candidates,
+    settlement_appeal,
+    can_be_inhabited,
+)
 from .scenarios import (
     worst_case_temperatures,
     seasonal_temperature,

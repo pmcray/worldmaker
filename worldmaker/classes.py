@@ -95,6 +95,9 @@ class Satellite:
     minimum_safe_altitude_km: float = 0.0
     safe_altitude_below_mean_km: float = 0.0
     low_oxygen: bool = False
+    # Secondary world populations (WBH p.155)
+    is_secondary_world: bool = False
+    affiliated: bool = False
     # Population detail (WBH pp.148-156)
     pcr: int = 0
     pcr_description: str = ""
@@ -319,6 +322,9 @@ class PlanetaryBody:
     minimum_safe_altitude_km: float = 0.0
     safe_altitude_below_mean_km: float = 0.0
     low_oxygen: bool = False
+    # Secondary world populations (WBH p.155)
+    is_secondary_world: bool = False
+    affiliated: bool = False
     # Population detail (WBH pp.148-156)
     pcr: int = 0
     pcr_description: str = ""
