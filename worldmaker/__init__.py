@@ -129,5 +129,12 @@ from .special import (
     BROWN_DWARF_TYPES,
     WHITE_DWARF_AGING,
 )
+from .t5 import (
+    export_sector_t5_column,
+    export_sector_t5_tab,
+    parse_t5_column,
+    t5_row,
+    T5_FIELDS,
+)
 from .exporters import create_system_dataframe, export_system_markdown, export_sector_sec_file
 from .generator import generate_full_system, select_mainworld

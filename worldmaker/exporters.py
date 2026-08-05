@@ -3,6 +3,7 @@ from typing import List, Dict, Any
 
 from .classes import StellarSystem, Sector, PlanetaryBody
 from .utils import Utils
+from .t5 import export_sector_t5_column, export_sector_t5_tab
 
 def create_system_dataframe(system: StellarSystem) -> pd.DataFrame:
     """Creates a Pandas DataFrame summarizing all worlds in a stellar system ( Sol System Overview style)."""
@@ -144,35 +145,7 @@ def export_system_markdown(system: StellarSystem) -> str:
     return "\n".join(md)
 
 def export_sector_sec_file(sector: Sector) -> str:
-    """Returns standard Travellermap-compliant .sec file data lines."""
-    lines = []
-    # Header format
-    lines.append(f"# Sector Data for {sector.name}")
-    lines.append("# Hex Name         UWP       Bases   Allegiance  Notes")
-    lines.append("# ---- ------------ --------- ------- ----------- -----")
-    
-    for hex_coord, system in sector.systems.items():
-        mainworld = system.mainworld
-        if not mainworld: continue
-        
-        # Format spacing to match standard .sec layout
-        # Col 1: Hex (4 chars)
-        # Col 6: Name (12 chars)
-        # Col 19: UWP (9 chars)
-        # Col 29: Bases (2 chars)
-        # Col 37: Allegiance (2 chars)
-        name_str = system.name.ljust(12)
-        uwp_str = str(mainworld.uwp).ljust(9)
-        
-        base_char = ""
-        if "Naval" in system.bases or "Zhodani Naval" in system.bases: base_char += "N"
-        if "Scout" in system.bases: base_char += "S"
-        base_str = base_char.ljust(7)
-        
-        alleg_str = system.allegiance.ljust(11)
-        
-        tcodes_str = " ".join(mainworld.trade_codes)
-        
-        lines.append(f"{hex_coord} {name_str} {uwp_str} {base_str} {alleg_str} {tcodes_str}")
-        
-    return "\n".join(lines)
+    """Column-exact Traveller5 Second Survey sector data, as accepted by
+    travellermap.com. See worldmaker.t5 for the format and the field
+    derivations."""
+    return export_sector_t5_column(sector)
