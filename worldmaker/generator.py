@@ -29,6 +29,7 @@ from .geophysics import (
 )
 from .atmosphere import generate_atmosphere_details, refresh_scale_height
 from .temperature import detail_temperatures
+from .scenarios import detail_temperature_scenarios
 from .belts import detail_system_belts
 from .economics import generate_economics
 from .government import generate_government_details
@@ -174,6 +175,7 @@ def generate_full_system(name="Random System", population_dm=0) -> StellarSystem
             generate_atmosphere_details(world)
             detail_temperatures(world, system)
             refresh_scale_height(world)
+            detail_temperature_scenarios(world, system)
             assign_climate_zone(world)
             world.surface_features = generate_surface_features(world)
             world.life_details = generate_life(world, system)
@@ -192,6 +194,7 @@ def generate_full_system(name="Random System", population_dm=0) -> StellarSystem
             generate_atmosphere_details(sat)
             detail_temperatures(sat, system, is_moon=True)
             refresh_scale_height(sat)
+            detail_temperature_scenarios(sat, system)
             assign_climate_zone(sat)
             sat.surface_features = generate_surface_features(sat)
             sat.life_details = generate_life(sat, system)

@@ -78,6 +78,10 @@ class Satellite:
     total_seismic_stress: float = 0.0
     tectonic_plates: int = 0
     seismic_activity: str = ""
+    # Temperature scenarios (WBH pp.114-124)
+    worst_case_high: float = 0.0
+    worst_case_low: float = 0.0
+    latitude_temperatures: Dict[int, float] = field(default_factory=dict)
     # Expanded atmosphere characteristics (WBH pp.78-98)
     atmosphere_name: str = ""
     atmos_pressure_bar: float = 0.0
@@ -298,6 +302,10 @@ class PlanetaryBody:
     total_seismic_stress: float = 0.0
     tectonic_plates: int = 0
     seismic_activity: str = ""
+    # Temperature scenarios (WBH pp.114-124)
+    worst_case_high: float = 0.0
+    worst_case_low: float = 0.0
+    latitude_temperatures: Dict[int, float] = field(default_factory=dict)
     # Expanded atmosphere characteristics (WBH pp.78-98)
     atmosphere_name: str = ""
     atmos_pressure_bar: float = 0.0
