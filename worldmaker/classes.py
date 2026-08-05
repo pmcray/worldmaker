@@ -101,6 +101,8 @@ class Satellite:
     # Nations on a balkanised world (WBH pp.155-156)
     nations: List[Any] = field(default_factory=list)
     nation_count: int = 0
+    # Privately held worlds (see findworld.make_proprietary)
+    proprietor: Optional[Dict[str, Any]] = None
     # Population detail (WBH pp.148-156)
     pcr: int = 0
     pcr_description: str = ""
@@ -331,6 +333,8 @@ class PlanetaryBody:
     # Nations on a balkanised world (WBH pp.155-156)
     nations: List[Any] = field(default_factory=list)
     nation_count: int = 0
+    # Privately held worlds (see findworld.make_proprietary)
+    proprietor: Optional[Dict[str, Any]] = None
     # Population detail (WBH pp.148-156)
     pcr: int = 0
     pcr_description: str = ""

@@ -200,5 +200,21 @@ from .cultures import (
     describe_palette,
     culture_profile_string,
 )
+from .findworld import (
+    WorldProfile,
+    Match,
+    find_worlds,
+    best_world,
+    score_world,
+    describe_matches,
+    in_habitable_zone,
+    make_proprietary,
+    impose_profile,
+    make_erith,
+    PROFILES,
+    ERITH,
+    GARDEN_WORLD,
+    REFUELLING_STOP,
+)
 from .exporters import create_system_dataframe, export_system_markdown, export_sector_sec_file
 from .generator import generate_full_system, select_mainworld
