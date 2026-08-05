@@ -37,6 +37,7 @@ from .population import generate_population_details
 from .technology import generate_technology_profile
 from .starport import detail_starport_and_military
 from .secondary import generate_secondary_populations
+from .nations import generate_nations
 from .society import (
     generate_mainworld_uwp,
     generate_trade_codes,
@@ -247,6 +248,10 @@ def generate_full_system(name="Random System", population_dm=0,
         # Starport facilities and military come last: both draw on the
         # economic and cultural results.
         detail_starport_and_military(mainworld, system)
+
+        # A balkanised world is many societies, not one: its nations carry
+        # their own law and technology (WBH pp.155-156).
+        generate_nations(mainworld)
 
         # Phase 7: the rest of the system's inhabited worlds (WBH p.155).
         # The mainworld's Population and Tech Level bound them, so this runs

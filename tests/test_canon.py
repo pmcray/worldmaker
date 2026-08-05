@@ -355,17 +355,38 @@ def test_apply_canonical_world_leaves_a_system_without_a_mainworld_alone():
 # ------------------------------------------------------------- expansion
 
 def test_expand_polity_from_capital_grows_into_free_space(canon):
+    """A polity canon gives a capital but no extent grows into whatever
+    space is unclaimed."""
+    random.seed(5)
+    sector = wm.generate_full_sector("Test", width=8, height=10, canon=canon)
+    from worldmaker.classes import Polity
+
+    # Clear the board so the outcome does not depend on how the procedural
+    # polities happened to fall
+    sector.polities = []
+    small = Polity(name="Avalar Consulate", allegiance_code="Av",
+                   capital_hex="0406", controlled_systems=["0406"])
+    sector.polities.append(small)
+
+    expand_polity_from_capital(sector, small, jump=2, budget=4)
+    assert 1 < len(small.controlled_systems) <= 4
+    assert "0406" in small.controlled_systems
+    for hex_coord in small.controlled_systems:
+        assert sector.systems[hex_coord].allegiance == "Av"
+
+
+def test_expansion_never_takes_claimed_space(canon):
+    """Whatever room it has, it may not take another polity's worlds."""
     random.seed(5)
     sector = wm.generate_full_sector("Test", width=8, height=10, canon=canon)
     from worldmaker.classes import Polity
     small = Polity(name="Avalar Consulate", allegiance_code="Av",
                    capital_hex="0406", controlled_systems=["0406"])
     sector.polities.append(small)
-    expand_polity_from_capital(sector, small, jump=2, budget=4)
-    assert len(small.controlled_systems) > 1
-    # It must not have taken anything another polity holds
+
     others = {h for p in sector.polities if p is not small
               for h in p.controlled_systems}
+    expand_polity_from_capital(sector, small, jump=2, budget=6)
     assert not (set(small.controlled_systems) & others)
 
 

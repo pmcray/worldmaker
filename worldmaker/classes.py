@@ -98,6 +98,9 @@ class Satellite:
     # Secondary world populations (WBH p.155)
     is_secondary_world: bool = False
     affiliated: bool = False
+    # Nations on a balkanised world (WBH pp.155-156)
+    nations: List[Any] = field(default_factory=list)
+    nation_count: int = 0
     # Population detail (WBH pp.148-156)
     pcr: int = 0
     pcr_description: str = ""
@@ -325,6 +328,9 @@ class PlanetaryBody:
     # Secondary world populations (WBH p.155)
     is_secondary_world: bool = False
     affiliated: bool = False
+    # Nations on a balkanised world (WBH pp.155-156)
+    nations: List[Any] = field(default_factory=list)
+    nation_count: int = 0
     # Population detail (WBH pp.148-156)
     pcr: int = 0
     pcr_description: str = ""
