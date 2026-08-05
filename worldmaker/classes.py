@@ -473,3 +473,5 @@ class Sector:
     routes: List[Tuple[str, str, str]] = field(default_factory=list) # (hex1, hex2, type)
     polities: List[Polity] = field(default_factory=list)
     subsector_names: Dict[str, str] = field(default_factory=dict)
+    # Empty-hex surveys (WBH pp.219-223): hex -> EmptyHexSurvey
+    deep_space: Dict[str, Any] = field(default_factory=dict)

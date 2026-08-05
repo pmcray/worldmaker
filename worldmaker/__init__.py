@@ -102,5 +102,32 @@ from .sector import (
     name_subsectors,
     subsector_letter,
 )
+from .special import (
+    generate_white_dwarf,
+    generate_neutron_star,
+    generate_black_hole,
+    generate_brown_dwarf,
+    brown_dwarf_type,
+    generate_dead_star_system,
+    generate_brown_dwarf_system,
+    generate_protostar_system,
+    generate_primordial_system,
+    is_primordial_host,
+    generate_rogue_gas_giant,
+    generate_rogue_terrestrial,
+    generate_rogue_small_body,
+    generate_empty_hex,
+    populate_empty_hexes,
+    generate_nebula,
+    generate_star_cluster_hex,
+    generate_artificial_world,
+    jump_dm_for_target,
+    jump_restrictions,
+    EmptyHexSurvey,
+    EMPTY_HEX_OBJECTS,
+    ARTIFICIAL_WORLD_TYPES,
+    BROWN_DWARF_TYPES,
+    WHITE_DWARF_AGING,
+)
 from .exporters import create_system_dataframe, export_system_markdown, export_sector_sec_file
 from .generator import generate_full_system, select_mainworld

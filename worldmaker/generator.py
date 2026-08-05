@@ -134,15 +134,30 @@ def generate_long_profile(system: StellarSystem) -> str:
         profile_parts.append(star_profile)
     return ':'.join(profile_parts)
 
-def generate_full_system(name="Random System", population_dm=0) -> StellarSystem:
-    """Main function to orchestrate the entire stellar system generation process."""
-    system = StellarSystem(name=name)
-    
-    # Phase 1: Stellar Generation
-    generate_stellar_system_stars(system)
-    
+def generate_full_system(name="Random System", population_dm=0,
+                         system: StellarSystem = None, age_gyr: float = None,
+                         count_profile: dict = None,
+                         max_tech_level: int = None) -> StellarSystem:
+    """Main function to orchestrate the entire stellar system generation process.
+
+    A pre-built StellarSystem whose stars are already in place (Special
+    Circumstances primaries, star-cluster members) can be passed as `system`;
+    `age_gyr` pins the system age, `count_profile` carries world-count
+    overrides (see determine_world_counts) and `max_tech_level` caps the
+    mainworld Tech Level (SCG universe background)."""
+    if system is None:
+        system = StellarSystem(name=name)
+    else:
+        system.name = name
+
+    # Phase 1: Stellar Generation (skipped when the caller supplied stars)
+    if not system.stars:
+        generate_stellar_system_stars(system)
+    if age_gyr is not None:
+        system.age_gyr = age_gyr
+
     # Phase 2: System Architecture & Population
-    determine_world_counts(system)
+    determine_world_counts(system, count_profile)
     calculate_available_orbits(system, model='simple')
     calculate_baseline_and_spread(system)
     handle_anomalies_and_empties(system)
@@ -215,6 +230,11 @@ def generate_full_system(name="Random System", population_dm=0) -> StellarSystem
             atmosphere=Utils.from_eHex(mainworld.atmosphere_code),
             hydrographics=Utils.from_eHex(mainworld.hydrographics_code),
         )
+        # A universe-wide Tech Level ceiling (SCG p.3) applies before any of
+        # the TL-derived detail is generated, so everything stays consistent.
+        if (max_tech_level is not None
+                and Utils.from_eHex(mainworld.uwp.tech_level) > max_tech_level):
+            mainworld.uwp.tech_level = Utils.eHex(max(0, max_tech_level))
         generate_expanded_tech_matrix(mainworld.uwp, mainworld)
         # Government and law first: the technology profile's personal-weapons
         # bound depends on the weapons Law Level.
