@@ -33,10 +33,15 @@ Referee's attention.
 Run the cells in order. Everything after the generation cell reads the
 sector that cell built, so you can re-run any of them freely.
 
-**Requirements**: `pip install -r requirements.txt`. For the dropdown
-pickers also `pip install ipywidgets` — without it the same views are
-available as plain function calls, which every cell shows. On Google Colab
-nothing needs installing by hand: the next cell does it.
+**On Google Colab there is nothing to install by hand.** The next cell
+fetches the package into the Colab runtime, and Colab already has pandas
+and ipywidgets. Just run the cells in order.
+
+**Locally**, `requirements.txt` lives in the root of the repository, beside
+this notebook: clone the repository and run `pip install -r
+requirements.txt` from that directory. It includes `ipywidgets`, which the
+dropdown pickers need; without it the same views are available as plain
+function calls, which every cell shows.
 """)
 
 # ---------------------------------------------------------------- setup

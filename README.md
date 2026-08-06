@@ -15,9 +15,14 @@ installed on your own machine.
 
 | Notebook | |
 |---|---|
-| **Sector Explorer** — a sector, its maps and everything in it | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pmcray/worldmaker/blob/master/Traveller_Sector_Explorer.ipynb) |
-| System Builder — one system in full detail | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pmcray/worldmaker/blob/master/Traveller_System_Builder.ipynb) |
-| Sector Generator — polities, maps and universes | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pmcray/worldmaker/blob/master/traveller_world_generator.ipynb) |
+| **Sector Explorer** — a sector, its maps and everything in it | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pmcray/worldmaker/blob/claude/status-colab-notebooks-w4tnm6/Traveller_Sector_Explorer.ipynb) |
+| System Builder — one system in full detail | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pmcray/worldmaker/blob/claude/status-colab-notebooks-w4tnm6/Traveller_System_Builder.ipynb) |
+| Sector Generator — polities, maps and universes | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pmcray/worldmaker/blob/claude/status-colab-notebooks-w4tnm6/traveller_world_generator.ipynb) |
+
+The badges and each notebook's bootstrap cell point at the branch this work
+lives on, because `master` still holds only the project's first two
+commits. When it is merged, re-point them with `python colab_cells.py
+master` and change the three links above.
 
 Colab's runtime is discarded when the session ends, so each notebook ends
 with a cell that downloads what it generated — the sector data, the maps

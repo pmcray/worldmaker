@@ -17,9 +17,13 @@ import sys
 
 REPO = "pmcray/worldmaker"
 
-# The branch, tag or commit Colab installs from. Point it at a branch to
-# try work that has not reached the default branch yet.
-DEFAULT_REF = "master"
+# The branch, tag or commit Colab installs from. `master` still holds only
+# the first two commits of the project: everything since — the package as
+# it now stands, and the Sector Explorer itself — lives on this branch. Re-run
+# this script with a ref argument once the work is merged:
+#
+#     python colab_cells.py master
+DEFAULT_REF = "claude/status-colab-notebooks-w4tnm6"
 
 BADGE_TAG = "colab-badge"
 BOOTSTRAP_TAG = "colab-bootstrap"
@@ -53,22 +57,34 @@ def bootstrap_cell(ref=DEFAULT_REF):
     """Installs the package on Colab; a no-op anywhere else."""
     return _cell("code", BOOTSTRAP_TAG, f'''
 # --- Colab bootstrap -------------------------------------------------
-# On Google Colab this installs worldmaker from GitHub. Run from a clone
-# of the repository it finds the local package instead and does nothing.
-# Either way it is safe to re-run.
-WORLDMAKER_REF = "{ref}"     # branch, tag or commit to install on Colab
+# On Google Colab this fetches worldmaker from GitHub, so there is nothing
+# to install by hand. Run from a clone of the repository it finds the local
+# package instead and does nothing. Either way it is safe to re-run.
+WORLDMAKER_REF = "{ref}"     # branch, tag or commit to fetch on Colab
 
 import os
 import subprocess
 import sys
 
 IN_COLAB = "google.colab" in sys.modules
+REPO = "https://github.com/{REPO}.git"
+CLONE = "/content/worldmaker"
 
 if IN_COLAB:
-    subprocess.run(
+    installed = subprocess.run(
         [sys.executable, "-m", "pip", "install", "-q",
-         f"git+https://github.com/{REPO}.git@{{WORLDMAKER_REF}}"],
-        check=True)
+         f"git+{{REPO}}@{{WORLDMAKER_REF}}"]).returncode == 0
+
+    if not installed:
+        # A ref from before the package carried its packaging metadata:
+        # clone it and import it where it stands.
+        print(f"pip install of {{WORLDMAKER_REF}} failed; cloning instead")
+        if not os.path.isdir(CLONE):
+            subprocess.run(["git", "clone", "--depth", "1",
+                            "--branch", WORLDMAKER_REF, REPO, CLONE],
+                           check=True)
+        sys.path.insert(0, CLONE)
+
     # Canon fetched from travellermap.com is cached beside the notebook
     # rather than inside site-packages.
     os.environ.setdefault("WORLDMAKER_CANON_CACHE", "/content/canon_cache")
@@ -79,9 +95,10 @@ except ModuleNotFoundError:
     raise ModuleNotFoundError(
         "worldmaker not found. Start Jupyter from the root of a clone of "
         "the repository, or install it with\\n"
-        "    pip install git+https://github.com/{REPO}.git") from None
+        f"    pip install git+{{REPO}}") from None
 
-print("worldmaker", wm.__version__, "ready" + (" on Colab" if IN_COLAB else ""))
+print("worldmaker", getattr(wm, "__version__", "(unversioned)"),
+      "ready" + (" on Colab" if IN_COLAB else ""))
 ''')
 
 
