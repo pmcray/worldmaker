@@ -274,6 +274,12 @@ def _generate_systems(sector: Sector, density_target: int = 4, universe=None,
 
             if canonical_hexes is not None:
                 present = hex_coord in canonical_hexes
+                # A polity's own Tech Level ceiling binds its worlds, and
+                # binds them harder than the setting's if it is lower.
+                canon_ceiling = canon.max_tech_level_for(hex_coord)
+                if canon_ceiling is not None:
+                    max_tech_level = (canon_ceiling if max_tech_level is None
+                                      else min(max_tech_level, canon_ceiling))
             else:
                 present = Utils.D6() >= target
 
@@ -351,6 +357,12 @@ def generate_full_sector(name="Generated Sector", width=32, height=40,
         place_native_sophonts(sector, *universe.sophont_counts(sector))
     else:
         place_native_sophonts(sector)
+
+    # A published homeworld overrides a rolled one, and must be in place
+    # before generation: a native population is worth a +6 Population DM.
+    if canon is not None and canon_mode != 'positions':
+        from .canon import place_canonical_sophonts
+        place_canonical_sophonts(sector, canon)
 
     _generate_systems(sector, density_target, universe, canon)
 

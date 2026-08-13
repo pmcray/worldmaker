@@ -26,7 +26,7 @@ system in detail with its temperature scenarios and world map, and
 Everything is also a plain library, used from the repository root:
 
 ```bash
-python -m pytest tests/          # 385 tests
+python -m pytest tests/          # 429 tests
 ```
 
 ```python
@@ -76,6 +76,27 @@ For Foreven that fixes all 358 star positions, the Zhodani Consulate's
 worlds — while everything else is generated. `canon_mode` selects how much
 to honour: `pin` (all of it), `seed` (positions and borders only, worlds are
 yours to invent) or `positions` (star placements alone).
+
+The *Sector Construction Guide* does not stop at those seven worlds. Over
+sixty pages it works Foreven up into a playable sector and prints the
+result, and `scg_foreven_full()` is that whole treatment:
+
+```python
+canon = wm.merge_canon(wm.fetch_canonical_sector("Foreven"),
+                       wm.scg_foreven_full())
+sector = wm.generate_full_sector("Foreven", canon=canon, canon_mode="pin")
+```
+
+That adds the Avalar Consulate's 27 named worlds and its capital; the Tlesho
+Union, four systems of a xenophobic minor race who reverse-engineered jump
+drive from a ship they seized; eleven native sophont homeworlds and Ancients
+sites; ten scattered settlements of Droyne, Chirpers, Aslan, Vargr and
+stranded humans; the fourteen barren worlds of the subsector J anomaly,
+where colonies fail and ships disappear; the Zhodani route waypoints and the
+Imperial Navy's cage around Andor and Candory; five Zhodani Red Zones; and
+the Tech Level ceilings of both Consulates. Every entry carries its page
+citation. None of it is canon — the Guide says so twice — so it layers on
+as an option, and `seed` mode gives the worlds straight back.
 
 Looking for one particular kind of world in a sector of hundreds:
 
@@ -163,6 +184,13 @@ rifts, clusters, supernova-sterilised regions, barren zones, plagues,
 tech-suppressed regions and war-wrecked worlds — that reshape the sector
 they cover, plus a rough timeline.
 
+**Published sectors** — an overlay that honours what a source has already
+established and generates the rest: star positions, polity borders, world
+profiles, bases, travel zones, stellar types, native species, Tech Level
+ceilings and worlds a source declares barren, each carrying its citation.
+Foreven ships in two tiers — the reserve documentation's seven worlds, and
+the *Sector Construction Guide*'s complete worked treatment of the sector.
+
 **Maps** — sector and subsector maps in the Classic Traveller idiom: black ink
 on cream, flat-topped hexes, starport class letters, solid discs for worlds
 with water and open circles for dry ones, belt scatters, gas giant markers,
@@ -198,7 +226,7 @@ was flagged.
 | `scenarios.py` | Season, latitude, time of day, twilight and altitude temperatures |
 | `special.py` | Special Circumstances: empty hexes, dead stars, protostars |
 | `universe.py` | Guided universe creation, anomalies and timelines |
-| `canon.py` | Canonical sector overlays: published positions, borders and worlds |
+| `canon.py` | Canonical sector overlays: published positions, borders and worlds, and the Guide's worked Foreven |
 | `secondary.py` | Secondary world populations |
 | `nations.py` | Sovereign nations on balkanised worlds |
 | `cultures.py` | Procedural cultures and the template palette |

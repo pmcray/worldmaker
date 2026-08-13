@@ -89,10 +89,12 @@ from .society import (
 )
 from .sophont import (
     get_major_race,
+    get_catalogued_race,
     generate_minor_race,
     generate_sophont_name,
     roll_d66_characteristic,
     MAJOR_RACES,
+    CATALOGUED_RACES,
 )
 from .polity import (
     define_polities,
@@ -147,15 +149,27 @@ from .canon import (
     fetch_canonical_sector,
     load_canonical_sector,
     scg_foreven,
+    scg_foreven_full,
     merge_canon,
     apply_canon,
     canonical_polities,
     apply_canonical_world,
     expand_polity_from_capital,
+    place_canonical_sophonts,
+    establish_canon_polities,
     NON_ALIGNED_CODES,
     cache_dir,
     ALLEGIANCE_NAMES,
     SCG_FOREVEN,
+    SCG_FOREVEN_FULL,
+    SCG_AVALAR,
+    SCG_TLESHO_UNION,
+    SCG_NATIVE_SOPHONTS,
+    SCG_SCATTERED_SETTLEMENTS,
+    SCG_BARREN,
+    SCG_ZHODANI_WAYPOINTS,
+    SCG_IMPERIAL_CAGE,
+    SCG_FOREVEN_TECH_CEILINGS,
 )
 from .universe import (
     Universe,

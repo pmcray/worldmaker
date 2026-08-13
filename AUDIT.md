@@ -141,12 +141,12 @@ NO absent
 |---|---|
 | Creating a Universe (pp.3-8) | OK - `create_universe()` takes the book's high-level choices (theme, density, maximum Tech Level, trajectory, sophont prevalence, polity count) and drives generation from them; anomalies and a rough timeline are modelled. See `universe.py` |
 | System Creation (pp.9-16) | OK - density is a parameter, and rift and cluster anomalies vary it by region; the book's density *contour* drawing is NO |
-| Canonical overlays | OK - `canon.py` loads published sector data (travellermap.com T5 tab) and the Guide's own Foreven table, and applies positions, borders and established worlds. Not a book procedure: the books assume the Referee applies canon by hand |
+| Canonical overlays | OK - `canon.py` loads published sector data (travellermap.com T5 tab) and applies positions, borders, established worlds, native species, Tech Level ceilings and barren declarations. Two Foreven tiers: `scg_foreven()` for the seven worlds the reserve documentation establishes (p.6), `scg_foreven_full()` for the Guide's complete worked treatment (pp.8, 24-27, 46, 61, 63-64). Not a book procedure: the books assume the Referee applies canon by hand |
 | Sector Details (pp.17-27) | OK - settlement waves per p.22 with DMs capped at zero, true hex distances, Xboat network, travel zones. Xboat waystations come from the starport table; border generation from sector history is NO |
 | Mainworld Design (pp.28-39) | OK via the WBH extensions; the isolation TL variant is NO |
 | Polity Design (pp.40-49) | OK - procedural capitals, jump-range-bounded expansion, government form, naming, type and defence index. `define_foreven_polities()` retains the book's worked example |
-| Sophont Design (pp.50-60) | OK - the full D66 Sophont Physical Characteristics table, with senses, psychology and characteristic DMs derived from the results |
-| Sector Finalisation (p.62) | OK - column-exact T5 Second Survey output, plus the tab-delimited interchange format. See `t5.py` |
+| Sophont Design (pp.50-60) | OK - the full D66 Sophont Physical Characteristics table, with senses, psychology and characteristic DMs derived from the results; the Guide's own Tlinzha, plus Droyne, Chirpers, Solomani and the Minor Human Races, are catalogued rather than rolled |
+| Sector Finalisation (pp.62-64) | OK - column-exact T5 Second Survey output plus the tab-delimited interchange format (`t5.py`), and the IISS `XXX-YYY` survey designation for barren worlds nobody named. The Zhodani base placement, travel zone and Imperial client-state tasks are carried as data in `scg_foreven_full()` |
 
 ---
 
@@ -166,13 +166,14 @@ Run with `pip install -r requirements.txt && python -m pytest tests/`.
 | `test_special.py` | 34 | Dead star mass and diameter formulas and their limits, the aging table, brown dwarf types against the book's table, dead-star system existence DMs, pulsar taint, protostar and primordial conditions, rogue world sizes, empty-hex object frequencies, nebula and cluster generation, artificial world tech gating, jump DMs |
 | `test_t5_export.py` | 21 | The format specification's own example parsed field for field, T5SS field order, separator-defined column widths and minimums, every row's alignment, round-tripping, field syntax, and agreement between the column and tab formats |
 | `test_canon.py` | 40 | Parsing travellermap T5 tab data including placeholder rows, allegiance grouping, overlay merging, canonical polities and client states, pinned UWPs/bases/zones/stars/PBG, the three canon modes, polity expansion, and that procedural polities never claim canonical space |
+| `test_canon_scg_foreven.py` | 44 | The Guide's whole worked Foreven: the Avalar Consulate's 27 systems and its capital, the Tlesho Union's four, the native homeworlds and Ancients sites, the ten scattered settlements, the five Zhodani Red Zones, the barren zone and its gas-giantless chokepoint, the annotation entries that place no star, both of the Guide's self-contradictions, the polity Tech Level ceilings, and generating a sector from the tier alone in all three modes |
 | `test_secondary.py` | 21 | The population cap and its shortcut, the 1D per-body method, Tech Level habitation limits, candidate filtering, colonies versus independents, and that every body now presents its own physical UWP |
 | `test_nations.py` | 30 | Nation counts and both escalations, per-nation law and technology, the starport state carrying the UWP values, territory covering the land without overlap, cities assigned to nations, and the culture palette's breadth, gating and variance |
 | `test_findworld.py` | 33 | Scoring and tolerances, physical Earth-likeness outweighing law and tech, every hard filter, ranking, imposing a profile, proprietorship on balkanised and unified worlds, and the full make_erith workflow |
 | `test_notable.py` | 25 | Every notability signal and its ranking, deduplication of repeated stellar reasons, scan filtering, and the Tech Level and Environment table with its floor enforcement, precarious allowance and setting-ceiling case |
 | `test_universe.py` | 29 | Density targets and the playable range, Tech Level ceilings holding across a sector, trajectory DMs, preset validity, sophont prevalence scaling, every anomaly's effect on the worlds it covers, rift and cluster density changes, timeline ordering and content, and that a universe-driven sector still exports and renders |
 
-**385 passed, 0 failed.** Verified across multiple seeds; 1,200 systems
+**429 passed, 0 failed.** Verified across multiple seeds; 1,200 systems
 generate across 40 seeds without error.
 
 The eleven defects the first audit found are all fixed and each is still
@@ -360,6 +361,23 @@ Deliberately out of scope, or approximated:
 - T5 nobility codes are assigned from the world's Importance rather than
   from the Traveller5 rulebook's own table, which is outside these two
   books.
+- The Sector Construction Guide's worked Foreven contradicts itself in three
+  places, all carried in the data with the reasoning in the world's citation:
+  the Zhodani route waypoints are listed as 1102/1701/**2602**/3201 on p.27
+  and 1102/1701/**2802**/3201 on p.63 - both are kept, and since the Guide's
+  stated reason for the list is that travellermap.com draws route lines to
+  those hexes, and travellermap.com has no star at 2802, only 2602 takes
+  effect; 2328's physical column reads 755 while its printed UWP reads 87A,
+  and the UWP is taken as the fact; and the Avalar world table spells the
+  occupied Vargr world Zuekgoz while the polity chapter spells it Zuekgov.
+- The Guide asserts an Imperial naval base at 3228, but the surveyed Foreven
+  map has no star there (the nearest are 3232 and 3238). The entry is kept as
+  printed and simply has no effect, rather than a star being invented for it.
+- The Guide calls the barren worlds at 1224 and 1325 "garden worlds" while
+  printing no profile for them. Their Class E starports are applied; their
+  physical characteristics are still generated, so they will not always come
+  out garden-class. Inventing a profile the source does not print seemed
+  worse than the mismatch.
 - The `Star Cluster` and `Nebula` results on the primary star table still
   use representative stellar values, since a hex-scale structure has no
   single set of stellar characteristics; `special.py` generates the real
@@ -386,7 +404,8 @@ is left is smaller and largely a matter of taste:
    feed it real values rather than the rotation period.
 3. Border generation from sector history (SCG p.26): borders are currently
    traced from the polity territory the generator produces, not from the
-   sequence of wars and treaties that would explain their shape.
+   sequence of wars and treaties that would explain their shape. The Guide's
+   Foreven timeline is transcribed but does not yet drive its borders.
 4. A play-side layer over the empty-hex data: the detection procedure
    (pp.221-222) and the arrival-variance task chain (p.223) are the only
    parts of Special Circumstances left out, and both are about resolving a

@@ -53,6 +53,13 @@ WIDTH, HEIGHT = 32, 40        # a full sector; try 8, 10 for one subsector
 CANON_SECTOR  = None
 CANON_MODE    = "pin"         # "pin" | "seed" | "positions"
 
+# For Foreven only. "reserve" adds the seven worlds the reserve
+# documentation establishes; "full" adds the whole sector the Sector
+# Construction Guide works up around them - the Avalar Consulate, the Tlesho
+# Union, the sophont homeworlds and Ancients sites, the barren zone of
+# subsector J and the Zhodani route waypoints. None uses the survey alone.
+SCG_TIER      = "reserve"     # None | "reserve" | "full"
+
 # Optional: a universe preset shapes density, technology and sophonts.
 # One of None, "charted_space", "frontier", "pocket_empires",
 # "fallen_empire", "deep_rift".
@@ -91,8 +98,10 @@ random.seed(SEED)
 canon = None
 if CANON_SECTOR:
     canon = wm.fetch_canonical_sector(CANON_SECTOR)
-    if CANON_SECTOR.lower().startswith("foreven"):
-        canon = wm.merge_canon(canon, wm.scg_foreven(), name=CANON_SECTOR)
+    if CANON_SECTOR.lower().startswith("foreven") and SCG_TIER:
+        tier = (wm.scg_foreven_full() if SCG_TIER == "full"
+                else wm.scg_foreven())
+        canon = wm.merge_canon(canon, tier, name=CANON_SECTOR)
     print(canon.summary())
     print()
 
