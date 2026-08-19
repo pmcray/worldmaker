@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "worldmaker"
+version = "1.0.0"
+description = "Traveller star system and sector generator implementing the World Builder's Handbook and Sector Construction Guide"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "Paul M. Cray" }]
+keywords = ["traveller", "rpg", "worldbuilding", "procedural-generation"]
+
+# The core generator and the classic map renderers need nothing but the
+# standard library. numpy is used by the planet/globe rendering, which is
+# part of the core feature set.
+dependencies = [
+    "numpy>=1.23",
+]
+
+[project.optional-dependencies]
+# Tabular system summaries
+data = ["pandas>=1.5"]
+# Photorealistic globe rendering writes PNGs through Pillow
+images = ["pillow>=9.0"]
+# Interactive notebook visualisation, trade graphs and the planet texture
+# pipeline contributed alongside the core generator
+extras = [
+    "opencv-python-headless>=4.8",
+    "plotly>=5.0",
+    "matplotlib>=3.6",
+    "networkx>=3.0",
+    "ipywidgets>=8.0",
+]
+test = ["pytest>=7.0", "pandas>=1.5"]
+# Everything, as Google Colab already provides most of it
+all = [
+    "pandas>=1.5",
+    "pillow>=9.0",
+    "opencv-python-headless>=4.8",
+    "plotly>=5.0",
+    "matplotlib>=3.6",
+    "networkx>=3.0",
+    "ipywidgets>=8.0",
+]
+
+[tool.setuptools]
+packages = ["worldmaker"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
