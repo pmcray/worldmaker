@@ -1,11 +1,15 @@
-import pandas as pd
 from typing import List, Dict, Any
 
 from .classes import StellarSystem, Sector, PlanetaryBody
 from .utils import Utils
 
-def create_system_dataframe(system: StellarSystem) -> pd.DataFrame:
-    """Creates a Pandas DataFrame summarizing all worlds in a stellar system ( Sol System Overview style)."""
+def create_system_dataframe(system: StellarSystem):
+    """Creates a Pandas DataFrame summarising all worlds in a stellar system.
+
+    pandas is imported here rather than at module level so the rest of the
+    package works without it."""
+    import pandas as pd
+
     rows = []
     
     # Traverse through stars and worlds in orbital sequence
