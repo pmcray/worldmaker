@@ -207,6 +207,8 @@ def calculate_available_orbits(system: StellarSystem, model='simple'):
         else:
             primary_group.available_orbits = [(floor, max(floor + 1.0, 20.0))]
 
+    return primary_group.available_orbits
+
 _ZONE_ORDER = ['Close', 'Near', 'Far']
 
 def _assign_secondary_orbit_allowances(system: StellarSystem):

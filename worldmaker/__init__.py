@@ -86,3 +86,47 @@ from .sector import (
 )
 from .exporters import create_system_dataframe, export_system_markdown, export_sector_sec_file
 from .generator import generate_full_system, select_mainworld
+
+# --------------------------------------------------------------------------
+# Optional extras.
+#
+# These modules need heavier third-party packages - OpenCV, plotly,
+# matplotlib, networkx, ipywidgets - that are not required to generate
+# systems, sectors or the classic maps. They are resolved on first use so
+# `import worldmaker` keeps working when those packages are absent.
+# --------------------------------------------------------------------------
+_OPTIONAL_EXPORTS = {
+    'generate_planetary_maps': '.planet_mapper',
+    'render_traveller_icosahedral_net': '.planet_projections',
+    'plot_3d_planet_globe': '.planet_projections',
+    'plot_system_orbit_diagram': '.visualization',
+    'plot_system_3d_orbit_diagram': '.visualization_3d',
+    'plot_subsector_trade_network': '.trade_network',
+    'calculate_speculative_trade_run': '.trade_calculator',
+    'export_campaign_briefing_html': '.pdf_exporter',
+    'generate_system_adventure_seeds': '.adventure',
+    'render_generator_dashboard': '.widgets',
+    'render_subsector_dashboard': '.widgets',
+    'export_system_html': '.exporters',
+}
+
+
+def __getattr__(name):
+    """Resolves the optional extras on first access (PEP 562)."""
+    module_name = _OPTIONAL_EXPORTS.get(name)
+    if module_name is None:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    import importlib
+    try:
+        module = importlib.import_module(module_name, __name__)
+    except ImportError as exc:
+        raise ImportError(
+            f"{name}() needs an optional dependency that is not installed "
+            f"({exc}). Install the extras with:  pip install "
+            f"'worldmaker[extras]'  or see requirements-extras.txt"
+        ) from exc
+    return getattr(module, name)
+
+
+def __dir__():
+    return sorted(list(globals()) + list(_OPTIONAL_EXPORTS))

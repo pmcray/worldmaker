@@ -1,0 +1,7 @@
+# Optional extras: interactive visualisation, planet mapping and notebook UI.
+# The core generator and the classic map renderers do not need these.
+opencv-python-headless>=4.8   # planet_mapper texture generation
+plotly>=5.0                   # 3D orbit diagrams and globe
+matplotlib>=3.6               # orbit diagrams
+networkx>=3.0                 # trade network graphs
+ipywidgets>=8.0               # notebook dashboards

@@ -285,6 +285,8 @@ _SQRT3 = math.sqrt(3)
 _CLASSIC_STYLE = '''<style>
     .cm-bg { fill: #fdfcf8; }
     .cm-hex { stroke: #1a1a1a; stroke-width: 0.9; fill: none; }
+    .cm-hex-group { cursor: pointer; }
+    .cm-hex-group:hover .cm-hex { stroke: #0284c7; stroke-width: 2.2; }
     .cm-frame { stroke: #000; stroke-width: 2.5; fill: none; }
     .cm-subgrid { stroke: #000; stroke-width: 1.6; fill: none; }
     .cm-title { font-family: Helvetica, Arial, sans-serif; font-weight: bold; fill: #000; }
@@ -326,6 +328,35 @@ def _hex_vertices(x: float, y: float, radius: float) -> List[Tuple[float, float]
 # Which pair of vertex indices forms the hex edge facing each direction
 _EDGE_OF = {'SE': (0, 1), 'S': (1, 2), 'SW': (2, 3),
             'NW': (3, 4), 'N': (4, 5), 'NE': (5, 0)}
+
+def _escape(text: str) -> str:
+    """Escapes text for use inside an SVG element."""
+    return (str(text).replace('&', '&amp;').replace('<', '&lt;')
+            .replace('>', '&gt;'))
+
+
+def _hex_tooltip(hex_coord: str, system: Optional[StellarSystem]) -> str:
+    """The hover tooltip for a hex, shown by browsers as a native tooltip."""
+    if system is None:
+        return f"Hex {hex_coord}: empty"
+
+    mw = _mainworld_of(system)
+    if mw is None:
+        return f"Hex {hex_coord}: {system.name}"
+
+    lines = [
+        f"Hex {hex_coord}: {mw.name}",
+        f"UWP: {mw.uwp}",
+        f"Allegiance: {system.allegiance}",
+        f"Bases: {', '.join(system.bases) if system.bases else 'None'}",
+        f"Gas giants: {system.gas_giant_count}",
+        f"Trade codes: {', '.join(mw.trade_codes) if mw.trade_codes else 'None'}",
+    ]
+    if system.travel_zone:
+        lines.append("Travel zone: "
+                     + ("Amber" if system.travel_zone == 'A' else "Red"))
+    return _escape("\n".join(lines))
+
 
 def _world_glyphs(svg: List[str], system: StellarSystem, x: float, y: float,
                   R: float, scale: float):
@@ -575,13 +606,18 @@ def _render_window(sector: Sector, name: str, window: Tuple[int, int, int, int],
             col, row = c0 + ci, r0 + ri
             hex_coord = f"{col:02d}{row:02d}"
             x, y = _hex_center(ci, ri, R, ox, oy)
+            system = sector.systems.get(hex_coord)
             pts = " ".join(f"{px:.1f},{py:.1f}" for px, py in _hex_vertices(x, y, R))
+            # Each hex is a group carrying a <title>, so hovering it in a
+            # browser shows the system's details.
+            svg.append(f'<g class="cm-hex-group"><title>'
+                       f'{_hex_tooltip(hex_coord, system)}</title>')
             svg.append(f'<polygon class="cm-hex" points="{pts}" />')
             svg.append(f'<text x="{x:.1f}" y="{y - 0.62*R:.1f}" class="cm-hexnum" '
                        f'font-size="{0.20*R:.1f}">{hex_coord}</text>')
-            system = sector.systems.get(hex_coord)
             if system:
                 _world_glyphs(svg, system, x, y, R, scale)
+            svg.append('</g>')
 
     # Layer 3: polity borders over the grid
     _draw_borders(svg, sector, R, ox, oy, window, scale)
