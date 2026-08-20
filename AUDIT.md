@@ -143,9 +143,12 @@ Run with `pip install -r requirements.txt && python -m pytest tests/`.
 | `test_world_detail.py` | 21 | Belt composition and bulk, lifeform profiles, sophont thresholds, population profiles and urbanisation caps, city populations, technology profile structure and bounds |
 | `test_polity.py` | 14 | Jump ranges, capital selection and separation, non-overlapping contiguous territory, allegiance recording, independent space, defence index scaling |
 | `test_renderer.py` | 29 | Every map convention checked against the generated data, hex geometry, viewBox containment, border chaining, legend reflow, windowing, and regression guards against UWP strings and pastel fills |
+| `test_planet.py` | 41 | Noise determinism and range, Earth-like scoring and search, the surface-model contract, hydrographics against ocean cover, climate banding and ice limits, net geometry, fold continuity, and orbital-view invariants |
 
-**115 passed, 0 failed.** Verified across multiple seeds; 1,200 systems
-generate across 40 seeds without error.
+**166 passed, 0 failed** (the table above plus the repository owner's own
+`test_cartography.py`, `test_generator.py`, `test_new_features.py`,
+`test_stellar.py` and `test_system.py`). Verified across multiple seeds;
+1,200 systems generate across 40 seeds without error.
 
 The eleven defects the first audit found are all fixed and each is still
 covered by the test that caught it: dropped worlds, the availability
@@ -155,6 +158,12 @@ government DMs, 1D culture rolls, uncapped settlement-wave DMs, and Euclidean
 hex distance. Later work surfaced and fixed three more: a polity could swallow
 another's capital and claim it twice; a Sibling star of an exotic primary
 crashed the generator; and trace atmospheres rounded away to an exact vacuum.
+The planet work added two more, both silent until tested directly: the
+dodecahedral net laid faces around a hub that were not the hub's real
+neighbours on the sphere, and its gnomonic projection carried a fudge factor,
+so the printed sheet could not fold into the world. `test_planet.py` now
+asserts both — adjacency, and that a point on a fold edge projects to the same
+place on the sphere from either face it belongs to.
 
 ---
 
@@ -263,6 +272,49 @@ taken from their most notable world.
 `audit/classic_sector.png` and `audit/classic_subsector.png` are the current
 sector and subsector output; `audit/worldmap.png` is an icosahedral world
 surface map; `audit/gen_*.png` are the original "before" renders.
+
+---
+
+## 4b. Planet surfaces and orbital globes
+
+`planet.py` takes any generated world and builds one spherical terrain model,
+then derives every product from it, so the net map and the orbital view are
+always views of the same planet rather than two unrelated pictures.
+
+Terrain is 3D gradient noise sampled on the unit sphere, which wraps in
+longitude and has no polar singularity. The world's own rolled characteristics
+drive it throughout: sea level is the hydrographics percentile of the
+elevation field, so ocean cover tracks the UWP digit to within a few percent;
+mean temperature and axial tilt set the climate bands (calibrated so a
+Terra-profile world lands at roughly 307 K at the equator and 225 K at the
+poles); tectonic plate count sets the continent scale; biomass sets vegetation;
+atmospheric pressure sets cloud cover and limb thickness. An airless or dead
+world renders as grey rock with no cloud at all.
+
+`earthlike_score` ranks worlds against Terra's own profile — the book's
+"Terra-equivalent garden world" (WBH p.133) — with a breathable atmosphere as
+a hard gate. In the seed-1105 Foreven Reach sector the best candidate is
+Reniren (hex 1728, BA67543-7, 293.9 K, habitability 12), scoring 0.921.
+
+Two nets are produced. `render_icosahedral_net_svg` is the Traveller standard
+of twenty triangles (WBH p.135), sharing the hex cell layout and terrain
+palette with `worldmap.py`. `render_dodecahedral_net` gives twelve pentagons,
+which distort less per face. Both are genuinely foldable: each face is a true
+gnomonic projection from the centre of the sphere, and the faces are laid
+beside their real neighbours, verified by a test that a point on any fold edge
+projects to the same place on the sphere from either of the two faces meeting
+there.
+
+`render_orbital_view` is a raytraced view of the globe: Lambertian terrain
+shading with relief from the surface normals, a softened day/night terminator,
+Blinn-Phong sun-glint confined to open water, a cloud deck, city lights on the
+night side of populated worlds, a Rayleigh-scattered limb and halo, a
+starfield, and filmic tone-mapping through gamma 2.2. Camera framing is
+normalised so altitude changes how much of the globe is in view rather than
+how large it appears.
+
+`audit/planet_orbit.png`, `audit/planet_icosahedral_net.svg` and
+`audit/planet_dodecahedral_net.svg` are Reniren rendered by this pipeline.
 
 ---
 

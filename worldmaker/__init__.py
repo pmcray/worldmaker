@@ -86,6 +86,21 @@ from .sector import (
 )
 from .exporters import create_system_dataframe, export_system_markdown, export_sector_sec_file
 from .generator import generate_full_system, select_mainworld
+from .planet import (
+    TERRA,
+    SphereNoise,
+    earthlike_score,
+    find_earthlike_candidate,
+    generate_planet_surface,
+    classify_surface_terrain,
+    icosahedron_faces,
+    render_orbital_view,
+    render_orbital_sequence,
+    render_icosahedral_net_svg,
+    render_dodecahedral_net,
+    render_planet_package,
+    save_png,
+)
 
 # --------------------------------------------------------------------------
 # Optional extras.

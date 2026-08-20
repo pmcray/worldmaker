@@ -79,6 +79,59 @@ with water and open circles for dry ones, belt scatters, gas giant markers,
 base glyphs, travel-zone rings, dashed polity borders, Xboat route lines,
 subsector divisions and a legend. Also icosahedral world surface maps.
 
+**Planets** — a spherical terrain model for any generated world, and from the
+one model both a foldable polyhedral net and photorealistic views from orbit.
+
+## Planets and globes
+
+`planet.py` builds terrain as 3D noise sampled on the unit sphere, so it wraps
+seamlessly in longitude with no polar pinching. The world's own generated
+characteristics drive it: hydrographics sets sea level, mean temperature and
+axial tilt set the climate bands, tectonic plate count sets the continent
+scale, biomass sets the vegetation, atmospheric pressure sets the cloud deck.
+
+```python
+import worldmaker as wm
+
+sector = wm.generate_full_sector(name="Foreven Reach")
+
+# The most Terra-like world in the sector, scored against Terra's own profile
+hex_coord, world, score = wm.find_earthlike_candidate(sector)
+
+# Surface model, both nets and three orbital views, written to disk
+wm.render_planet_package(world, out_dir="planet")
+```
+
+The package writes an equirectangular texture, three orbital views, an
+icosahedral net (the World Builder's Handbook standard, p.135) and a
+dodecahedral net. Either net folds into the world: every face is drawn as a
+true gnomonic projection and laid beside the faces that really adjoin it on
+the sphere, so terrain runs continuously across each fold line.
+
+For a single product rather than the whole set:
+
+```python
+surface = wm.generate_planet_surface(world, width=2048, height=1024)
+image = wm.render_orbital_view(surface, size=1024, altitude_radii=3.2)
+svg = wm.render_dodecahedral_net(surface, name=world.name)
+```
+
+`render_orbital_view` shades the terrain with a Lambertian model, softens the
+day/night terminator, adds specular sun-glint on open water, a cloud deck,
+city lights on the night side of a populated world, a Rayleigh-scattered limb
+and a starfield, then tone-maps the result.
+
+## Google Colab
+
+`colab_setup.py` clones the repository, puts it on `sys.path` and installs
+whatever Colab does not already provide:
+
+```python
+!wget -q https://raw.githubusercontent.com/pmcray/worldmaker/master/colab_setup.py
+import colab_setup; colab_setup.setup()
+import worldmaker as wm
+```
+
 ## Layout
 
 | Module | Contents |
@@ -97,6 +150,7 @@ subsector divisions and a legend. Also icosahedral world surface maps.
 | `government.py` | Government structure, factions, law |
 | `starport.py` | Starport facilities and world military |
 | `worldmap.py` | Icosahedral world surface maps |
+| `planet.py` | Spherical terrain, polyhedral nets, orbital rendering |
 | `sophont.py` | Major races and the SCG sophont design tables |
 | `polity.py` | Procedural polities, travel zones, bases |
 | `sector.py` | Sector assembly and the classic map renderers |
