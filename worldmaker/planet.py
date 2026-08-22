@@ -121,6 +121,19 @@ def _sphere_grid(width: int, height: int):
 
 # ------------------------------------------------- Earth-like selection
 
+def _world_label(world: Any) -> str:
+    """A usable name for a world.
+
+    Moons carry a designation rather than a name - and a moon can perfectly
+    well be the most Earth-like body in a system - so fall back to that
+    before giving up on an anonymous "World"."""
+    for attribute in ('name', 'designation'):
+        value = getattr(world, attribute, None)
+        if value:
+            return str(value)
+    return 'World'
+
+
 def earthlike_score(world: Any) -> float:
     """How closely a world resembles Terra, from 0 (nothing alike) to 1.
 
@@ -166,23 +179,29 @@ def earthlike_score(world: Any) -> float:
         + habitability * 0.10 + biosphere * 0.05, 4)
 
 
-def find_earthlike_candidate(sector: Any, top: int = 1):
+def find_earthlike_candidate(sector: Any, top: int = 1, profile: Any = None,
+                             pool: int = 40):
     """Finds the most Terra-like world in a sector.
 
-    Returns `(hex, world, score)` for the best candidate, or a list of such
-    tuples when `top` > 1."""
-    scored = []
-    for hex_coord, system in getattr(sector, 'systems', {}).items():
-        for body in system.all_bodies:
-            if getattr(body, 'uwp', None) is None or not body.uwp.starport:
-                # Only worlds developed enough to carry a profile
-                if not getattr(body, 'atmosphere_code', ''):
-                    continue
-            score = earthlike_score(body)
-            if score > 0:
-                scored.append((hex_coord, body, score))
+    The search itself belongs to `findworld`, which applies the hard filters
+    a candidate has to survive - in the habitable zone of an F, G or K star,
+    outside Zhodani space, warm enough for liquid water. This ranks the
+    survivors by physical resemblance to Terra, which is what the renderer
+    cares about: `findworld`'s own ranking also weighs population,
+    government and law, and a world can be the right size, air and water
+    while having none of those.
 
-    scored.sort(key=lambda item: item[2], reverse=True)
+    Pass `profile` to search for something other than Erith. Returns
+    `(hex, world, score)` for the best candidate, or a list of such tuples
+    when `top` > 1."""
+    from .findworld import ERITH, find_worlds
+
+    matches = find_worlds(sector, profile or ERITH, limit=max(pool, top))
+    scored = [(match.hex, match.body, earthlike_score(match.body))
+              for match in matches]
+    scored = [entry for entry in scored if entry[2] > 0]
+    scored.sort(key=lambda item: (-item[2], item[0]))
+
     if not scored:
         return None if top == 1 else []
     return scored[0] if top == 1 else scored[:top]
@@ -199,8 +218,9 @@ def generate_planet_surface(world: Any, width: int = 2048, height: int = 1024,
     level, ice, clouds, specular mask and surface normals. The keys used by
     `planet_projections` are present, so the same texture drives the
     Traveller net maps."""
+    label = _world_label(world)
     if seed is None:
-        seed = abs(hash(getattr(world, 'name', 'world'))) % (2 ** 31)
+        seed = abs(hash(label)) % (2 ** 31)
 
     uwp = getattr(world, 'uwp', None)
     hyd = Utils.from_eHex(getattr(world, 'hydrographics_code', None)
@@ -366,7 +386,7 @@ def generate_planet_surface(world: Any, width: int = 2048, height: int = 1024,
     shaded = np.clip(texture * relief[..., None], 0, 1)
 
     return {
-        'world_name': getattr(world, 'name', 'World'),
+        'world_name': label,
         'surface_texture': (shaded * 255).astype(np.uint8),
         'albedo': texture,
         'heightmap': elevation,
@@ -1009,6 +1029,23 @@ def save_png(array: np.ndarray, path: str) -> str:
     return path
 
 
+def png_bytes(array: np.ndarray) -> bytes:
+    """Encodes an image array as PNG data, for display without a file.
+
+    `IPython.display.Image(data=png_bytes(view))` shows a rendered view in a
+    notebook directly. Requires Pillow."""
+    import io
+
+    try:
+        from PIL import Image
+    except ImportError as exc:
+        raise ImportError(
+            "Encoding PNGs needs Pillow: pip install pillow") from exc
+    buffer = io.BytesIO()
+    Image.fromarray(array).save(buffer, format='PNG')
+    return buffer.getvalue()
+
+
 def render_planet_package(world: Any, out_dir: str = ".", size: int = 1024,
                           texture_size: Tuple[int, int] = (2048, 1024),
                           views: int = 3, seed: Optional[int] = None
@@ -1061,3 +1098,32 @@ def render_planet_package(world: Any, out_dir: str = ".", size: int = 1024,
     return {'surface': surface, 'orbital_views': orbital,
             'icosahedral_net_svg': ico, 'dodecahedral_net_svg': dodeca,
             'paths': paths}
+
+
+def render_erith(sector: Any, out_dir: str = ".", name: str = "Erith",
+                 culture_family: str = None, size: int = 1024,
+                 texture_size: Tuple[int, int] = (2048, 1024),
+                 views: int = 3, seed: Optional[int] = None,
+                 proprietary: bool = True) -> Optional[Dict[str, Any]]:
+    """Finds the sector's Erith, makes it Erith, and renders it.
+
+    `findworld.make_erith` does the finding: it searches for the closest
+    Earth-like world, imposes the Erith profile so the world really matches
+    rather than merely coming close, rebuilds its nations and records the
+    proprietor. This then builds the surface model and writes both foldable
+    nets and the orbital views.
+
+    Returns the `render_planet_package` result with the `findworld.Match`
+    added under `match`, or None if the sector holds no candidate."""
+    from .findworld import make_erith
+
+    match = make_erith(sector, name=name, culture_family=culture_family,
+                       proprietary=proprietary)
+    if match is None:
+        return None
+
+    package = render_planet_package(match.body, out_dir=out_dir, size=size,
+                                    texture_size=texture_size, views=views,
+                                    seed=seed)
+    package['match'] = match
+    return package

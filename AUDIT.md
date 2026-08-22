@@ -174,7 +174,7 @@ Run with `pip install -r requirements.txt && python -m pytest tests/`.
 | `test_universe.py` | 29 | Density targets and the playable range, Tech Level ceilings holding across a sector, trajectory DMs, preset validity, sophont prevalence scaling, every anomaly's effect on the worlds it covers, rift and cluster density changes, timeline ordering and content, and that a universe-driven sector still exports and renders |
 | `test_planet.py` | 41 | Noise determinism and range, Earth-like scoring and search, the surface-model contract, hydrographics against ocean cover, climate banding and ice limits, net geometry, fold continuity, and orbital-view invariants |
 
-**431 passed, 2 skipped, 0 failed** (the two skips are the optional
+**475 passed, 2 skipped, 0 failed** (the two skips are the optional
 OpenCV and plotly extras). Verified across multiple seeds; 1,200 systems
 generate across 40 seeds without error.
 
@@ -343,9 +343,15 @@ poles); tectonic plate count sets the continent scale; biomass sets vegetation;
 atmospheric pressure sets cloud cover and limb thickness. An airless or dead
 world renders as grey rock with no cloud at all.
 
-`earthlike_score` ranks worlds against Terra's own profile — the book's
-"Terra-equivalent garden world" (WBH p.133) — with a breathable atmosphere as
-a hard gate. In the seed-1105 Foreven Reach sector the best candidate is
+There is one search, not two. `findworld` owns it: the `ERITH` profile
+carries the hard filters a candidate must survive — in the habitable zone of
+an F, G or K star, outside Zhodani space, warm enough for liquid water — and
+`find_earthlike_candidate` ranks the survivors by `earthlike_score`, physical
+resemblance to Terra, which is what the renderer cares about. `findworld`'s
+own ranking also weighs population, government and law; a world can be the
+right size, air and water while having none of those. `render_erith` runs the
+whole workflow: find it, impose the profile so it really matches, rebuild its
+nations, then model and render it. In the seed-1105 Foreven Reach sector the best candidate is
 Reniren (hex 1728, BA67543-7, 293.9 K, habitability 12), scoring 0.921.
 
 Two nets are produced. `render_icosahedral_net_svg` is the Traveller standard

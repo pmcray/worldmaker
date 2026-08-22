@@ -110,8 +110,10 @@ def test_score_falls_away_from_terra(terra):
 
 
 def test_candidate_search_returns_a_scored_world():
+    # A full-size sector: the search applies findworld's hard filters, so a
+    # handful of systems will not reliably hold anything that survives them.
     random.seed(1105)
-    sector = generate_full_sector(name='Test Reach', width=8, height=10)
+    sector = generate_full_sector(name='Test Reach')
     found = planet.find_earthlike_candidate(sector, top=3)
     assert found, "a populated sector should hold at least one candidate"
     hexes = [entry[0] for entry in found]
@@ -490,3 +492,42 @@ def test_render_planet_package_writes_every_artefact(terra, tmp_path):
     for path in paths.values():
         assert (tmp_path / path.rsplit('/', 1)[-1]).stat().st_size > 0
     assert len(result['orbital_views']) == 2
+
+
+def test_moons_get_a_usable_name():
+    # A moon can be the most Earth-like body in a system, and moons carry a
+    # designation rather than a name.
+    from worldmaker.classes import Satellite
+
+    moon = Satellite()
+    moon.designation = 'IIa'
+    assert planet._world_label(moon) == 'IIa'
+    assert planet._world_label(_World(name='Terra')) == 'Terra'
+    assert planet._world_label(object()) == 'World'
+
+
+def test_the_search_delegates_to_findworld_filters():
+    """One search, not two: the hard filters live in findworld."""
+    from worldmaker.findworld import ERITH, find_worlds
+
+    random.seed(1105)
+    sector = generate_full_sector(name='Test Reach')
+    admitted = {match.hex for match in find_worlds(sector, ERITH, limit=40)}
+    found = planet.find_earthlike_candidate(sector, top=5)
+    assert found
+    for hex_coord, _, _ in found:
+        assert hex_coord in admitted, (
+            "the renderer must not consider a world findworld rejected")
+
+
+def test_render_erith_finds_names_and_renders(tmp_path):
+    pytest.importorskip("PIL")
+    random.seed(1105)
+    sector = generate_full_sector(name='Test Reach')
+    result = planet.render_erith(sector, out_dir=str(tmp_path), size=96,
+                                 texture_size=(256, 128), views=1, seed=3)
+    assert result is not None, "a full sector should yield an Erith"
+    assert result['match'].body.name == 'Erith'
+    assert result['surface']['world_name'] == 'Erith'
+    assert set(result['paths']) == {'texture', 'orbit_1',
+                                    'icosahedral_net', 'dodecahedral_net'}

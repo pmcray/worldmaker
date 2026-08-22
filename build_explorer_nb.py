@@ -407,6 +407,41 @@ if erith is not None:
     display(SVG(wm.render_world_map_svg(erith.body)))
 """)
 
+md("""
+### Erith as a globe
+
+The hex map above is the Referee's working surface. The same world can also
+be modelled as a sphere: terrain generated as noise on the unit sphere and
+driven by Erith's own characteristics, then rendered both as a foldable
+polyhedral net and as photorealistic views from orbit.
+
+Both nets really fold. Every face is a true gnomonic projection laid beside
+the faces that adjoin it on the sphere, so terrain runs continuously across
+each fold line. The icosahedral net is the *World Builder's Handbook*
+standard (p.135); the dodecahedral one distorts less per face.
+
+This cell takes a minute or so at full resolution. Drop `texture_size` and
+`size` for a faster preview.
+""")
+
+code("""
+# One terrain model, three views of it
+from IPython.display import Image
+
+if erith is not None:
+    surface = wm.generate_planet_surface(erith.body, width=2048, height=1024)
+
+    display(SVG(wm.render_dodecahedral_net(surface, name=erith.body.name)))
+    display(SVG(wm.render_icosahedral_net_svg(surface, name=erith.body.name)))
+
+    for longitude in (-40, 60):
+        view = wm.render_orbital_view(
+            surface, size=760, sub_observer=(16, longitude),
+            sun_direction=(12, longitude + 38),
+            population=wm.Utils.from_eHex(erith.body.uwp.population))
+        display(Image(data=wm.png_bytes(view)))
+""")
+
 # ------------------------------------------------------- notable worlds
 md("""
 ## 8. The worlds worth looking at

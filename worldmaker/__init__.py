@@ -262,7 +262,9 @@ from .planet import (
     render_icosahedral_net_svg,
     render_dodecahedral_net,
     render_planet_package,
+    render_erith,
     save_png,
+    png_bytes,
 )
 
 # --------------------------------------------------------------------------
