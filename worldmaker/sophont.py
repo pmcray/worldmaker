@@ -140,6 +140,77 @@ MAJOR_RACES = {
         "evolutionary_track": "Grassland and savannah",
         "history_summary": "Part of the feudal structure of the Third Imperium.",
     },
+    "Droyne": {
+        "symmetry": "Bilateral", "limbs": "Hexapod", "manipulators": "Hand",
+        "environment": "Flying", "behaviour": "Omnivore",
+        "gender": "Non-intelligent gender",
+        "morphology": "Bilateral, six-limbed, winged",
+        "sensory_organs": ["Standard vision and hearing",
+                           "Wide-angle compound-assisted vision"],
+        "psychology": "Caste-bound; the Ritual of Caste assigns each adult a role",
+        "evolutionary_track": "Arid uplands, gliding between thermals",
+        "history_summary": ("Scattered across Charted Space by the Ancients, "
+                            "surviving in isolated coyns of a few thousand."),
+    },
+}
+
+# Species this package can place from a published source but which are not
+# Major Races. Chirpers are the Droyne's non-sophont kin; Solomani and the
+# Minor Human Races are Humaniti transplanted by the Ancients or stranded by
+# a fallen empire.
+CATALOGUED_RACES = {
+    "Chirper": {
+        "symmetry": "Bilateral", "limbs": "Hexapod", "manipulators": "Paw",
+        "environment": "Flying", "behaviour": "Omnivore",
+        "gender": "Non-intelligent gender",
+        "morphology": "Bilateral, six-limbed, winged (degenerate Droyne)",
+        "sensory_organs": ["Standard vision and hearing"],
+        "psychology": "Pre-technological, gregarious, incurious",
+        "evolutionary_track": "Arid uplands; the same stock as the Droyne",
+        "history_summary": ("Droyne who lost the Ritual of Caste and with it "
+                            "technological society; borderline sophont."),
+    },
+    "Solomani": {
+        "symmetry": "Bilateral", "limbs": "Tetrapod", "manipulators": "Hand",
+        "environment": "Amphibian-descended savannah dweller",
+        "behaviour": "Omnivore", "gender": "Multiple sexes",
+        "morphology": "Bilateral (Humaniti, Terran stock)",
+        "sensory_organs": ["Standard senses"],
+        "psychology": "Individualistic, factional, expansionist",
+        "evolutionary_track": "Grassland and savannah",
+        "history_summary": ("Humaniti of Terran origin; a lost colony this far "
+                            "spinward predates the Third Imperium."),
+    },
+    "Minor Human": {
+        "symmetry": "Bilateral", "limbs": "Tetrapod", "manipulators": "Hand",
+        "environment": "Amphibian-descended savannah dweller",
+        "behaviour": "Omnivore", "gender": "Multiple sexes",
+        "morphology": "Bilateral (Humaniti, transplanted stock)",
+        "sensory_organs": ["Standard senses"],
+        "psychology": "Shaped by millennia of isolation on a single world",
+        "evolutionary_track": "Terran, then whatever their new world demanded",
+        "history_summary": ("One of the many human populations the Ancients "
+                            "moved off Terra 300,000 years ago."),
+    },
+    "Tlinzha": {
+        "symmetry": "Bilateral", "limbs": "Octopod", "manipulators": "Grasper",
+        "environment": "Subterranean", "behaviour": "Scavenger",
+        "gender": "Asexual",
+        "morphology": ("Bilateral octopod: two pairs of legs amidships, arms "
+                       "and sensory organs at both ends"),
+        "sensory_organs": ["Infrared vision ('red head')",
+                           "High-acuity visual spectrum vision ('white head')",
+                           "Olfactory tonal sense"],
+        "psychology": ("Tradition-bound and xenophobic; gregarious among their "
+                       "own kind"),
+        "evolutionary_track": ("High-gravity, dense-atmosphere world of a "
+                               "flare-prone red dwarf"),
+        "history_summary": ("Natives of Tlesho who reached TL2 under the "
+                            "Protocols of the Consumption of Meats, then "
+                            "reverse-engineered jump drive from a seized "
+                            "Imperial ship. They hold four systems as the "
+                            "Tlesho Union and fire on unauthorised visitors."),
+    },
 }
 
 
@@ -265,10 +336,35 @@ def generate_minor_race(homeworld_hex: str, name: str = "",
 def get_major_race(name: str, homeworld_hex: str) -> Sophont:
     """Returns a catalogued Major Race of Charted Space."""
     data = MAJOR_RACES.get(name, MAJOR_RACES["Imperial Human"])
+    return _build_catalogued(name, homeworld_hex, data, is_major=True)
+
+
+def get_catalogued_race(name: str, homeworld_hex: str) -> Sophont:
+    """Returns any species this package catalogues, Major Race or not.
+
+    Unlike get_major_race, an unknown name is not silently turned into an
+    Imperial Human: a published source naming a species this package has no
+    entry for gets a minimal record carrying that name, so the sector still
+    says who lives there."""
+    data = MAJOR_RACES.get(name)
+    if data is not None:
+        return _build_catalogued(name, homeworld_hex, data, is_major=True)
+    data = CATALOGUED_RACES.get(name)
+    if data is not None:
+        return _build_catalogued(name, homeworld_hex, data, is_major=False)
+
+    sophont = Sophont(name=name, homeworld_hex=homeworld_hex, is_major=False,
+                      history_summary=f"{name}, native to hex {homeworld_hex}.")
+    sophont.characteristic_dms = {'STR': 0, 'DEX': 0, 'END': 0}
+    return sophont
+
+
+def _build_catalogued(name: str, homeworld_hex: str, data: Dict[str, Any],
+                      is_major: bool) -> Sophont:
     sophont = Sophont(
         name=name,
         homeworld_hex=homeworld_hex,
-        is_major=True,
+        is_major=is_major,
         morphology=data["morphology"],
         limbs=f"{data['limbs']} with {data['manipulators'].lower()}",
         sensory_organs=list(data["sensory_organs"]),
