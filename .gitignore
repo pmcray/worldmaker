@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
+build/
+dist/
+*.egg-info/
 
 # Jupyter
 .ipynb_checkpoints/
@@ -16,3 +19,7 @@ sector_map.svg
 subsector_map.svg
 sector.sec
 subsectors/
+
+# Cached canonical sector data (Traveller canon, not redistributed)
+canon_cache/
+output/

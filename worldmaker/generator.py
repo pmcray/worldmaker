@@ -29,12 +29,16 @@ from .geophysics import (
 )
 from .atmosphere import generate_atmosphere_details, refresh_scale_height
 from .temperature import detail_temperatures
+from .scenarios import detail_temperature_scenarios
 from .belts import detail_system_belts
 from .economics import generate_economics
 from .government import generate_government_details
-from .population import generate_population_details
+from .population import (generate_population_details,
+                         enforce_sustainable_tech_level)
 from .technology import generate_technology_profile
 from .starport import detail_starport_and_military
+from .secondary import generate_secondary_populations
+from .nations import generate_nations
 from .society import (
     generate_mainworld_uwp,
     generate_trade_codes,
@@ -133,15 +137,30 @@ def generate_long_profile(system: StellarSystem) -> str:
         profile_parts.append(star_profile)
     return ':'.join(profile_parts)
 
-def generate_full_system(name="Random System", population_dm=0) -> StellarSystem:
-    """Main function to orchestrate the entire stellar system generation process."""
-    system = StellarSystem(name=name)
-    
-    # Phase 1: Stellar Generation
-    generate_stellar_system_stars(system)
-    
+def generate_full_system(name="Random System", population_dm=0,
+                         system: StellarSystem = None, age_gyr: float = None,
+                         count_profile: dict = None,
+                         max_tech_level: int = None) -> StellarSystem:
+    """Main function to orchestrate the entire stellar system generation process.
+
+    A pre-built StellarSystem whose stars are already in place (Special
+    Circumstances primaries, star-cluster members) can be passed as `system`;
+    `age_gyr` pins the system age, `count_profile` carries world-count
+    overrides (see determine_world_counts) and `max_tech_level` caps the
+    mainworld Tech Level (SCG universe background)."""
+    if system is None:
+        system = StellarSystem(name=name)
+    else:
+        system.name = name
+
+    # Phase 1: Stellar Generation (skipped when the caller supplied stars)
+    if not system.stars:
+        generate_stellar_system_stars(system)
+    if age_gyr is not None:
+        system.age_gyr = age_gyr
+
     # Phase 2: System Architecture & Population
-    determine_world_counts(system)
+    determine_world_counts(system, count_profile)
     calculate_available_orbits(system, model='simple')
     calculate_baseline_and_spread(system)
     handle_anomalies_and_empties(system)
@@ -174,6 +193,7 @@ def generate_full_system(name="Random System", population_dm=0) -> StellarSystem
             generate_atmosphere_details(world)
             detail_temperatures(world, system)
             refresh_scale_height(world)
+            detail_temperature_scenarios(world, system)
             assign_climate_zone(world)
             world.surface_features = generate_surface_features(world)
             world.life_details = generate_life(world, system)
@@ -192,6 +212,7 @@ def generate_full_system(name="Random System", population_dm=0) -> StellarSystem
             generate_atmosphere_details(sat)
             detail_temperatures(sat, system, is_moon=True)
             refresh_scale_height(sat)
+            detail_temperature_scenarios(sat, system)
             assign_climate_zone(sat)
             sat.surface_features = generate_surface_features(sat)
             sat.life_details = generate_life(sat, system)
@@ -212,6 +233,14 @@ def generate_full_system(name="Random System", population_dm=0) -> StellarSystem
             atmosphere=Utils.from_eHex(mainworld.atmosphere_code),
             hydrographics=Utils.from_eHex(mainworld.hydrographics_code),
         )
+        # A universe-wide Tech Level ceiling (SCG p.3) applies before any of
+        # the TL-derived detail is generated, so everything stays consistent.
+        if (max_tech_level is not None
+                and Utils.from_eHex(mainworld.uwp.tech_level) > max_tech_level):
+            mainworld.uwp.tech_level = Utils.eHex(max(0, max_tech_level))
+        # A world cannot sustain a population below the Tech Level its own
+        # environment demands (WBH pp.173-174).
+        enforce_sustainable_tech_level(mainworld, max_tech_level)
         generate_expanded_tech_matrix(mainworld.uwp, mainworld)
         # Government and law first: the technology profile's personal-weapons
         # bound depends on the weapons Law Level.
@@ -223,6 +252,15 @@ def generate_full_system(name="Random System", population_dm=0) -> StellarSystem
         # Starport facilities and military come last: both draw on the
         # economic and cultural results.
         detail_starport_and_military(mainworld, system)
+
+        # A balkanised world is many societies, not one: its nations carry
+        # their own law and technology (WBH pp.155-156).
+        generate_nations(mainworld)
+
+        # Phase 7: the rest of the system's inhabited worlds (WBH p.155).
+        # The mainworld's Population and Tech Level bound them, so this runs
+        # once the mainworld is complete.
+        generate_secondary_populations(system)
 
     for world in system.all_worlds:
         if world.body_type == 'Terrestrial':

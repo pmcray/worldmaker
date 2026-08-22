@@ -1,3 +1,5 @@
+__version__ = "0.1.0"
+
 from .classes import Sector, StellarSystem, Star, PlanetaryBody, Satellite, UWP, CulturalProfile, Sophont, Polity, Wave
 from .utils import Utils
 from .data import DATA
@@ -25,9 +27,36 @@ from .population import (
     calculate_pcr,
     calculate_urbanisation,
     minimum_sustainable_tl,
+    enforce_sustainable_tech_level,
 )
 from .technology import generate_technology_profile, tlm
 from .belts import detail_belt, detail_system_belts
+from .secondary import (
+    generate_secondary_populations,
+    max_secondary_population,
+    secondary_population_code,
+    settlement_candidates,
+    settlement_appeal,
+    can_be_inhabited,
+)
+from .scenarios import (
+    worst_case_temperatures,
+    seasonal_temperature,
+    seasonal_axial_tilt_factor,
+    latitude_zone,
+    latitude_temperature,
+    latitude_temperature_profile,
+    time_of_day_temperature,
+    hourly_rotation_factor,
+    sunlight_portion,
+    sunlight_hours,
+    twilight_rotation_factor,
+    altitude_temperature,
+    star_temperature_contributions,
+    add_temperatures,
+    gas_giant_inherent_temperature,
+    detail_temperature_scenarios,
+)
 from .worldmap import (
     generate_world_terrain,
     render_world_map_svg,
@@ -81,10 +110,130 @@ from .sector import (
     generate_sector_svg,
     generate_subsector_svg,
     calculate_xboat_routes,
+    route_style_for,
+    ROUTE_STYLES,
     name_subsectors,
     subsector_letter,
 )
-from .exporters import create_system_dataframe, export_system_markdown, export_sector_sec_file
+from .special import (
+    generate_white_dwarf,
+    generate_neutron_star,
+    generate_black_hole,
+    generate_brown_dwarf,
+    brown_dwarf_type,
+    generate_dead_star_system,
+    generate_brown_dwarf_system,
+    generate_protostar_system,
+    generate_primordial_system,
+    is_primordial_host,
+    generate_rogue_gas_giant,
+    generate_rogue_terrestrial,
+    generate_rogue_small_body,
+    generate_empty_hex,
+    populate_empty_hexes,
+    generate_nebula,
+    generate_star_cluster_hex,
+    generate_artificial_world,
+    jump_dm_for_target,
+    jump_restrictions,
+    EmptyHexSurvey,
+    EMPTY_HEX_OBJECTS,
+    ARTIFICIAL_WORLD_TYPES,
+    BROWN_DWARF_TYPES,
+    WHITE_DWARF_AGING,
+)
+from .canon import (
+    CanonicalWorld,
+    CanonicalSector,
+    parse_travellermap_tab,
+    fetch_canonical_sector,
+    load_canonical_sector,
+    scg_foreven,
+    merge_canon,
+    apply_canon,
+    canonical_polities,
+    apply_canonical_world,
+    expand_polity_from_capital,
+    NON_ALIGNED_CODES,
+    cache_dir,
+    ALLEGIANCE_NAMES,
+    SCG_FOREVEN,
+)
+from .universe import (
+    Universe,
+    Anomaly,
+    TimelineEvent,
+    create_universe,
+    generate_universe_sector,
+    build_default_timeline,
+    UNIVERSE_PRESETS,
+    DENSITY_TARGETS,
+    TECHNOLOGY_LEVELS,
+    TRAJECTORIES,
+    SOPHONT_PREVALENCE,
+    THEMES,
+    ANOMALY_KINDS,
+)
+from .t5 import (
+    export_sector_t5_column,
+    export_sector_t5_tab,
+    parse_t5_column,
+    t5_row,
+    T5_FIELDS,
+)
+from .nations import (
+    Nation,
+    generate_nations,
+    describe_nations,
+    nations_per_faction,
+    total_nation_count,
+    assign_territories,
+    land_cells,
+)
+from .cultures import (
+    CultureTemplate,
+    CULTURE_TEMPLATES,
+    FAMILIES,
+    TRAIT_KEYS,
+    culture_from_template,
+    culture_for_template,
+    procedural_culture,
+    suggest_template,
+    apply_template_palette,
+    templates_in_family,
+    templates_for_tech_level,
+    describe_palette,
+    culture_profile_string,
+)
+from .findworld import (
+    WorldProfile,
+    Match,
+    find_worlds,
+    best_world,
+    score_world,
+    describe_matches,
+    in_habitable_zone,
+    make_proprietary,
+    impose_profile,
+    make_erith,
+    PROFILES,
+    ERITH,
+    GARDEN_WORLD,
+    REFUELLING_STOP,
+)
+from .notable import (
+    Notable,
+    find_notable,
+    find_exotic_systems,
+    notability,
+    describe_notable,
+)
+from .exporters import (
+    create_system_dataframe,
+    create_sector_dataframe,
+    export_system_markdown,
+    export_sector_sec_file,
+)
 from .generator import generate_full_system, select_mainworld
 from .planet import (
     TERRA,

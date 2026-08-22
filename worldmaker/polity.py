@@ -119,8 +119,12 @@ def _allegiance_code(name: str, used: set) -> str:
     return f"X{i}"
 
 
-def generate_polities(sector: Sector, max_polities: int = None):
+def generate_polities(sector: Sector, max_polities: int = None,
+                      reserved: set = None):
     """Generates polities procedurally (SCG pp.40-49).
+
+    `reserved` names hexes a published source has already assigned; no
+    procedural polity may claim them or plant a capital in them.
 
     Capitals are chosen from the sector's most capable worlds - high
     population, high Tech Level, good starport. Each polity then expands
@@ -132,6 +136,7 @@ def generate_polities(sector: Sector, max_polities: int = None):
     from .sector import hex_distance, hex_neighbors, hex_to_coords
 
     systems = sector.systems
+    reserved = set(reserved or ())
     if not systems:
         sector.polities = []
         return
@@ -146,7 +151,8 @@ def generate_polities(sector: Sector, max_polities: int = None):
         # A capital needs people, industry and a way off-world
         return pop * 2 + tl + port_bonus
 
-    ranked = sorted((h for h in systems if systems[h].mainworld is not None),
+    ranked = sorted((h for h in systems
+                     if systems[h].mainworld is not None and h not in reserved),
                     key=score, reverse=True)
     if not ranked:
         sector.polities = []
@@ -175,8 +181,10 @@ def generate_polities(sector: Sector, max_polities: int = None):
     used_names = set()
     polities = []
     # Every capital is reserved before any expansion begins: a polity must not
-    # be able to absorb another state's seat of government.
+    # be able to absorb another state's seat of government. Territory a
+    # published source has already assigned is off limits too.
     claimed = {c: None for c in capitals}
+    claimed.update({h: 'canon' for h in reserved})
 
     for capital in capitals:
         cap_mw = systems[capital].mainworld
@@ -270,9 +278,9 @@ def generate_polities(sector: Sector, max_polities: int = None):
                 systems[hex_coord].allegiance = polity.allegiance_code
 
 
-def define_polities(sector: Sector):
+def define_polities(sector: Sector, reserved: set = None):
     """Default polity generation: procedural (SCG pp.40-49)."""
-    generate_polities(sector)
+    generate_polities(sector, reserved=reserved)
 
 
 def generate_travel_zones(sector: Sector):

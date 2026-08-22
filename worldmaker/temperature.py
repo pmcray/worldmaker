@@ -319,12 +319,15 @@ def calculate_seismology(world: Any, system: Any, is_moon: bool = False) -> dict
 
 def apply_seismic_temperature(temperature: float, total_stress: float) -> float:
     """New Temperature = (Old Temperature^4 + Total Seismic Stress^4)^(1/4)
-    (WBH p.127)."""
-    if temperature <= 0:
-        return temperature
+    (WBH p.127).
+
+    A world receiving no warmth at all from its sun still sits at whatever
+    its own internal heat sustains: the book's own example is a rogue world
+    in deep space, where "the seismic stress heating value would be the
+    primary factor in its surface temperature"."""
     if total_stress <= 0:
-        return round(temperature, 1)
-    return round((temperature ** 4 + total_stress ** 4) ** 0.25, 1)
+        return round(max(0.0, temperature), 1)
+    return round((max(0.0, temperature) ** 4 + total_stress ** 4) ** 0.25, 1)
 
 
 # --------------------------------------------------------- orchestration

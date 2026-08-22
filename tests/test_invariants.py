@@ -197,6 +197,38 @@ def test_orbits_within_available_zones(systems):
     assert outside == 0, f"{outside}/{total} worlds placed inside forbidden zones"
 
 
+def test_worlds_do_not_pile_onto_one_orbit(systems):
+    """Two worlds cannot occupy the same Orbit#.
+
+    A wide spread used to walk the outer worlds past the end of the orbit
+    table, where every one of them snapped onto the outermost Orbit# - whole
+    systems ended up stacked at 20.0, at 78,700 AU."""
+    from collections import Counter
+
+    duplicates = 0
+    total = 0
+    for s in systems:
+        orbits = [round(w.orbit_num, 2) for w in s.all_worlds]
+        total += len(orbits)
+        duplicates += sum(count - 1
+                          for count in Counter(orbits).values() if count > 1)
+    assert total > 0
+    # A handful may still coincide where the available orbits are genuinely
+    # exhausted, but it must be rare rather than routine.
+    assert duplicates <= total * 0.01, (
+        f"{duplicates}/{total} worlds share an orbit with another")
+
+
+def test_outermost_orbit_is_not_a_dumping_ground(systems):
+    """Worlds should not collect on the last Orbit# of the table."""
+    at_edge = sum(1 for s in systems for w in s.all_worlds
+                  if round(w.orbit_num, 2) >= 20.0)
+    total = sum(len(s.all_worlds) for s in systems)
+    assert total > 0
+    assert at_edge <= total * 0.05, (
+        f"{at_edge}/{total} worlds sit at the outermost Orbit#")
+
+
 def test_sector_generation_and_exports():
     random.seed(3)
     sec = wm.generate_sector(8, 10)

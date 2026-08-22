@@ -78,6 +78,10 @@ class Satellite:
     total_seismic_stress: float = 0.0
     tectonic_plates: int = 0
     seismic_activity: str = ""
+    # Temperature scenarios (WBH pp.114-124)
+    worst_case_high: float = 0.0
+    worst_case_low: float = 0.0
+    latitude_temperatures: Dict[int, float] = field(default_factory=dict)
     # Expanded atmosphere characteristics (WBH pp.78-98)
     atmosphere_name: str = ""
     atmos_pressure_bar: float = 0.0
@@ -91,6 +95,14 @@ class Satellite:
     minimum_safe_altitude_km: float = 0.0
     safe_altitude_below_mean_km: float = 0.0
     low_oxygen: bool = False
+    # Secondary world populations (WBH p.155)
+    is_secondary_world: bool = False
+    affiliated: bool = False
+    # Nations on a balkanised world (WBH pp.155-156)
+    nations: List[Any] = field(default_factory=list)
+    nation_count: int = 0
+    # Privately held worlds (see findworld.make_proprietary)
+    proprietor: Optional[Dict[str, Any]] = None
     # Population detail (WBH pp.148-156)
     pcr: int = 0
     pcr_description: str = ""
@@ -298,6 +310,10 @@ class PlanetaryBody:
     total_seismic_stress: float = 0.0
     tectonic_plates: int = 0
     seismic_activity: str = ""
+    # Temperature scenarios (WBH pp.114-124)
+    worst_case_high: float = 0.0
+    worst_case_low: float = 0.0
+    latitude_temperatures: Dict[int, float] = field(default_factory=dict)
     # Expanded atmosphere characteristics (WBH pp.78-98)
     atmosphere_name: str = ""
     atmos_pressure_bar: float = 0.0
@@ -311,6 +327,14 @@ class PlanetaryBody:
     minimum_safe_altitude_km: float = 0.0
     safe_altitude_below_mean_km: float = 0.0
     low_oxygen: bool = False
+    # Secondary world populations (WBH p.155)
+    is_secondary_world: bool = False
+    affiliated: bool = False
+    # Nations on a balkanised world (WBH pp.155-156)
+    nations: List[Any] = field(default_factory=list)
+    nation_count: int = 0
+    # Privately held worlds (see findworld.make_proprietary)
+    proprietor: Optional[Dict[str, Any]] = None
     # Population detail (WBH pp.148-156)
     pcr: int = 0
     pcr_description: str = ""
@@ -465,3 +489,8 @@ class Sector:
     routes: List[Tuple[str, str, str]] = field(default_factory=list) # (hex1, hex2, type)
     polities: List[Polity] = field(default_factory=list)
     subsector_names: Dict[str, str] = field(default_factory=dict)
+    # Empty-hex surveys (WBH pp.219-223): hex -> EmptyHexSurvey
+    deep_space: Dict[str, Any] = field(default_factory=dict)
+    # Worlds served by a courier network based outside this sector:
+    # (hex, route style)
+    off_sector_routes: List[Tuple[str, str]] = field(default_factory=list)

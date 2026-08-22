@@ -128,17 +128,42 @@ def test_independent_space_remains(sectors):
         assert 0.05 < fraction < 0.85, f"{fraction:.0%} of the sector claimed"
 
 
-def test_defence_index_in_range_and_correlates_with_size(sectors):
+def test_defence_index_in_range(sectors):
     all_polities = [p for sec in sectors for p in sec.polities]
+    assert all_polities
     for p in all_polities:
         assert 1 <= p.defense_index <= 12
 
-    big = [p for p in all_polities if len(p.controlled_systems) >= 40]
-    small = [p for p in all_polities if len(p.controlled_systems) <= 10]
-    if big and small:
-        avg_big = sum(p.defense_index for p in big) / len(big)
-        avg_small = sum(p.defense_index for p in small) / len(small)
-        assert avg_big > avg_small
+
+def test_defence_index_rises_with_territory_all_else_equal(sectors):
+    """Defence index is jump range plus industry plus size, so size alone
+    does not order two polities - a small high-technology state can outrank
+    a large backward one. What must hold is that among polities whose
+    capitals share a Tech Level, and so a jump range, more territory never
+    means a lower index."""
+    from worldmaker.utils import Utils
+
+    by_tech = {}
+    for sec in sectors:
+        for p in sec.polities:
+            capital = sec.systems.get(p.capital_hex)
+            if capital is None or capital.mainworld is None:
+                continue
+            tech = Utils.from_eHex(capital.mainworld.uwp.tech_level)
+            by_tech.setdefault(tech, []).append(
+                (len(p.controlled_systems), p.defense_index))
+
+    compared = 0
+    for tech, entries in by_tech.items():
+        entries.sort()
+        for (size_a, index_a), (size_b, index_b) in zip(entries, entries[1:]):
+            if size_a == size_b:
+                continue
+            compared += 1
+            assert index_b >= index_a, (
+                f"at TL{tech}, {size_b} worlds scored {index_b} but "
+                f"{size_a} worlds scored {index_a}")
+    assert compared > 0, "no comparable polities in the sample"
 
 
 def test_polity_names_and_codes_unique(sectors):
