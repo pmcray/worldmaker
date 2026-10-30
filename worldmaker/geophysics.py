@@ -82,9 +82,16 @@ def generate_geophysics(world: PlanetaryBody, system: StellarSystem):
     world.density = comp_data['density']
     world.core_composition = comp_data['comp']
     
-    # Diameter
+    # Precise diameter. Each Size code spans a range around its average of
+    # Size x 1,600km: Size 5 covers 7,200-8,799km, and so on (WBH p.70).
     if not world.diameter_km:
-        world.diameter_km = size_val * 1600 # Simple average
+        if world.size_code == 'S':
+            world.diameter_km = random.randint(400, 799)
+        elif size_val <= 0:
+            world.diameter_km = 0
+        else:
+            average = size_val * 1600
+            world.diameter_km = average + random.randint(-800, 799)
     
     # Gravity = (Density x Diameter) / Diameter(Terra) (Earth radius ~6371km, Earth average density ~5.51 g/cm3)
     world.gravity = round((world.density * world.diameter_km) / 12742, 2)
@@ -119,8 +126,15 @@ def generate_geophysics(world: PlanetaryBody, system: StellarSystem):
     tilt_func = DATA['axial_tilt'].get(min(10, max(2, tilt_roll)))
     world.axial_tilt = tilt_func()
 
-    # Climate Zones and Biomes based on Temperature & Moisture
-    temp = world.mean_temperature
+    # Resource Rating (WBH p. 102)
+    world.resource_rating = max(0, Utils.D6(2) - 7 + Utils.from_eHex(world.size_code))
+
+def assign_climate_zone(world: Any) -> None:
+    """Assigns a climate zone and biome list from the world's final mean
+    temperature and hydrographics."""
+    temp = getattr(world, 'mean_temperature', 0.0) or 0.0
+    hyd = Utils.from_eHex(getattr(world, 'hydrographics_code', 0) or 0)
+
     if temp < 200:
         world.climate_zone = "Cryogenic (Glacial)"
         world.biomes = ["Ice Cap", "Frozen Wasteland"]
@@ -129,16 +143,15 @@ def generate_geophysics(world: PlanetaryBody, system: StellarSystem):
         world.biomes = ["Tundra", "Glacial Seas"]
     elif temp < 310:
         world.climate_zone = "Temperate"
-        world.biomes = ["Grassland", "Forest", "Oceanic"] if Utils.from_eHex(world.hydrographics_code) > 3 else ["Steppe", "Dry Shrubland"]
+        world.biomes = (["Grassland", "Forest", "Oceanic"] if hyd > 3
+                        else ["Steppe", "Dry Shrubland"])
     elif temp < 350:
         world.climate_zone = "Hot (Tropical)"
-        world.biomes = ["Jungle", "Wetlands", "Warm Seas"] if Utils.from_eHex(world.hydrographics_code) > 4 else ["Savannah", "Arid Grassland"]
+        world.biomes = (["Jungle", "Wetlands", "Warm Seas"] if hyd > 4
+                        else ["Savannah", "Arid Grassland"])
     else:
         world.climate_zone = "Torrid (Scorched)"
         world.biomes = ["Desert", "Volcanic Ashfields"]
-
-    # Resource Rating (WBH p. 102)
-    world.resource_rating = max(0, Utils.D6(2) - 7 + Utils.from_eHex(world.size_code))
 
 def generate_rotation_period(world: PlanetaryBody, system: StellarSystem):
     """Generates the rotation period (day length) for a world."""
@@ -189,33 +202,325 @@ def generate_surface_features(world: Any) -> str:
         else:
             return f"{hydro_val*10}% water coverage. Single super-ocean pocket on a dry continent."
 
-def generate_life(world: Any) -> str:
-    """Generates a description of the world's biosystem (complex life/biomass index WBH p. 110)."""
+def generate_life(world: Any, system: Any = None) -> str:
+    """Native lifeform ratings (WBH pp.127-131): biomass, biocomplexity,
+    biodiversity and compatibility, plus the native and extinct sophont
+    checks. Records the profile MXDC on the world."""
     if not world.atmosphere_code or not str(world.atmosphere_code).isalnum():
         return "No life data."
 
     atm_val = Utils.from_eHex(world.atmosphere_code)
+    hyd_val = Utils.from_eHex(getattr(world, 'hydrographics_code', 0) or 0)
+    age = getattr(system, 'age_gyr', 4.5) if system is not None else 4.5
 
-    if atm_val < 4 or atm_val > 9:
-        return "No significant native life (untenable atmosphere)."
+    # Biomass rating = 2D + DMs, capped at DM+4 and floored at DM-12
+    dm = 0
+    if atm_val in (6, 8):
+        dm += 2
+    elif atm_val in (5, 7, 9):
+        dm += 1
+    elif atm_val in (0, 1):
+        dm -= 12
+    elif atm_val in (2, 3):
+        dm -= 4
+    elif atm_val in (10, 11, 12) or atm_val >= 15:
+        dm -= 8
 
-    biomass_rating = Utils.D6(2)
-    biocomplexity_rating = max(0, Utils.D6(2) - 7 + biomass_rating)
-    
-    if hasattr(world, 'biomass_rating'):
-        world.biomass_rating = biomass_rating
-        world.biocomplexity_rating = biocomplexity_rating
+    if hyd_val == 0:
+        dm -= 4
+    elif hyd_val >= 6:
+        dm += 1
 
-    if biocomplexity_rating <= 2:
+    temp = getattr(world, 'mean_temperature', 0.0) or 0.0
+    if temp and (temp < 233 or temp > 373):
+        dm -= 4
+    if age < 1.0:
+        dm -= 4  # too young for life to have taken hold
+
+    dm = max(-12, min(4, dm))
+    biomass = max(0, Utils.D6(2) + dm)
+
+    if biomass == 0:
+        world.biomass_rating = 0
+        world.biocomplexity_rating = 0
+        world.biodiversity_rating = 0
+        world.compatibility_rating = 0
+        world.native_lifeform_profile = "0000"
+        return "No native life."
+
+    # Biocomplexity = 2D-7 + biomass, with the biomass DM capped at 9
+    biocomplexity = max(0, Utils.D6(2) - 7 + min(9, biomass))
+
+    # Biodiversity = 2D-7 + (biomass + biocomplexity)/2, rounded up, minimum 1
+    biodiversity = max(1, Utils.D6(2) - 7
+                       + math.ceil((biomass + biocomplexity) / 2))
+
+    # Compatibility = 2D - (biomass + biocomplexity)/2 + DMs, rounded down
+    comp_dm = 0
+    if atm_val in (0, 1, 11, 16, 17):
+        comp_dm -= 8
+    elif atm_val in (2, 4, 7, 9):
+        comp_dm -= 2
+    elif atm_val in (3, 5, 8):
+        comp_dm += 1
+    elif atm_val == 6:
+        comp_dm += 2
+    elif atm_val in (10, 15):
+        comp_dm -= 6
+    elif atm_val == 12:
+        comp_dm -= 10
+    elif atm_val in (13, 14):
+        comp_dm -= 1
+    if age > 8:
+        comp_dm -= 2
+
+    compatibility = max(0, math.floor(
+        Utils.D6(2) - (biomass + biocomplexity) / 2 + comp_dm))
+
+    world.biomass_rating = biomass
+    world.biocomplexity_rating = biocomplexity
+    world.biodiversity_rating = biodiversity
+    world.compatibility_rating = compatibility
+
+    e = Utils.eHex
+    world.native_lifeform_profile = (
+        f"{e(min(33, biomass))}{e(min(33, biocomplexity))}"
+        f"{e(min(33, biodiversity))}{e(min(33, compatibility))}")
+
+    # Native and extinct sophont checks for biocomplexity 8+ (WBH p.130)
+    if biocomplexity >= 8:
+        capped = min(9, biocomplexity)
+        if Utils.D6(2) + capped - 7 >= 13:
+            world.native_sophont = True
+            world.notes.append("Native sophont species present")
+        extinct_dm = 1 if age > 5 else 0
+        if Utils.D6(2) + capped - 7 + extinct_dm >= 13:
+            world.extinct_sophont = True
+            world.notes.append("Evidence of an extinct native sophont species")
+
+    if biocomplexity <= 2:
         desc = "Single-cell microbial life only."
-    elif biocomplexity_rating <= 5:
-        desc = "Simple multicellular structures, fungi-analogues, and basic plants."
-    elif biocomplexity_rating <= 8:
-        desc = "Complex fauna, basic animal lifeforms, and complex biomes."
+    elif biocomplexity <= 5:
+        desc = "Simple multicellular structures, fungi-analogues and basic plants."
+    elif biocomplexity <= 8:
+        desc = "Complex fauna, animal lifeforms and developed biomes."
     else:
-        desc = "Extremely complex, diverse biosphere with complex ecosystems and high biohazard risk."
+        desc = "Extremely complex, diverse biosphere with high biohazard risk."
 
-    return f"Biomass Code: {biomass_rating}, Biocomplexity Code: {biocomplexity_rating}. {desc}"
+    return (f"Biomass {e(biomass)}, Biocomplexity {e(biocomplexity)}, "
+            f"Biodiversity {e(biodiversity)}, Compatibility {e(compatibility)}. "
+            f"{desc}")
+
+ROCHE_LIMIT_PD = 1.537  # 1.22 x (2)^(1/3), WBH p.76 simplifying assumption
+AU_KM = 149597870.9
+
+def calculate_hill_sphere_pd(world: PlanetaryBody, system: StellarSystem) -> float:
+    """Hill sphere radius of a world, in planetary diameters (WBH p.76).
+
+    Hill Sphere (AU) = AU x (1 - ecc) x (m / (3M))^(1/3), where m is the
+    world's mass in solar units and M the mass of the stars it orbits."""
+    if world.diameter_km <= 0 or world.orbit_au <= 0:
+        return 0.0
+
+    star_mass = 0.0
+    parent = next((s for s in system.stars
+                   if s.designation == world.parent_star_group), None)
+    if parent:
+        if parent.is_composite:
+            star_mass = sum(s.mass for s in system.stars
+                            if s.designation in parent.components)
+        else:
+            star_mass = parent.mass
+    if star_mass <= 0:
+        star_mass = system.primary_star.mass if system.primary_star else 1.0
+    if star_mass <= 0:
+        return 0.0
+
+    m_solar = max(1e-12, world.mass_terran * 0.000003)
+    hill_au = (world.orbit_au * (1 - world.eccentricity)
+               * (m_solar / (3 * star_mass)) ** (1 / 3))
+    return hill_au * AU_KM / world.diameter_km
+
+def _moon_orbit_pd(mor: float) -> float:
+    """Rolls a moon's orbital distance in planetary diameters using the
+    Moon Orbit Location table (WBH p.76)."""
+    dm = 1 if mor < 60 else 0
+    band = Utils.D6() + dm
+    spread = Utils.D6(2) - 2
+    if band <= 3:      # Inner sixth
+        return spread * mor / 60 + 2
+    elif band <= 5:    # Middle third
+        return spread * mor / 30 + mor / 6 + 3
+    else:              # Outer half
+        return spread * mor / 20 + mor / 2 + 4
+
+def _moon_period_hours(orbit_pd: float, planet_size_equiv: float,
+                       planet_mass_terran: float) -> float:
+    """Period (hours) = 0.176927 x sqrt((PD x Size)^3 / Mp) (WBH p.78)."""
+    if planet_mass_terran <= 0 or orbit_pd <= 0 or planet_size_equiv <= 0:
+        return 0.0
+    return round(0.176927 * math.sqrt((orbit_pd * planet_size_equiv) ** 3
+                                      / planet_mass_terran), 2)
+
+def place_satellites(world: PlanetaryBody, system: StellarSystem):
+    """Assigns orbital distances and periods to a world's satellites, and
+    converts moons that cannot exist into rings (WBH pp.75-78).
+
+    Moons live between the Roche limit (1.537 PD) and the Hill Sphere Moon
+    Limit (half the Hill sphere). If that limit falls below 1.5 PD no
+    significant moon can survive: the first becomes a ring and the rest are
+    discarded. Below 0.55 PD not even rings persist."""
+    if not world.satellites:
+        return
+
+    hill_pd = calculate_hill_sphere_pd(world, system)
+    world.hill_sphere_pd = round(hill_pd, 3)
+    moon_limit = hill_pd / 2.0
+    world.hill_sphere_moon_limit_pd = round(moon_limit, 3)
+
+    # Size equivalent in 1600km units, so Terra (12,742km) reads as ~8
+    size_equiv = world.diameter_km / 1600.0
+    mass = world.mass_terran
+
+    if moon_limit < 0.55:
+        # Nothing survives here at all
+        world.notes.append("No moons or rings possible: Hill sphere moon limit "
+                           f"{moon_limit:.2f} PD is at the surface")
+        world.satellites = []
+        return
+
+    if moon_limit < 1.5:
+        # Below the Roche limit: the first moon becomes a ring, rest are gone
+        ring = next((s for s in world.satellites if s.is_ring), None)
+        if ring is None:
+            ring = world.satellites[0]
+            ring.is_ring = True
+            ring.size_code = 'R'
+            ring.uwp.size = '0'
+            ring.atmosphere_code = ''
+            ring.hydrographics_code = ''
+        ring.notes.append("Moon(s) reduced to a ring system inside the Roche limit")
+        world.satellites = [ring]
+
+    mor = math.floor(moon_limit) - 2
+    if mor > 200:
+        mor = 200 + len(world.satellites)
+    mor = max(1.0, float(mor))
+
+    rings = [s for s in world.satellites if s.is_ring]
+    for sat in rings:
+        # Ring Centre Location (PD) = 0.4 + ((1D-1) x 5 + 1D-1) / 30, and a
+        # span of at least 0.07 PD (WBH p.78). The span's dice operand is
+        # illegible in the source text, so a d100 fraction is used.
+        centre = 0.4 + ((Utils.D6() - 1) * 5 + (Utils.D6() - 1)) / 30.0
+        span = random.randint(1, 100) / 100.0 * 0.5 + 0.07
+        sat.orbit_pd = round(max(0.2, centre), 3)
+        sat.ring_width_pd = round(span, 3)
+
+    # Where rings overlap, the outer ring moves out until its inner edge meets
+    # the inner ring's outer edge (WBH p.78).
+    rings.sort(key=lambda s: s.orbit_pd)
+    for i in range(1, len(rings)):
+        inner, outer = rings[i - 1], rings[i]
+        inner_outer_edge = inner.orbit_pd + inner.ring_width_pd / 2
+        if outer.orbit_pd - outer.ring_width_pd / 2 < inner_outer_edge:
+            outer.orbit_pd = round(
+                inner.orbit_pd + (inner.ring_width_pd + outer.ring_width_pd) / 2, 3)
+
+    for sat in rings:
+        sat.period_hours = _moon_period_hours(sat.orbit_pd, size_equiv, mass)
+
+    if rings:
+        # Ring profile R0#:C-S,C-S, ...
+        world.ring_profile = (
+            f"R{len(rings):02d}:" +
+            ",".join(f"{r.orbit_pd:.2f}-{r.ring_width_pd:.2f}" for r in rings))
+
+    for sat in world.satellites:
+        if sat.is_ring:
+            continue
+
+        # Significant moons sit outside the Roche limit
+        pd = _moon_orbit_pd(mor)
+        pd += (Utils.D6(2) - 7) / 10.0 * 0.5  # optional linear variance
+        pd = max(ROCHE_LIMIT_PD + 0.1, min(pd, moon_limit))
+        sat.orbit_pd = round(pd, 3)
+        sat.period_hours = _moon_period_hours(pd, size_equiv, mass)
+        sat.eccentricity = round(max(0.0, (Utils.D6(2) - 2) / 100.0), 3)
+        if Utils.D6(2) == 12:
+            sat.retrograde = True
+            sat.notes.append("Retrograde orbit")
+
+def calculate_habitability_rating(world: Any, system: StellarSystem) -> int:
+    """Habitability Rating = 10 + DMs (WBH pp.132-133), for Terragen life."""
+    size = Utils.from_eHex(getattr(world, 'size_code', 0) or 0)
+    atm = Utils.from_eHex(getattr(world, 'atmosphere_code', 0) or 0)
+    hyd = Utils.from_eHex(getattr(world, 'hydrographics_code', 0) or 0)
+    gravity = getattr(world, 'gravity', 0.0) or 0.0
+    temp = getattr(world, 'mean_temperature', 0.0) or 0.0
+
+    dm = 0
+
+    # Size
+    if size <= 4: dm -= 1
+    elif size >= 9: dm += 1
+
+    # Atmosphere
+    if atm in (0, 1, 10): dm -= 8
+    elif atm in (2, 14): dm -= 4
+    elif atm in (3, 13): dm -= 3
+    elif atm in (4, 9): dm -= 2
+    elif atm in (5, 7, 8): dm -= 1
+    elif atm == 11: dm -= 10
+    elif atm == 12 or atm >= 15: dm -= 12
+
+    # Hydrographics
+    if hyd == 0: dm -= 4
+    elif hyd <= 3: dm -= 2
+    elif hyd == 9: dm -= 1
+    elif hyd >= 10: dm -= 2
+
+    # Tidal lock
+    if any('Tidally Locked' in n for n in getattr(world, 'notes', [])):
+        dm -= 2
+
+    # Mean temperature
+    if temp > 323: dm -= 4
+    elif temp >= 304: dm -= 2
+    elif temp < 273: dm -= 2
+
+    # High and low temperature DMs, using the values computed in
+    # temperature.py where available. The book's fallback (DM-2 hot/cold,
+    # DM-6 frozen/boiling) applies only when they were never calculated.
+    high = getattr(world, 'high_temperature', 0.0) or 0.0
+    low = getattr(world, 'low_temperature', 0.0) or 0.0
+    if high or low:
+        if high > 323: dm -= 2
+        if high and high < 279: dm -= 2
+        if low and low < 200: dm -= 2
+    elif temp > 0:
+        if temp < 233 or temp > 373:   # Frozen or boiling
+            dm -= 6
+        elif temp < 273 or temp > 323: # Cold or hot
+            dm -= 2
+
+    # Gravity; take the worst DM at a boundary, per the book's footnote
+    if gravity > 0:
+        if gravity < 0.2: dm -= 4
+        elif gravity <= 0.4: dm -= 2
+        elif gravity <= 0.7: dm -= 1
+        elif gravity <= 0.9: dm += 1
+        elif gravity <= 1.1: dm += 0
+        elif gravity <= 1.4: dm -= 1
+        elif gravity <= 2.0: dm -= 3
+        else: dm -= 6
+    else:
+        dm += 1 - abs(6 - size)
+
+    # Miscellaneous surveyor adjustment
+    dm += Utils.D3() - 1
+
+    return max(0, min(12, 10 + dm))
 
 def detail_placed_worlds(system: StellarSystem):
     """Generates size and satellite details for all placed worlds."""

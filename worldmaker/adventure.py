@@ -8,7 +8,7 @@ def generate_system_adventure_seeds(system: StellarSystem) -> Dict[str, Any]:
     Generates adventure seeds, starport rumors, political faction tensions, 
     and environmental hazard tables according to WBH Ch. 15.
     """
-    mainworld = next((w for w in system.all_worlds if w.is_mainworld), None)
+    mainworld = system.mainworld
     
     rumors = []
     faction_events = []

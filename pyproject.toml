@@ -1,0 +1,58 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "worldmaker"
+description = "A star system and sector generator for Mongoose Traveller 2nd edition, implementing the World Builder's Handbook and Sector Construction Guide"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Paul M. Cray" }]
+keywords = ["traveller", "rpg", "worldbuilding", "procedural-generation"]
+dynamic = ["version"]
+
+# The generator, the classic map renderers and the planet/globe rendering
+# are the core feature set. numpy carries the planet work; pandas carries
+# the system and sector tables.
+dependencies = [
+    "numpy>=1.23",
+    "pandas>=2.0",
+]
+
+[project.optional-dependencies]
+# Photorealistic globe rendering writes PNGs through Pillow
+images = ["pillow>=9.0"]
+notebooks = ["jupyterlab>=4.0", "ipywidgets>=8.0"]
+# Interactive notebook visualisation, trade graphs and the planet texture
+# pipeline contributed alongside the core generator
+extras = [
+    "opencv-python-headless>=4.8",
+    "plotly>=5.0",
+    "matplotlib>=3.6",
+    "networkx>=3.0",
+    "ipywidgets>=8.0",
+]
+test = ["pytest>=7.0"]
+# Everything, as Google Colab already provides most of it
+all = [
+    "pillow>=9.0",
+    "jupyterlab>=4.0",
+    "opencv-python-headless>=4.8",
+    "plotly>=5.0",
+    "matplotlib>=3.6",
+    "networkx>=3.0",
+    "ipywidgets>=8.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/pmcray/worldmaker"
+
+[tool.setuptools]
+packages = ["worldmaker"]
+
+[tool.setuptools.dynamic]
+version = {attr = "worldmaker.__version__"}
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

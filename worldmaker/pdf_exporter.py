@@ -115,7 +115,7 @@ body {{
         html.append('<tr style="background:#0f172a; color:#94a3b8; text-align:left;"><th style="padding:8px;">Hex</th><th>System Name</th><th>UWP</th><th>Allegiance</th><th>Bases</th><th>Trade Codes</th></tr>')
 
         for hex_coord, sys in sorted(target.systems.items()):
-            mw = next((w for w in sys.all_worlds if w.is_mainworld), None)
+            mw = sys.mainworld
             if not mw: continue
             bases_str = ", ".join(sys.bases) if sys.bases else "—"
             tcodes_str = " ".join(mw.trade_codes) if mw.trade_codes else "—"

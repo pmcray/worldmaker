@@ -1,4 +1,8 @@
 import pytest
+
+pytest.importorskip("plotly", reason="optional dependency for the visualisation extras")
+
+import pytest
 from worldmaker import (
     generate_full_system,
     generate_sector,

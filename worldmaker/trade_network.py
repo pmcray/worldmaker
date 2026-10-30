@@ -31,7 +31,7 @@ def plot_subsector_trade_network(subsector: Sector, dark_mode=True) -> go.Figure
     node_texts = []
 
     for hex_coord, system in subsector.systems.items():
-        mainworld = next((w for w in system.all_worlds if w.is_mainworld), None)
+        mainworld = system.mainworld
         if not mainworld: continue
 
         col, row = hex_to_coords(hex_coord)

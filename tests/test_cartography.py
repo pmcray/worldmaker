@@ -1,4 +1,8 @@
 import pytest
+
+pytest.importorskip("cv2", reason="optional dependency for planet mapping")
+
+import pytest
 import numpy as np
 from worldmaker import (
     generate_full_system,

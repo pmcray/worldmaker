@@ -91,7 +91,7 @@ def render_generator_dashboard():
 
         with out_cartography:
             clear_output(wait=True)
-            mainworld = next((w for w in system.all_worlds if w.is_mainworld), None)
+            mainworld = system.mainworld
             if mainworld:
                 maps_data = generate_planetary_maps(mainworld)
                 ico_net_bgr = render_traveller_icosahedral_net(maps_data["surface_texture"])
@@ -205,7 +205,7 @@ def render_subsector_dashboard(subsector: Sector = None):
         with out_cartography:
             clear_output(wait=True)
             if sys:
-                mw = next((w for w in sys.all_worlds if w.is_mainworld), None)
+                mw = sys.mainworld
                 if mw:
                     maps_data = generate_planetary_maps(mw)
                     ico_net_bgr = render_traveller_icosahedral_net(maps_data["surface_texture"])

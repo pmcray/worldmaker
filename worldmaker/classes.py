@@ -12,7 +12,8 @@ class UWP:
     law_level: str = "0"
     tech_level: str = "0"
     
-    # Expanded 6-field technological matrix (WBH rules)
+    # 6-field technological matrix (this project's own construct, not a WBH
+    # procedure - see generate_expanded_tech_matrix)
     tl_spaceflight: int = 0
     tl_energy: int = 0
     tl_transport: int = 0
@@ -25,12 +26,151 @@ class UWP:
 
 @dataclass
 class Satellite:
+    name: str = ""
     designation: str = ""
     parent_body: Any = None # Forward reference to PlanetaryBody
     is_ring: bool = False
     size_code: str = ""
     orbit_pd: float = 0.0
     period_hours: float = 0.0
+    eccentricity: float = 0.0
+    retrograde: bool = False
+    ring_width_pd: float = 0.0
+    habitability_rating: int = 0
+    # A significant moon can be the system mainworld, so it carries the same
+    # physical and biological characteristics as a planet.
+    core_composition: str = ""
+    escape_velocity_kms: float = 0.0
+    gases_retained: List[str] = field(default_factory=list)
+    climate_zone: str = ""
+    resource_rating: int = 0
+    biomass_rating: int = 0
+    biocomplexity_rating: int = 0
+    biomes: List[str] = field(default_factory=list)
+    cultural_profile: Any = None
+    # Native lifeform ratings (WBH pp.127-131)
+    biodiversity_rating: int = 0
+    compatibility_rating: int = 0
+    native_lifeform_profile: str = ""
+    native_sophont: bool = False
+    extinct_sophont: bool = False
+    # Planetoid belt profile (WBH pp.72-75)
+    belt_span: float = 0.0
+    belt_composition: Dict[str, int] = field(default_factory=dict)
+    belt_bulk: int = 0
+    belt_profile: str = ""
+    size_1_bodies: int = 0
+    size_s_bodies: int = 0
+    # Detailed temperature and seismology (WBH pp.107-128)
+    albedo: float = 0.0
+    greenhouse_factor: float = 0.0
+    high_temperature: float = 0.0
+    low_temperature: float = 0.0
+    axial_tilt_factor: float = 0.0
+    rotation_factor: float = 0.0
+    geographic_factor: float = 0.0
+    variance_factors: float = 0.0
+    atmospheric_factor: float = 0.0
+    luminosity_modifier: float = 0.0
+    residual_seismic_stress: float = 0.0
+    surface_tide_metres: float = 0.0
+    tidal_stress_factor: float = 0.0
+    tidal_heating_factor: float = 0.0
+    total_seismic_stress: float = 0.0
+    tectonic_plates: int = 0
+    seismic_activity: str = ""
+    # Temperature scenarios (WBH pp.114-124)
+    worst_case_high: float = 0.0
+    worst_case_low: float = 0.0
+    latitude_temperatures: Dict[int, float] = field(default_factory=dict)
+    # Expanded atmosphere characteristics (WBH pp.78-98)
+    atmosphere_name: str = ""
+    atmos_pressure_bar: float = 0.0
+    oxygen_fraction: float = 0.0
+    partial_pressure_oxygen: float = 0.0
+    scale_height_km: float = 0.0
+    atmosphere_composition: str = ""
+    atmosphere_subtype: str = ""
+    atmosphere_taint: Optional[Dict[str, str]] = None
+    survival_gear: str = ""
+    minimum_safe_altitude_km: float = 0.0
+    safe_altitude_below_mean_km: float = 0.0
+    low_oxygen: bool = False
+    # Secondary world populations (WBH p.155)
+    is_secondary_world: bool = False
+    affiliated: bool = False
+    # Nations on a balkanised world (WBH pp.155-156)
+    nations: List[Any] = field(default_factory=list)
+    nation_count: int = 0
+    # Privately held worlds (see findworld.make_proprietary)
+    proprietor: Optional[Dict[str, Any]] = None
+    # Population detail (WBH pp.148-156)
+    pcr: int = 0
+    pcr_description: str = ""
+    urbanisation_pct: int = 0
+    urban_population: int = 0
+    major_cities: List[Dict[str, Any]] = field(default_factory=list)
+    population_profile: str = ""
+    minimum_sustainable_tl: int = 0
+    # Technology profile (WBH pp.173-180)
+    tech_high: int = 0
+    tech_low: int = 0
+    tech_energy: int = 0
+    tech_electronics: int = 0
+    tech_manufacturing: int = 0
+    tech_medical: int = 0
+    tech_environmental: int = 0
+    tech_land: int = 0
+    tech_sea: int = 0
+    tech_air: int = 0
+    tech_space: int = 0
+    tech_personal: int = 0
+    tech_heavy: int = 0
+    tech_novelty: int = 0
+    technology_profile: str = ""
+    # Starport facilities and military (WBH pp.193-208)
+    starport_facilities: Dict[str, Any] = field(default_factory=dict)
+    military_branches: Dict[str, int] = field(default_factory=dict)
+    military_budget_pct: float = 0.0
+    military_budget: float = 0.0
+    state_of_readiness: str = ""
+    military_profile: str = ""
+    # Economic extension (WBH pp.185-199)
+    importance: int = 0
+    resources: int = 0
+    labour: int = 0
+    infrastructure: int = 0
+    efficiency: int = 0
+    resource_units: int = 0
+    wtn: int = 0
+    population_digit: int = 0
+    total_population: int = 0
+    gwp_per_capita: float = 0.0
+    gwp: float = 0.0
+    inequality_rating: int = 0
+    development_score: float = 0.0
+    tariff_rate: float = 0.0
+    economic_extension: str = ""
+    # Government and law detail (WBH pp.156-172)
+    government_type: str = ""
+    government_structure: str = ""
+    government_profile: str = ""
+    centralisation: str = ""
+    primary_authority: str = ""
+    factions: List[Dict[str, Any]] = field(default_factory=list)
+    justice_primary: str = ""
+    justice_secondary: str = ""
+    justice_profile: str = ""
+    law_uniformity: str = ""
+    law_profile: str = ""
+    law_weapons: int = 0
+    law_economic: int = 0
+    law_criminal: int = 0
+    law_private: int = 0
+    law_personal_rights: int = 0
+    presumption_of_innocence: bool = False
+    death_penalty: bool = False
+
     notes: List[str] = field(default_factory=list)
     # Physical properties
     diameter_km: float = 0.0
@@ -75,6 +215,15 @@ class Sophont:
     psychology: str = ""           # Social instinct, Aggression level
     evolutionary_track: str = ""   # Aquatic, Plains, Desert, etc.
     history_summary: str = ""
+    # Sophont Physical Characteristics D66 results (SCG pp.52-54)
+    symmetry: str = ""
+    limb_count: str = ""
+    manipulators: str = ""
+    environment: str = ""
+    behaviour: str = ""
+    gender: str = ""
+    characteristic_rolls: Dict[str, Any] = field(default_factory=dict)
+    characteristic_dms: Dict[str, int] = field(default_factory=dict)
 
 @dataclass
 class Polity:
@@ -127,6 +276,133 @@ class PlanetaryBody:
     biomass_rating: int = 0
     biocomplexity_rating: int = 0
     biomes: List[str] = field(default_factory=list)
+    habitability_rating: int = 0
+    hill_sphere_pd: float = 0.0
+    hill_sphere_moon_limit_pd: float = 0.0
+    ring_profile: str = ""
+    # Native lifeform ratings (WBH pp.127-131)
+    biodiversity_rating: int = 0
+    compatibility_rating: int = 0
+    native_lifeform_profile: str = ""
+    native_sophont: bool = False
+    extinct_sophont: bool = False
+    # Planetoid belt profile (WBH pp.72-75)
+    belt_span: float = 0.0
+    belt_composition: Dict[str, int] = field(default_factory=dict)
+    belt_bulk: int = 0
+    belt_profile: str = ""
+    size_1_bodies: int = 0
+    size_s_bodies: int = 0
+    # Detailed temperature and seismology (WBH pp.107-128)
+    albedo: float = 0.0
+    greenhouse_factor: float = 0.0
+    high_temperature: float = 0.0
+    low_temperature: float = 0.0
+    axial_tilt_factor: float = 0.0
+    rotation_factor: float = 0.0
+    geographic_factor: float = 0.0
+    variance_factors: float = 0.0
+    atmospheric_factor: float = 0.0
+    luminosity_modifier: float = 0.0
+    residual_seismic_stress: float = 0.0
+    surface_tide_metres: float = 0.0
+    tidal_stress_factor: float = 0.0
+    tidal_heating_factor: float = 0.0
+    total_seismic_stress: float = 0.0
+    tectonic_plates: int = 0
+    seismic_activity: str = ""
+    # Temperature scenarios (WBH pp.114-124)
+    worst_case_high: float = 0.0
+    worst_case_low: float = 0.0
+    latitude_temperatures: Dict[int, float] = field(default_factory=dict)
+    # Expanded atmosphere characteristics (WBH pp.78-98)
+    atmosphere_name: str = ""
+    atmos_pressure_bar: float = 0.0
+    oxygen_fraction: float = 0.0
+    partial_pressure_oxygen: float = 0.0
+    scale_height_km: float = 0.0
+    atmosphere_composition: str = ""
+    atmosphere_subtype: str = ""
+    atmosphere_taint: Optional[Dict[str, str]] = None
+    survival_gear: str = ""
+    minimum_safe_altitude_km: float = 0.0
+    safe_altitude_below_mean_km: float = 0.0
+    low_oxygen: bool = False
+    # Secondary world populations (WBH p.155)
+    is_secondary_world: bool = False
+    affiliated: bool = False
+    # Nations on a balkanised world (WBH pp.155-156)
+    nations: List[Any] = field(default_factory=list)
+    nation_count: int = 0
+    # Privately held worlds (see findworld.make_proprietary)
+    proprietor: Optional[Dict[str, Any]] = None
+    # Population detail (WBH pp.148-156)
+    pcr: int = 0
+    pcr_description: str = ""
+    urbanisation_pct: int = 0
+    urban_population: int = 0
+    major_cities: List[Dict[str, Any]] = field(default_factory=list)
+    population_profile: str = ""
+    minimum_sustainable_tl: int = 0
+    # Technology profile (WBH pp.173-180)
+    tech_high: int = 0
+    tech_low: int = 0
+    tech_energy: int = 0
+    tech_electronics: int = 0
+    tech_manufacturing: int = 0
+    tech_medical: int = 0
+    tech_environmental: int = 0
+    tech_land: int = 0
+    tech_sea: int = 0
+    tech_air: int = 0
+    tech_space: int = 0
+    tech_personal: int = 0
+    tech_heavy: int = 0
+    tech_novelty: int = 0
+    technology_profile: str = ""
+    # Starport facilities and military (WBH pp.193-208)
+    starport_facilities: Dict[str, Any] = field(default_factory=dict)
+    military_branches: Dict[str, int] = field(default_factory=dict)
+    military_budget_pct: float = 0.0
+    military_budget: float = 0.0
+    state_of_readiness: str = ""
+    military_profile: str = ""
+    # Economic extension (WBH pp.185-199)
+    importance: int = 0
+    resources: int = 0
+    labour: int = 0
+    infrastructure: int = 0
+    efficiency: int = 0
+    resource_units: int = 0
+    wtn: int = 0
+    population_digit: int = 0
+    total_population: int = 0
+    gwp_per_capita: float = 0.0
+    gwp: float = 0.0
+    inequality_rating: int = 0
+    development_score: float = 0.0
+    tariff_rate: float = 0.0
+    economic_extension: str = ""
+    # Government and law detail (WBH pp.156-172)
+    government_type: str = ""
+    government_structure: str = ""
+    government_profile: str = ""
+    centralisation: str = ""
+    primary_authority: str = ""
+    factions: List[Dict[str, Any]] = field(default_factory=list)
+    justice_primary: str = ""
+    justice_secondary: str = ""
+    justice_profile: str = ""
+    law_uniformity: str = ""
+    law_profile: str = ""
+    law_weapons: int = 0
+    law_economic: int = 0
+    law_criminal: int = 0
+    law_private: int = 0
+    law_personal_rights: int = 0
+    presumption_of_innocence: bool = False
+    death_penalty: bool = False
+
     # Detailed properties for mainworld candidates
     atmosphere_code: str = ""
     hydrographics_code: str = ""
@@ -178,7 +454,8 @@ class StellarSystem:
     hex_coord: str = ""
     subsector_code: str = ""
     subsector_name: str = ""
-    travel_zone: str = ""  # "", "A" (Amber), "R" (Red)
+    travel_zone: str = ""  # "" = Green, "A" = Amber, "R" = Red
+    has_highport: bool = False
     settlement_epoch: str = ""
     settlement_wave: str = ""
     population_dm: int = 0
@@ -197,6 +474,21 @@ class StellarSystem:
                 worlds.extend(star.orbiting_bodies)
         return worlds
 
+    @property
+    def all_bodies(self):
+        """Every world in the system plus every satellite, since a significant
+        moon can itself be the mainworld (WBH p.133)."""
+        bodies = []
+        for world in self.all_worlds:
+            bodies.append(world)
+            bodies.extend(world.satellites)
+        return bodies
+
+    @property
+    def mainworld(self):
+        """The system's mainworld, whether it is a planet or a moon."""
+        return next((b for b in self.all_bodies if b.is_mainworld), None)
+
 @dataclass
 class Sector:
     name: str = "Generated Sector"
@@ -206,8 +498,13 @@ class Sector:
     native_sophonts: Dict[str, Sophont] = field(default_factory=dict)
     settlement_waves: List[Wave] = field(default_factory=list)
     routes: List[Tuple[str, str, str]] = field(default_factory=list) # (hex1, hex2, type)
-    subsector_names: Dict[str, str] = field(default_factory=dict)
     polities: List[Polity] = field(default_factory=list)
+    subsector_names: Dict[str, str] = field(default_factory=dict)
+    # Empty-hex surveys (WBH pp.219-223): hex -> EmptyHexSurvey
+    deep_space: Dict[str, Any] = field(default_factory=dict)
+    # Worlds served by a courier network based outside this sector:
+    # (hex, route style)
+    off_sector_routes: List[Tuple[str, str]] = field(default_factory=list)
     macro_history: List[Dict[str, Any]] = field(default_factory=list)
     erith_hex: str = ""
     solar_analogue_hex: str = ""

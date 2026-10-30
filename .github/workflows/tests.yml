@@ -1,0 +1,69 @@
+name: tests
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run test suite
+        run: python -m pytest tests/ -q
+
+      - name: Check the package generates a sector end to end
+        run: |
+          python - <<'PY'
+          import random
+          import worldmaker as wm
+
+          random.seed(1105)
+          sector = wm.generate_full_sector("CI Sector")
+          assert sector.systems, "no systems generated"
+          assert sector.polities, "no polities generated"
+
+          import xml.etree.ElementTree as ET
+          ET.fromstring(wm.generate_sector_svg(sector))
+          ET.fromstring(wm.generate_subsector_svg(sector, "Subsector A"))
+
+          mainworld = next(s.mainworld for s in sector.systems.values()
+                           if s.mainworld is not None)
+          ET.fromstring(wm.render_world_map_svg(mainworld))
+
+          rows = wm.parse_t5_column(wm.export_sector_sec_file(sector))
+          assert len(rows) == sum(1 for s in sector.systems.values()
+                                  if s.mainworld is not None)
+
+          universe = wm.create_universe("CI Universe", preset="frontier")
+          universe.add_anomaly("barren", "Quiet Zone", centre="1124", radius=2)
+          wm.build_default_timeline(universe)
+          assert universe.describe()
+          small = wm.generate_universe_sector(universe, "CI", width=8, height=10)
+          assert small.systems, "no systems in the universe-driven sector"
+
+          for factory in (wm.generate_protostar_system,
+                          wm.generate_primordial_system,
+                          wm.generate_brown_dwarf_system):
+              assert factory().stars, f"{factory.__name__} produced no stars"
+
+          print(f"{len(sector.systems)} systems, {len(sector.polities)} polities, "
+                f"{len(rows)} T5 rows")
+          PY

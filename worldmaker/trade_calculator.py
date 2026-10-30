@@ -49,8 +49,8 @@ def calculate_speculative_trade_run(source_system: StellarSystem, target_system:
     Calculates jump distance, speculative trade cargo purchase/sale price modifiers, 
     and estimated profit per ton between two star systems.
     """
-    source_mw = next((w for w in source_system.all_worlds if w.is_mainworld), None)
-    target_mw = next((w for w in target_system.all_worlds if w.is_mainworld), None)
+    source_mw = source_system.mainworld
+    target_mw = target_system.mainworld
 
     if not source_mw or not target_mw:
         return {"error": "Both systems must have established mainworlds."}

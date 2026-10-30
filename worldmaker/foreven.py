@@ -1278,6 +1278,8 @@ def generate_scg_foreven_uwp(
 
 def _apply_uwp_to_mainworld(system: StellarSystem, target_uwp: UWP, mainworld_name: str):
     """Synchronizes a StellarSystem's mainworld with a target UWP and recomputes WBH geophysics."""
+    for b in system.all_bodies:
+        b.is_mainworld = False
     terrestrials = [w for w in system.all_worlds if w.body_type == "Terrestrial"]
     if not terrestrials:
         # Ensure at least one terrestrial mainworld around primary star

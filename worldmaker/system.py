@@ -7,18 +7,29 @@ from .utils import Utils
 from .data import DATA
 from .stellar import generate_world_name
 
-def determine_world_counts(system: StellarSystem):
-    """Determines the number of Gas Giants, Planetoid Belts, and Terrestrial Planets."""
-    
+def determine_world_counts(system: StellarSystem, profile: dict = None):
+    """Determines the number of Gas Giants, Planetoid Belts, and Terrestrial Planets.
+
+    `profile` carries the Special Circumstances overrides (WBH pp.224-229):
+    'gas_giant_present_max' (2D roll at or below which a gas giant exists;
+    standard 9), 'belt_present_min' (2D roll at or above which a belt exists;
+    standard 8, with the primordial DM+4 expressed as a lower target) and
+    'terrestrial_count' (callable replacing the standard 2D-2 chain, e.g. the
+    dead-star 1D-2)."""
+    profile = profile or {}
+
     # Helper to determine star characteristics for DMs
     is_class_v_star = system.primary_star.spectral_type.endswith(' V')
     is_brown_dwarf = system.primary_star.spectral_type.startswith('BD')
-    is_post_stellar = system.primary_star.spectral_type.startswith('D') # White Dwarf
-    is_protostar = system.primary_star.spectral_type.startswith(('T', 'P')) # T Tauri, Protostar (simplified)
+    # Post-stellar objects: white dwarfs and the supernova remnants
+    is_post_stellar = (system.primary_star.spectral_type.startswith('D')
+                       or system.primary_star.spectral_type in (
+                           'Neutron Star', 'Pulsar', 'Black Hole'))
+    is_protostar = system.primary_star.spectral_type == 'Protostar'
 
-    # Gas Giants 
-    # Existence roll DMs (page 37) - None unless Special Circumstances (not implemented yet)
-    if Utils.D6(2) <= 9: # Gas Giant Exists on 9- (2D roll)
+    # Gas Giants
+    # Existence roll DMs (page 37); Special Circumstances tighten the target
+    if Utils.D6(2) <= profile.get('gas_giant_present_max', 9):
         dm_quantity = 0
         if is_class_v_star and len(system.stars) == 1: dm_quantity += 1 # Single Class V star
         if is_brown_dwarf: dm_quantity -= 2
@@ -29,9 +40,9 @@ def determine_world_counts(system: StellarSystem):
         roll = max(DATA['gas_giant_quantity']['min_roll'], min(roll, DATA['gas_giant_quantity']['max_roll']))
         system.gas_giant_count = DATA['gas_giant_quantity']['roll_map'][roll]
 
-    # Planetoid Belts 
-    # Existence roll DMs (page 37) - None unless Special Circumstances (not implemented yet)
-    if Utils.D6(2) >= 8: # Planetoid Belt Exists on 8+ (2D roll)
+    # Planetoid Belts
+    # Existence roll DMs (page 37); Special Circumstances loosen the target
+    if Utils.D6(2) >= profile.get('belt_present_min', 8):
         dm_quantity = 0
         if system.gas_giant_count > 0: dm_quantity += 1
         if is_protostar: dm_quantity += 3
@@ -42,15 +53,18 @@ def determine_world_counts(system: StellarSystem):
         roll = max(DATA['planetoid_belt_quantity']['min_roll'], min(roll, DATA['planetoid_belt_quantity']['max_roll']))
         system.planetoid_belt_count = DATA['planetoid_belt_quantity']['roll_map'][roll]
 
-    # Terrestrial Planets 
-    dm_quantity = 0
-    if is_post_stellar: dm_quantity -= 1 # DM-1 per post-stellar object (including primary star)
-    
-    roll = Utils.D6(2) - 2 + dm_quantity
-    if roll < 3:
-        system.terrestrial_planet_count = Utils.D3() + 2
+    # Terrestrial Planets
+    if profile.get('terrestrial_count') is not None:
+        system.terrestrial_planet_count = max(0, profile['terrestrial_count']())
     else:
-        system.terrestrial_planet_count = roll + Utils.D3() - 1
+        dm_quantity = 0
+        if is_post_stellar: dm_quantity -= 1 # DM-1 per post-stellar object (including primary star)
+
+        roll = Utils.D6(2) - 2 + dm_quantity
+        if roll < 3:
+            system.terrestrial_planet_count = Utils.D3() + 2
+        else:
+            system.terrestrial_planet_count = roll + Utils.D3() - 1
 
     system.total_worlds = system.gas_giant_count + system.planetoid_belt_count + system.terrestrial_planet_count
 
@@ -86,11 +100,17 @@ def _calculate_hill_sphere_orbits(system: StellarSystem) -> List[Tuple[float, fl
     # Step 4: Convert AU values of stability spheres to Orbit#
     stability_spheres_orbit = {s: Utils.au_to_orbit(ssa) for s, ssa in stability_spheres_au.items()}
 
-    # Step 5: Determine stable orbits around multiple stars (simplified)
+    # Step 5: Determine stable orbits around multiple stars (simplified).
+    # Only the *secondaries'* stability spheres are forbidden to the primary's
+    # planets; the primary's own sphere is where those planets live.
     forbidden_zones = []
     for star in system.stars:
-        if star.parent and star.designation in stability_spheres_orbit:
+        if star.is_composite or not star.parent:
+            continue
+        if star.designation in stability_spheres_orbit:
             orbit_val = stability_spheres_orbit[star.designation]
+            if math.isinf(orbit_val):
+                continue
             forbidden_zones.append((star.orbit_num - orbit_val, star.orbit_num + orbit_val))
 
     # Sort and merge overlapping forbidden zones
@@ -107,44 +127,52 @@ def _calculate_hill_sphere_orbits(system: StellarSystem) -> List[Tuple[float, fl
         merged_zones.append((current_start, current_end))
 
     available_orbits = []
-    current_orbit = system.primary_star.mao # Start from primary's MAO
+    current_orbit = max(0.01, system.primary_star.mao) # Start from primary's MAO
 
     for zone_start, zone_end in merged_zones:
         if current_orbit < zone_start:
             available_orbits.append((current_orbit, zone_start))
         current_orbit = max(current_orbit, zone_end)
-    
+
     if current_orbit < 20.0:
         available_orbits.append((current_orbit, 20.0))
 
     return available_orbits
 
 def calculate_available_orbits(system: StellarSystem, model='simple'):
-    """Calculates the valid Orbit# ranges for planetary bodies."""
+    """Calculates the valid Orbit# ranges for planetary bodies (WBH pp.38-39).
+
+    The book's model is Orbit#-based exclusion zones around each Close/Near/Far
+    secondary (rules 5-7); the optional 'physics' model instead derives the
+    zones from Hill spheres."""
     primary_group = next((s for s in system.stars if not s.parent), None)
     if not primary_group: return
 
     if model == 'simple':
         forbidden_zones = []
         secondaries = [s for s in system.stars if s.parent and s.orbit_class != 'Companion']
-        
+
         for star in secondaries:
-            # Rule 5: Orbits# +1.00 from secondary star are unavailable
-            exclusion_start = star.orbit_num - 1.0
-            exclusion_end = star.orbit_num + 1.0
+            # Rule 5: Orbits# +1.00 from secondary star are unavailable, plus
+            # the secondary's own MAO if it exceeds 0.2
+            margin = 1.0
+            if star.mao > 0.2:
+                margin += star.mao
+            exclusion_start = star.orbit_num - margin
+            exclusion_end = star.orbit_num + margin
 
             # Rule 6: If eccentricity > 0.2, add one more Orbit# on either side
-            if star.eccentricity > 0.2: 
+            if star.eccentricity > 0.2:
                 exclusion_start -= 1.0
                 exclusion_end += 1.0
-            
+
             # Rule 7: If eccentricity > 0.5, add another Orbit# on either side
             if star.eccentricity > 0.5 and star.orbit_class in ['Close', 'Near']:
                 exclusion_start -= 1.0
                 exclusion_end += 1.0
-            
+
             forbidden_zones.append((exclusion_start, exclusion_end))
-        
+
         # Sort and merge overlapping forbidden zones
         forbidden_zones.sort()
         merged_zones = []
@@ -159,22 +187,87 @@ def calculate_available_orbits(system: StellarSystem, model='simple'):
             merged_zones.append((current_start, current_end))
 
         available = []
-        current_orbit = primary_group.mao
+        current_orbit = max(0.01, primary_group.mao)
 
         for zone_start, zone_end in merged_zones:
             if current_orbit < zone_start:
                 available.append((current_orbit, zone_start))
             current_orbit = max(current_orbit, zone_end)
-        
+
         if current_orbit < 20.0:
             available.append((current_orbit, 20.0))
-        
+
         primary_group.available_orbits = available
 
     elif model == 'physics':
         primary_group.available_orbits = _calculate_hill_sphere_orbits(system)
 
+    # Rules 8-11 (WBH pp.39-40): each Close/Near/Far secondary has its own
+    # centred orbits, extending to its Orbit# minus 3, reduced by adjacent-zone
+    # neighbours and by eccentricity.
+    _assign_secondary_orbit_allowances(system)
+
+    # A system must always offer somewhere to put its worlds; if exclusion
+    # zones swallowed everything, fall back to the outermost usable band.
+    if not primary_group.available_orbits:
+        floor = max(0.01, primary_group.mao)
+        outer = max(
+            [s.orbit_num for s in system.stars
+             if s.parent and s.orbit_class in ('Close', 'Near', 'Far')],
+            default=floor)
+        start = max(floor, outer + 1.0)
+        if start < 20.0:
+            primary_group.available_orbits = [(start, 20.0)]
+        else:
+            primary_group.available_orbits = [(floor, max(floor + 1.0, 20.0))]
+
     return primary_group.available_orbits
+
+_ZONE_ORDER = ['Close', 'Near', 'Far']
+
+def _assign_secondary_orbit_allowances(system: StellarSystem):
+    """Rules 8-11 (WBH pp.39-40): a Close, Near or Far secondary may hold its
+    own worlds in orbits centred on itself.
+
+    The allowance runs to its Orbit# minus 3, reduced by one Orbit# if the
+    system has a star in an adjacent zone, by one more if it or an
+    adjacent-zone star is eccentric beyond 0.2, and by another if its own
+    eccentricity exceeds 0.5. Each condition triggers only once."""
+    secondaries = [s for s in system.stars
+                   if s.parent and s.orbit_class in _ZONE_ORDER]
+    if not secondaries:
+        return
+
+    occupied_zones = {s.orbit_class for s in secondaries}
+
+    for star in secondaries:
+        allowance = star.orbit_num - 3.0
+
+        # Rule 9: a star in an adjacent zone crowds this one
+        index = _ZONE_ORDER.index(star.orbit_class)
+        neighbours = []
+        if index > 0:
+            neighbours.append(_ZONE_ORDER[index - 1])
+        if index < len(_ZONE_ORDER) - 1:
+            neighbours.append(_ZONE_ORDER[index + 1])
+        if any(zone in occupied_zones for zone in neighbours):
+            allowance -= 1.0
+
+        # Rule 10: eccentricity of this star or an adjacent-zone star
+        eccentric_neighbour = any(
+            other.eccentricity > 0.2 for other in secondaries
+            if other.orbit_class in neighbours)
+        if star.eccentricity > 0.2 or eccentric_neighbour:
+            allowance -= 1.0
+
+        # Rule 11: strongly eccentric stars lose another Orbit#
+        if star.eccentricity > 0.5:
+            allowance -= 1.0
+
+        if allowance > star.mao and allowance > 0:
+            star.available_orbits = [(max(0.01, star.mao), round(allowance, 3))]
+        else:
+            star.available_orbits = []
 
 def calculate_baseline_and_spread(system: StellarSystem):
     """Determines the system's baseline number, baseline orbit, and orbital spread."""
@@ -187,7 +280,9 @@ def calculate_baseline_and_spread(system: StellarSystem):
     is_class_iii = primary_group.spectral_type.endswith(' III')
     is_class_iv = primary_group.spectral_type.endswith(' IV')
     is_class_vi = primary_group.spectral_type.endswith(' VI')
-    is_post_stellar = primary_group.spectral_type.startswith('D') # White Dwarf
+    is_post_stellar = (primary_group.spectral_type.startswith('D')
+                       or primary_group.spectral_type in (
+                           'Neutron Star', 'Pulsar', 'Black Hole'))
 
     # Baseline Number 
     dm = 0
@@ -222,6 +317,10 @@ def calculate_baseline_and_spread(system: StellarSystem):
         variance = (Utils.D6(2) - 7) / 5.0
         system.baseline_orbit = primary_group.hzco - (system.baseline_number - system.total_worlds) + variance
 
+    # A hot system's baseline can be driven below the star's MAO; the baseline
+    # orbit must still be a real orbit.
+    system.baseline_orbit = max(primary_group.mao, system.baseline_orbit)
+
     # Ensure baseline orbit is in an available zone (page 46)
     is_available = any(start <= system.baseline_orbit <= end for start, end in primary_group.available_orbits)
     if not is_available:
@@ -244,7 +343,8 @@ def calculate_baseline_and_spread(system: StellarSystem):
             else:
                 new_orbit = system.baseline_orbit
                 break
-        system.baseline_orbit = new_orbit
+        system.baseline_orbit = _snap_into_available(
+            max(primary_group.mao, new_orbit), primary_group.available_orbits)
 
     # System Spread 
     baseline_num_for_calc = max(1, system.baseline_number)
@@ -281,37 +381,88 @@ def handle_anomalies_and_empties(system: StellarSystem):
         system.terrestrial_planet_count += 1
         system.total_worlds += 1
 
+def _snap_into_available(orbit: float, zones: List[Tuple[float, float]]) -> float:
+    """Moves an Orbit# into the nearest available zone, so no world is ever
+    placed in an exclusion zone or inside the star (WBH pp.38-39)."""
+    if not zones:
+        return max(0.01, orbit)
+    for start, end in zones:
+        if start <= orbit <= end:
+            return orbit
+    # Outside every zone: take the nearest boundary
+    best = None
+    for start, end in zones:
+        for edge in (start, end):
+            if best is None or abs(edge - orbit) < abs(best - orbit):
+                best = edge
+    return best if best is not None else max(0.01, orbit)
+
+def _next_available_orbit(after: float, zones: List[Tuple[float, float]],
+                          step: float = 0.01) -> float:
+    """The smallest available Orbit# strictly beyond `after`, stepping over
+    an exclusion zone into the next band when the current one is full.
+    Returns `after` unchanged when there is nowhere left to go."""
+    for start, end in sorted(zones):
+        if after < start:
+            # Rounding must never drop the value back below the zone's edge
+            rounded = round(start, 2)
+            return rounded if rounded >= start else start
+        if start <= after < end:
+            candidate = round(after + step, 2)
+            if candidate <= end:
+                return candidate
+    return after
+
 def generate_orbital_slots(system: StellarSystem) -> List[dict]:
     """Generates the final list of all orbital slots for the system."""
     primary_group = next((s for s in system.stars if not s.parent), None)
     if not primary_group: return []
-    
-    total_slots_needed = system.total_worlds + system.empty_orbit_count
-    
-    slots = []
-    current_orbit = primary_group.mao
 
-    for i in range(total_slots_needed - len(system.anomalous_planets)):
+    zones = primary_group.available_orbits
+    total_slots_needed = system.total_worlds + system.empty_orbit_count
+
+    slots = []
+    start_orbit = max(0.01, primary_group.mao)
+    current_orbit = start_orbit
+    spread = max(0.01, system.spread)
+
+    regular_slots = total_slots_needed - len(system.anomalous_planets)
+
+    # A wide spread can walk the outer worlds past the end of the orbit
+    # table, where snapping would stack every one of them on the outermost
+    # Orbit#. Narrow the spread so the last world still lands inside the
+    # available orbits, keeping the book's evenly spread placement.
+    outer_bound = max((end for _, end in zones), default=20.0)
+    if regular_slots > 0 and start_orbit + regular_slots * spread > outer_bound:
+        spread = max(0.01, (outer_bound - start_orbit) / regular_slots)
+
+    for i in range(regular_slots):
         if i + 1 == system.baseline_number:
             current_orbit = system.baseline_orbit
         else:
-            current_orbit += system.spread
-        
-        # Check if in forbidden zone
-        for start, end in primary_group.available_orbits:
-            if current_orbit > end and start > (current_orbit - system.spread):
-                 current_orbit = start + (current_orbit - end) # Jump over gap
-                 break
+            current_orbit += spread
 
-        slots.append({'orbit_num': round(current_orbit, 2), 'type': 'regular'})
-        
+        current_orbit = _snap_into_available(current_orbit, zones)
+        # Round before the final snap: rounding a value that sits exactly on a
+        # zone boundary can otherwise nudge it just outside the zone.
+        orbit = _snap_into_available(round(max(0.01, current_orbit), 2), zones)
+        # Two worlds cannot share an orbit; move outward to the next
+        # available one if snapping has landed this world on the last.
+        if slots and orbit <= slots[-1]['orbit_num']:
+            orbit = _next_available_orbit(slots[-1]['orbit_num'], zones)
+        slots.append({'orbit_num': orbit, 'type': 'regular'})
+
     # Add anomalous slots
     for anomaly in system.anomalous_planets:
-        if primary_group.available_orbits:
-            zone = random.choice(primary_group.available_orbits)
+        if zones:
+            zone = random.choice(zones)
             ano_orbit = random.uniform(zone[0], zone[1])
-            slots.append({'orbit_num': round(ano_orbit, 2), 'type': 'anomalous', 'anomaly': anomaly})
-    
+        else:
+            ano_orbit = max(0.01, current_orbit + spread)
+        slots.append({'orbit_num': _snap_into_available(
+            round(max(0.01, ano_orbit), 2), zones),
+            'type': 'anomalous', 'anomaly': anomaly})
+
     return sorted(slots, key=lambda x: x['orbit_num'])
 
 def place_worlds(system: StellarSystem, orbital_slots: List[dict]):
@@ -326,32 +477,26 @@ def place_worlds(system: StellarSystem, orbital_slots: List[dict]):
     num_slots = len(slots_map)
     available_slots_indices = list(range(num_slots))
     random.shuffle(available_slots_indices)
-    
-    mainworld_slot_idx = -1
 
+    # Place in the book's order: empty orbits, gas giants, planetoid belts,
+    # then terrestrial planets in whatever remains (WBH p.47, Step 8).
     for item in placements:
-        count_to_place = item['count']
-        placed_count = 0
-        while placed_count < count_to_place and available_slots_indices:
-            slot_idx = available_slots_indices.pop(0)
-            
-            if slots_map[slot_idx]['body'] is not None:
-                available_slots_indices.append(slot_idx)
-                continue
-
-            if slots_map[slot_idx]['slot']['type'] == 'anomalous' and item['type'] == 'Empty':
-                 available_slots_indices.append(slot_idx)
-                 continue 
-            
+        remaining = item['count']
+        # Empty orbits may not consume an anomalous slot, which by definition
+        # holds a world.
+        eligible = [i for i in available_slots_indices
+                    if not (item['type'] == 'Empty'
+                            and slots_map[i]['slot']['type'] == 'anomalous')]
+        for slot_idx in eligible:
+            if remaining <= 0:
+                break
             slots_map[slot_idx]['body'] = item['type']
-            placed_count += 1
-
-            if item['type'] == 'Gas Giant' and mainworld_slot_idx != -1 and slot_idx == mainworld_slot_idx:
-                pass
+            available_slots_indices.remove(slot_idx)
+            remaining -= 1
 
     for slot_idx in available_slots_indices:
         slots_map[slot_idx]['body'] = 'Terrestrial'
-        
+
     primary_group = next((s for s in system.stars if not s.parent), None)
     for i in range(num_slots):
         slot_info = slots_map[i]

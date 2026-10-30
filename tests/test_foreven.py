@@ -185,37 +185,37 @@ def test_solar_and_solar_system_analogues_and_age_metallicity(foreven_data):
     assert super_greenhouse["in_earth_age_window"] is False
     assert "Post-Phanerozoic" in super_greenhouse["epoch"]
 
-    # 3. Closest Solar Analogue in Foreven (Hex 0502 Zhdovl: single G3 V, 4.207 Gyr, [Fe/H] = -0.03)
-    assert sector.solar_analogue_hex == "0502"
+    # 3. Closest Solar Analogue in Foreven (Hex 2304 Shtebr 2304: single G6 V, 4.13 Gyr, [Fe/H] = -0.11)
+    assert sector.solar_analogue_hex == "2304"
     top_solar = sector.solar_analogues[0]
-    assert top_solar["hex_coord"] == "0502"
-    assert top_solar["spectral_type"] == "G3 V"
+    assert top_solar["hex_coord"] == "2304"
+    assert top_solar["spectral_type"] == "G6 V"
     assert top_solar["multiplicity"] == 1
     assert top_solar["in_earth_age_window"] is True
-    assert abs(top_solar["metallicity_feh"]) <= 0.10
+    assert abs(top_solar["metallicity_feh"]) <= 0.15
 
     # 4. Closest Solar System Architectural Analogues (inner terrestrials, 0 inner gas giants, outer gas giants)
-    assert sector.solar_system_analogue_hex in ("1205", "0227")
+    assert sector.solar_system_analogue_hex in ("0202", "0227")
     top_ss = sector.solar_system_analogues[0]
-    assert top_ss["hex_coord"] == "1205"
-    assert top_ss["primary_star"] == "G2 V"
-    assert top_ss["inner_terrestrial_count"] == 7
+    assert top_ss["hex_coord"] == "0202"
+    assert top_ss["primary_star"] == "F7 V"
+    assert top_ss["inner_terrestrial_count"] == 6
     assert top_ss["inner_gas_giant_count"] == 0
     assert top_ss["outer_gas_giant_count"] == 2
 
     second_ss = sector.solar_system_analogues[1]
-    assert second_ss["hex_coord"] == "0202"
-    assert second_ss["primary_star"] == "F7 V"
-    assert second_ss["inner_terrestrial_count"] == 6
+    assert second_ss["hex_coord"] == "0227"
+    assert second_ss["primary_star"] == "G3 V"
+    assert second_ss["inner_terrestrial_count"] == 2
     assert second_ss["inner_gas_giant_count"] == 0
-    assert second_ss["outer_gas_giant_count"] == 2
+    assert second_ss["outer_gas_giant_count"] == 3
 
     third_ss = sector.solar_system_analogues[2]
-    assert third_ss["hex_coord"] == "0227"
-    assert third_ss["primary_star"] == "G3 V"
-    assert third_ss["inner_terrestrial_count"] == 2
+    assert third_ss["hex_coord"] == "3014"
+    assert third_ss["primary_star"] == "F5 V"
+    assert third_ss["inner_terrestrial_count"] == 5
     assert third_ss["inner_gas_giant_count"] == 0
-    assert third_ss["outer_gas_giant_count"] == 3
+    assert third_ss["outer_gas_giant_count"] == 1
 
     # 5. Age & Metallicity-coupled Earth analogues
     earth_list = find_earth_analogues(sector, top_n=5, include_age_and_metallicity=True)

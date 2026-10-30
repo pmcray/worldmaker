@@ -1,13 +1,18 @@
-import pandas as pd
 from typing import List, Dict, Any
 
 from .classes import StellarSystem, Sector, PlanetaryBody
 from .utils import Utils
+from .t5 import export_sector_t5_column, export_sector_t5_tab
 from .adventure import generate_system_adventure_seeds
 from .analogues import evaluate_planetary_age_habitability
 
-def create_system_dataframe(system: StellarSystem) -> pd.DataFrame:
-    """Creates a Pandas DataFrame summarizing all worlds in a stellar system ( Sol System Overview style)."""
+def create_system_dataframe(system: StellarSystem):
+    """Creates a Pandas DataFrame summarising all worlds in a stellar system.
+
+    pandas is imported here rather than at module level so the rest of the
+    package works without it."""
+    import pandas as pd
+
     rows = []
     
     # Traverse through stars and worlds in orbital sequence
@@ -70,6 +75,43 @@ def create_system_dataframe(system: StellarSystem) -> pd.DataFrame:
                 rows.append(row_sat)
                 
     return pd.DataFrame(rows)
+
+def create_sector_dataframe(sector: Sector):
+    """One row per system in a sector: the map's own table, sortable and
+    filterable. Includes the count of inhabited secondary worlds, which the
+    UWP alone never shows."""
+    import pandas as pd
+
+    from .t5 import t5_bases, t5_pbg, t5_stellar
+
+    rows = []
+    for hex_coord in sorted(sector.systems):
+        system = sector.systems[hex_coord]
+        mainworld = system.mainworld
+        if mainworld is None:
+            continue
+
+        secondaries = [b for b in system.all_bodies
+                       if getattr(b, 'is_secondary_world', False)]
+        rows.append({
+            "Hex": hex_coord,
+            "Name": mainworld.name or system.name,
+            "UWP": str(mainworld.uwp),
+            "Bases": t5_bases(system),
+            "Zone": system.travel_zone,
+            "Allegiance": system.allegiance,
+            "PBG": t5_pbg(system),
+            "Trade codes": " ".join(mainworld.trade_codes),
+            "Stars": t5_stellar(system),
+            "Worlds": len(system.all_worlds),
+            "Inhabited": 1 + len(secondaries),
+            "Pop": mainworld.total_population,
+            "Hab": mainworld.habitability_rating,
+            "Temp K": mainworld.mean_temperature,
+            "Nations": getattr(mainworld, 'nation_count', 0),
+        })
+    return pd.DataFrame(rows)
+
 
 def export_system_markdown(system: StellarSystem) -> str:
     """Returns a highly detailed markdown dossier for a stellar system including advanced WBH outputs."""
@@ -161,39 +203,10 @@ def export_system_markdown(system: StellarSystem) -> str:
     return "\n".join(md)
 
 def export_sector_sec_file(sector: Sector) -> str:
-    """Returns standard Travellermap-compliant .sec file data lines."""
-    lines = []
-    # Header format
-    lines.append(f"# Sector Data for {sector.name}")
-    if sector.subsector_names:
-        for letter, sname in sorted(sector.subsector_names.items()):
-            lines.append(f"# Subsector {letter}: {sname}")
-    lines.append("# Hex  Name                 UWP       Bases   Allegiance  Zone PBG   Notes")
-    lines.append("# ---- -------------------- --------- ------- ----------- ---- ----- -----")
-    
-    for hex_coord, system in sorted(sector.systems.items()):
-        mainworld = next((w for w in system.all_worlds if w.is_mainworld), None)
-        if not mainworld: continue
-        
-        disp_hex = (system.hex_coord or hex_coord).ljust(4)
-        name_str = system.name[:20].ljust(20)
-        uwp_str = str(mainworld.uwp).ljust(9)
-        
-        base_char = ""
-        if "Naval" in system.bases or "Zhodani Naval" in system.bases: base_char += "N"
-        if "Scout" in system.bases: base_char += "S"
-        if "Military" in system.bases or "Zhodani Base" in system.bases: base_char += "M"
-        base_str = base_char.ljust(7)
-        
-        alleg_str = system.allegiance.ljust(11)
-        zone_str = (system.travel_zone or "-").ljust(4)
-        pbg_str = (system.pbg or "000").ljust(5)
-        
-        tcodes_str = " ".join(mainworld.trade_codes)
-        
-        lines.append(f"{disp_hex} {name_str} {uwp_str} {base_str} {alleg_str} {zone_str} {pbg_str} {tcodes_str}")
-        
-    return "\n".join(lines)
+    """Column-exact Traveller5 Second Survey sector data, as accepted by
+    travellermap.com. See worldmaker.t5 for the format and the field
+    derivations."""
+    return export_sector_t5_column(sector)
 
 
 def export_foreven_gazetteer_markdown(sector: Sector) -> str:
@@ -322,7 +335,7 @@ def export_foreven_gazetteer_markdown(sector: Sector) -> str:
 def export_system_html(system: StellarSystem) -> str:
     """Returns a rich, CSS-styled HTML card presentation of a stellar system suitable for IPython/Jupyter rendering."""
     primary = system.primary_star
-    mainworld = next((w for w in system.all_worlds if w.is_mainworld), None)
+    mainworld = system.mainworld
     
     html = []
     html.append("""
@@ -603,4 +616,3 @@ def export_system_html(system: StellarSystem) -> str:
     html.append('</div>')
 
     return "".join(html)
-
