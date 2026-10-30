@@ -1,5 +1,6 @@
 import random
 import math
+import html
 from typing import List, Dict, Any, Tuple, Optional
 
 from .classes import Sector, StellarSystem, Wave, Sophont, PlanetaryBody, Satellite
@@ -134,10 +135,25 @@ def generate_sector(width=8, height=10):
     define_polities(sector)
     generate_bases(sector)
     calculate_routes(sector)
+
+    from .analogues import (
+        find_solar_analogues,
+        find_solar_system_analogues,
+        find_earth_analogues,
+    )
+    sector.solar_analogues = find_solar_analogues(sector, top_n=10)
+    if sector.solar_analogues:
+        sector.solar_analogue_hex = sector.solar_analogues[0]["hex_coord"]
+    sector.solar_system_analogues = find_solar_system_analogues(sector, top_n=10)
+    if sector.solar_system_analogues:
+        sector.solar_system_analogue_hex = sector.solar_system_analogues[0]["hex_coord"]
+    sector.earth_analogues = find_earth_analogues(sector, top_n=10)
+    if sector.earth_analogues and not sector.erith_hex:
+        sector.erith_hex = sector.earth_analogues[0]["hex_coord"]
     
     return sector
 
-def generate_sector_svg(subsectors):
+def generate_sector_svg(subsectors, full_sector: Optional[Sector] = None):
     """Renders a combined sector vector map of Traveller systems using mathematically exact flat-topped hexes."""
     grid_cols = 32
     grid_rows = 40
@@ -154,19 +170,28 @@ def generate_sector_svg(subsectors):
     svg += '''<style>
     .hex { stroke: #888; stroke-width: 0.5; fill: #fff; transition: all 0.15s ease; }
     .hex-fill-Im { fill: #ffe0e0; }
-    .hex-fill-Zh { fill: #e0e0ff; }
+    .hex-fill-Cs { fill: #ffd6d6; }
+    .hex-fill-Zh { fill: #e0e4ff; }
     .hex-fill-Av { fill: #ffeec0; }
+    .hex-fill-He { fill: #f3d1ff; }
+    .hex-fill-Fe { fill: #d4f7dc; }
+    .hex-fill-Hl { fill: #e8f5c8; }
+    .hex-fill-Tl { fill: #ffdcc4; }
     .hex-fill-Na { fill: #ffffff; }
     .hex-group { cursor: pointer; }
     .hex-group:hover .hex { stroke: #0284c7 !important; stroke-width: 2 !important; fill: #38bdf8 !important; }
-    .hex_text { font-family: "Courier New", monospace; font-size: 6px; text-anchor: middle; fill: #333; }
-    .coord_text { font-size: 5px; fill: #777; }
-    .uwp_text { font-size: 5px; fill: #111; font-weight: bold; }
+    .hex_text { font-family: "Courier New", monospace; font-size: 5.5px; text-anchor: middle; fill: #222; }
+    .coord_text { font-size: 4.8px; fill: #666; }
+    .uwp_text { font-size: 4.8px; fill: #111; font-weight: bold; }
     .world-icon { stroke: #333; stroke-width: 0.5; }
-    .gas-giant { fill: #d4a0a0; stroke: none; }
-    .base-icon { font-size: 8px; fill: #333; }
-    .route-major { stroke: #2ecc71; stroke-width: 2; opacity: 0.6; }
-    .route-minor { stroke: #2ecc71; stroke-width: 1; opacity: 0.4; }
+    .gas-giant { fill: #444; stroke: none; }
+    .base-icon { font-size: 7px; fill: #222; }
+    .zone-amber { fill: none; stroke: #f59e0b; stroke-width: 1.2; stroke-dasharray: 2, 1; }
+    .zone-red { fill: none; stroke: #dc2626; stroke-width: 1.4; }
+    .route-major { stroke: #16a34a; stroke-width: 1.8; opacity: 0.65; pointer-events: none; }
+    .route-minor { stroke: #0284c7; stroke-width: 1.0; stroke-dasharray: 2, 2; opacity: 0.5; pointer-events: none; }
+    .subsector-grid { stroke: #334155; stroke-width: 1.2; stroke-dasharray: 4, 3; fill: none; opacity: 0.55; pointer-events: none; }
+    .subsector-watermark { font-family: "Georgia", serif; font-size: 16px; font-weight: bold; fill: #1e293b; opacity: 0.16; text-anchor: middle; pointer-events: none; }
 </style>
 '''
     
@@ -184,29 +209,36 @@ def generate_sector_svg(subsectors):
 
     # 1. Draw Routes
     all_routes = []
-    for subsector_row in range(4):
-        for subsector_col in range(4):
-            subsector_index = subsector_row * 4 + subsector_col
-            if subsector_index >= len(subsectors): continue
-            subsector = subsectors[subsector_index]
-            
-            for h1, h2, rtype in subsector.routes:
-                c1, r1 = hex_to_coords(h1)
-                c2, r2 = hex_to_coords(h2)
+    if full_sector and full_sector.routes:
+        for h1, h2, rtype in full_sector.routes:
+            c1, r1 = hex_to_coords(h1)
+            c2, r2 = hex_to_coords(h2)
+            x1, y1 = get_hex_center(c1 - 1, r1 - 1)
+            x2, y2 = get_hex_center(c2 - 1, r2 - 1)
+            all_routes.append(f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" class="route-{rtype}" />')
+    else:
+        for subsector_row in range(4):
+            for subsector_col in range(4):
+                subsector_index = subsector_row * 4 + subsector_col
+                if subsector_index >= len(subsectors): continue
+                subsector = subsectors[subsector_index]
                 
-                g_c1 = subsector_col * 8 + (c1 - 1)
-                g_r1 = subsector_row * 10 + (r1 - 1)
-                g_c2 = subsector_col * 8 + (c2 - 1)
-                g_r2 = subsector_row * 10 + (r2 - 1)
-                
-                x1, y1 = get_hex_center(g_c1, g_r1)
-                x2, y2 = get_hex_center(g_c2, g_r2)
-                
-                all_routes.append(f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" class="route-{rtype}" />')
-
-    svg += '\n'.join(all_routes) + '\n'
+                for h1, h2, rtype in subsector.routes:
+                    c1, r1 = hex_to_coords(h1)
+                    c2, r2 = hex_to_coords(h2)
+                    
+                    g_c1 = subsector_col * 8 + (c1 - 1)
+                    g_r1 = subsector_row * 10 + (r1 - 1)
+                    g_c2 = subsector_col * 8 + (c2 - 1)
+                    g_r2 = subsector_row * 10 + (r2 - 1)
+                    
+                    x1, y1 = get_hex_center(g_c1, g_r1)
+                    x2, y2 = get_hex_center(g_c2, g_r2)
+                    
+                    all_routes.append(f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" class="route-{rtype}" />')
 
     # 2. Draw Hexes & Systems
+    valid_allegiances = {'Im', 'Cs', 'Zh', 'Av', 'He', 'Fe', 'Hl', 'Tl'}
     for subsector_row in range(4):
         for subsector_col in range(4):
             subsector_index = subsector_row * 4 + subsector_col
@@ -226,7 +258,7 @@ def generate_sector_svg(subsectors):
                     
                     fill_class = "hex-fill-Na"
                     if system:
-                        fill_class = f"hex-fill-{system.allegiance}" if system.allegiance in ['Im', 'Zh', 'Av'] else "hex-fill-Na"
+                        fill_class = f"hex-fill-{system.allegiance}" if system.allegiance in valid_allegiances else "hex-fill-Na"
 
                     # Hex corners (flat-topped)
                     points = []
@@ -239,17 +271,36 @@ def generate_sector_svg(subsectors):
                     tooltip_title = f"Hex {hex_coord}"
                     if system:
                         mw = next((w for w in system.all_worlds if w.is_mainworld), None)
+                        secondary_count = max(0, len(system.all_worlds) - 1)
+                        moon_count = sum(len([s for s in w.satellites if not s.is_ring]) for w in system.all_worlds)
                         if mw:
-                            tooltip_title += f": {mw.name}\nUWP: {mw.uwp}\nAllegiance: {system.allegiance}\nBases: {', '.join(system.bases) if system.bases else 'None'}\nGas Giants: {system.gas_giant_count}\nTrade Codes: {', '.join(mw.trade_codes) if mw.trade_codes else 'None'}"
+                            tooltip_title += (
+                                f": {mw.name}\n"
+                                f"Subsector: {system.subsector_code or ''} ({system.subsector_name or subsector.name})\n"
+                                f"UWP: {mw.uwp} | PBG: {system.pbg or 'N/A'}\n"
+                                f"Allegiance: {system.allegiance} | Zone: {system.travel_zone or 'Green'}\n"
+                                f"Bases: {', '.join(system.bases) if system.bases else 'None'}\n"
+                                f"Stars: {', '.join(s.spectral_type for s in system.stars if not s.is_composite)}\n"
+                                f"Secondary Worlds: {secondary_count} (Gas Giants: {system.gas_giant_count}, Belts: {system.planetoid_belt_count}, Moons: {moon_count})\n"
+                                f"Trade Codes: {', '.join(mw.trade_codes) if mw.trade_codes else 'None'}\n"
+                                f"Settlement: {system.settlement_epoch} - {system.settlement_wave}"
+                            )
+                            if system.historical_notes:
+                                tooltip_title += f"\nLore: {system.historical_notes[0]}"
 
-                    svg += f'<g class="hex-group"><title>{tooltip_title}</title>\n'
+                    svg += f'<g class="hex-group"><title>{html.escape(tooltip_title)}</title>\n'
                     svg += f'<polygon class="hex {fill_class}" points="{" ".join(points)}"/>\n'
                     
                     # Coordinate text at top
-                    svg += f'<text x="{x}" y="{y - 8}" class="hex_text coord_text">{hex_coord}</text>\n'
+                    svg += f'<text x="{x}" y="{y - 8}" class="hex_text coord_text">{html.escape(str(hex_coord))}</text>\n'
                     
                     # Details
                     if system:
+                        if system.travel_zone == "R":
+                            svg += f'<circle cx="{x}" cy="{y}" r="14" class="zone-red" />\n'
+                        elif system.travel_zone == "A":
+                            svg += f'<circle cx="{x}" cy="{y}" r="14" class="zone-amber" />\n'
+
                         mainworld = next((w for w in system.all_worlds if w.is_mainworld), None)
                         if mainworld:
                             # 1. World Icon
@@ -268,20 +319,27 @@ def generate_sector_svg(subsectors):
                             base_symbol = ""
                             if "Naval" in system.bases or "Zhodani Naval" in system.bases: base_symbol += "★"
                             if "Scout" in system.bases: base_symbol += "▲"
+                            if "Military" in system.bases or "Zhodani Base" in system.bases: base_symbol += "■"
                             if "Pirate" in system.bases: base_symbol += "☠"
                             if base_symbol:
                                 svg += f'<text x="{x-9}" y="{y-4}" class="base-icon">{base_symbol}</text>\n'
 
                             # 4. Name and UWP
-                            svg += f'<text x="{x}" y="{y+6}" class="hex_text">{mainworld.name[:7].upper()}</text>\n'
-                            svg += f'<text x="{x}" y="{y+12}" class="hex_text uwp_text">{mainworld.uwp}</text>\n'
+                            svg += f'<text x="{x}" y="{y+6}" class="hex_text">{html.escape(mainworld.name[:9].upper())}</text>\n'
+                            svg += f'<text x="{x}" y="{y+12}" class="hex_text uwp_text">{html.escape(str(mainworld.uwp))}</text>\n'
 
                     svg += '</g>\n'
 
+            # Subsector watermark label
+            sub_cx, sub_cy = get_hex_center(subsector_col * 8 + 3.5, subsector_row * 10 + 4.5)
+            svg += f'<text x="{sub_cx}" y="{sub_cy}" class="subsector-watermark">{html.escape(subsector.name.upper())}</text>\n'
+
+    # Overlay routes so they are visible above opaque hex fills without blocking hover tooltips
+    svg += '\n'.join(all_routes) + '\n'
     svg += '</svg>'
     return svg
 
-def generate_subsector_svg(subsector, name="Subsector Map"):
+def generate_subsector_svg(subsector, name="Subsector Map", subsector_col: int = 0, subsector_row: int = 0):
     """Renders a single subsector in the classic 1981 Traveller De Luxe print style."""
     grid_cols = 8
     grid_rows = 10
@@ -306,7 +364,7 @@ def generate_subsector_svg(subsector, name="Subsector Map"):
     .subsector-title { font-family: "Georgia", serif; font-size: 18px; font-weight: bold; fill: #000; text-anchor: middle; }
     .subsector-subtitle { font-family: "Georgia", serif; font-style: italic; font-size: 11px; fill: #555; text-anchor: middle; }
     .classic-hex { stroke: #000; stroke-width: 0.8; fill: none; transition: all 0.2s ease; }
-    .classic-hex-filled { fill: #fcfbfa; }
+    .classic-hex-filled { fill: #fcfbfa; fill-opacity: 0.75; }
     .hex-group { cursor: pointer; }
     .hex-group:hover .classic-hex { stroke: #0284c7 !important; stroke-width: 2.5 !important; fill: #e0f2fe !important; }
     .hex-group:hover .classic-world-dot { fill: #0284c7 !important; r: 5; }
@@ -315,17 +373,20 @@ def generate_subsector_svg(subsector, name="Subsector Map"):
     .classic-text { font-family: "Courier New", monospace; font-size: 7px; text-anchor: middle; fill: #000; font-weight: bold; }
     .classic-coord { font-size: 6px; fill: #555; font-weight: normal; }
     .classic-uwp { font-size: 6px; fill: #333; font-weight: bold; }
+    .classic-alleg { font-size: 5.5px; fill: #444; font-weight: normal; }
     .classic-world-dot { fill: #000; stroke: #000; stroke-width: 1; transition: all 0.2s ease; }
     .classic-gas-ring { fill: none; stroke: #000; stroke-width: 1; }
-    .classic-base { font-family: "Courier New", monospace; font-size: 9px; fill: #000; font-weight: bold; }
+    .classic-zone-amber { fill: none; stroke: #d97706; stroke-width: 1.5; stroke-dasharray: 3, 2; }
+    .classic-zone-red { fill: none; stroke: #b91c1c; stroke-width: 1.8; }
+    .classic-base { font-family: "Courier New", monospace; font-size: 8px; fill: #000; font-weight: bold; }
     .classic-route-major { stroke: #000; stroke-width: 1.5; fill: none; }
     .classic-route-minor { stroke: #000; stroke-width: 0.8; stroke-dasharray: 2, 2; fill: none; }
 </style>
 '''
     
     # Title Block
-    svg += f'<text x="{svg_width / 2}" y="35" class="subsector-title">{name.upper()}</text>\n'
-    svg += f'<text x="{svg_width / 2}" y="52" class="subsector-subtitle">IISS Survey Grid - Traveller 1981 De Luxe Style</text>\n'
+    svg += f'<text x="{svg_width / 2}" y="35" class="subsector-title">{html.escape(name.upper())}</text>\n'
+    svg += f'<text x="{svg_width / 2}" y="52" class="subsector-subtitle">Foreven Sector (Iakr) — Year 1107 IISS Survey Grid</text>\n'
 
     def get_hex_center(col_idx, row_idx):
         x = col_idx * col_width + hex_radius + left_padding
@@ -348,8 +409,10 @@ def generate_subsector_svg(subsector, name="Subsector Map"):
     for row in range(grid_rows):
         for col in range(grid_cols):
             x, y = get_hex_center(col, row)
-            hex_coord = f"{col + 1:02d}{row + 1:02d}"
-            system = subsector.systems.get(hex_coord)
+            local_coord = f"{col + 1:02d}{row + 1:02d}"
+            global_coord = f"{subsector_col * 8 + col + 1:02d}{subsector_row * 10 + row + 1:02d}"
+            system = subsector.systems.get(local_coord)
+            disp_coord = system.hex_coord if (system and system.hex_coord) else global_coord
             
             # Hex corners (flat-topped)
             points = []
@@ -361,19 +424,34 @@ def generate_subsector_svg(subsector, name="Subsector Map"):
             
             fill_class = "classic-hex-filled" if system else ""
             
-            tooltip_title = f"Hex {hex_coord}"
+            tooltip_title = f"Hex {disp_coord}"
             if system:
                 mw = next((w for w in system.all_worlds if w.is_mainworld), None)
+                secondary_count = max(0, len(system.all_worlds) - 1)
                 if mw:
-                    tooltip_title += f": {mw.name}\nUWP: {mw.uwp}\nAllegiance: {system.allegiance}\nBases: {', '.join(system.bases) if system.bases else 'None'}\nGas Giants: {system.gas_giant_count}\nTrade Codes: {', '.join(mw.trade_codes) if mw.trade_codes else 'None'}"
+                    tooltip_title += (
+                        f": {mw.name}\n"
+                        f"UWP: {mw.uwp} | Allegiance: {system.allegiance}\n"
+                        f"Bases: {', '.join(system.bases) if system.bases else 'None'}\n"
+                        f"Secondary Worlds: {secondary_count} (Gas Giants: {system.gas_giant_count}, Belts: {system.planetoid_belt_count})\n"
+                        f"Trade Codes: {', '.join(mw.trade_codes) if mw.trade_codes else 'None'}\n"
+                        f"History: {system.settlement_epoch} ({system.settlement_wave})"
+                    )
+                    if system.historical_notes:
+                        tooltip_title += f"\nLore: {system.historical_notes[0]}"
             
-            svg += f'<g class="hex-group"><title>{tooltip_title}</title>\n'
+            svg += f'<g class="hex-group"><title>{html.escape(tooltip_title)}</title>\n'
             svg += f'<polygon class="classic-hex {fill_class}" points="{" ".join(points)}"/>\n'
             
             # Draw tiny coordinate at top of hex
-            svg += f'<text x="{x}" y="{y - hex_radius/1.6}" class="classic-text classic-coord">{hex_coord}</text>\n'
+            svg += f'<text x="{x}" y="{y - hex_radius/1.6}" class="classic-text classic-coord">{html.escape(str(disp_coord))}</text>\n'
             
             if system:
+                if system.travel_zone == "R":
+                    svg += f'<circle cx="{x}" cy="{y}" r="19" class="classic-zone-red" />\n'
+                elif system.travel_zone == "A":
+                    svg += f'<circle cx="{x}" cy="{y}" r="19" class="classic-zone-amber" />\n'
+
                 mainworld = next((w for w in system.all_worlds if w.is_mainworld), None)
                 if mainworld:
                     # System dot: solid black circle
@@ -389,15 +467,19 @@ def generate_subsector_svg(subsector, name="Subsector Map"):
                         base_str += "★"
                     if "Scout" in system.bases:
                         base_str += "▲"
+                    if "Military" in system.bases or "Zhodani Base" in system.bases:
+                        base_str += "■"
                     if base_str:
-                        svg += f'<text x="{x - 12}" y="{y - 5}" class="classic-base">{base_str}</text>\n'
+                        svg += f'<text x="{x - 14}" y="{y - 4}" class="classic-base">{base_str}</text>\n'
+                    if system.allegiance:
+                        svg += f'<text x="{x + 12}" y="{y - 4}" class="classic-text classic-alleg">{html.escape(str(system.allegiance))}</text>\n'
                         
                     # World name in ALL CAPS under center
-                    world_name = mainworld.name.upper()[:10]
-                    svg += f'<text x="{x}" y="{y + 10}" class="classic-text">{world_name}</text>\n'
+                    world_name = mainworld.name.upper()[:11]
+                    svg += f'<text x="{x}" y="{y + 11}" class="classic-text">{html.escape(world_name)}</text>\n'
                     
                     # UWP under name
-                    svg += f'<text x="{x}" y="{y + 17}" class="classic-text classic-uwp">{mainworld.uwp}</text>\n'
+                    svg += f'<text x="{x}" y="{y + 18}" class="classic-text classic-uwp">{html.escape(str(mainworld.uwp))}</text>\n'
             
             svg += '</g>\n'
 
@@ -407,14 +489,14 @@ def generate_subsector_svg(subsector, name="Subsector Map"):
     # Labels across top and bottom
     for col in range(grid_cols):
         cx = col * col_width + hex_radius + left_padding
-        svg += f'<text x="{cx}" y="{top_padding - 12}" class="grid-label">{col + 1:02d}</text>\n'
-        svg += f'<text x="{cx}" y="{top_padding + grid_height + 12}" class="grid-label">{col + 1:02d}</text>\n'
+        svg += f'<text x="{cx}" y="{top_padding - 12}" class="grid-label">{subsector_col * 8 + col + 1:02d}</text>\n'
+        svg += f'<text x="{cx}" y="{top_padding + grid_height + 12}" class="grid-label">{subsector_col * 8 + col + 1:02d}</text>\n'
         
     # Labels down sides
     for row in range(grid_rows):
         cy = row * row_height + row_height / 2 + top_padding
-        svg += f'<text x="{left_padding - 15}" y="{cy}" class="grid-label">{row + 1:02d}</text>\n'
-        svg += f'<text x="{left_padding + grid_width + 15}" y="{cy}" class="grid-label">{row + 1:02d}</text>\n'
+        svg += f'<text x="{left_padding - 15}" y="{cy}" class="grid-label">{subsector_row * 10 + row + 1:02d}</text>\n'
+        svg += f'<text x="{left_padding + grid_width + 15}" y="{cy}" class="grid-label">{subsector_row * 10 + row + 1:02d}</text>\n'
         
     svg += '</svg>'
     return svg

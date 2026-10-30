@@ -4,6 +4,7 @@ from typing import List, Dict, Any
 from .classes import StellarSystem, Sector, PlanetaryBody
 from .utils import Utils
 from .adventure import generate_system_adventure_seeds
+from .analogues import evaluate_planetary_age_habitability
 
 def create_system_dataframe(system: StellarSystem) -> pd.DataFrame:
     """Creates a Pandas DataFrame summarizing all worlds in a stellar system ( Sol System Overview style)."""
@@ -73,9 +74,23 @@ def create_system_dataframe(system: StellarSystem) -> pd.DataFrame:
 def export_system_markdown(system: StellarSystem) -> str:
     """Returns a highly detailed markdown dossier for a stellar system including advanced WBH outputs."""
     md = []
-    md.append(f"# Stellar Dossier: {system.name}")
-    md.append(f"* **Estimated Age**: {system.age_gyr} Gyr")
+    header_loc = f" (Hex {system.hex_coord} — Subsector {system.subsector_code}: {system.subsector_name})" if system.hex_coord else ""
+    md.append(f"# Stellar Dossier: {system.name}{header_loc}")
+    if system.allegiance:
+        md.append(f"* **Allegiance**: `{system.allegiance}` | **Travel Zone**: `{system.travel_zone or 'Green'}` | **PBG**: `{system.pbg or 'N/A'}`")
+    if system.bases:
+        md.append(f"* **Bases**: {', '.join(system.bases)}")
+    if system.settlement_epoch or system.settlement_wave:
+        md.append(f"* **Macro-Historical Settlement**: {system.settlement_epoch} — *{system.settlement_wave}* (Pop DM `{system.population_dm:+d}`)")
+    p_mass = system.primary_star.mass if system.primary_star and system.primary_star.mass > 0 else 1.0
+    age_eval = evaluate_planetary_age_habitability(system.age_gyr, p_mass)
+    md.append(f"* **Estimated Age**: {system.age_gyr} Gyr (*{age_eval['epoch']}*)")
+    md.append(f"* **Stellar Metallicity `[Fe/H]`**: `{system.metallicity_feh:+.2f} dex` (Sol = `0.00 dex`)")
     md.append(f"* **Stellar Configuration**: {', '.join([f'{s.designation} ({s.spectral_type})' for s in system.stars if not s.is_composite])}")
+    if system.historical_notes:
+        md.append("* **Historical & Geopolitical Notes (1107)**:")
+        for hnote in system.historical_notes:
+            md.append(f"  * {hnote}")
     md.append("")
     
     md.append("## Star Breakdown")
@@ -86,6 +101,7 @@ def export_system_markdown(system: StellarSystem) -> str:
         md.append(f"* **Diameter**: {round(star.diameter, 3)} Solar Diameters")
         md.append(f"* **Luminosity**: {round(star.luminosity, 4)} Solar Luminosities")
         md.append(f"* **Temperature**: {int(star.temp_k)} K")
+        md.append(f"* **Metallicity `[Fe/H]`**: `{star.metallicity_feh:+.2f} dex`")
         md.append(f"* **Habitable Zone Center Orbit (HZCO)**: Orbit {round(star.hzco, 2)} ({round(Utils.orbit_to_au(star.hzco), 3)} AU)")
         md.append(f"* **Minimum Allowable Orbit (MAO)**: Orbit {round(star.mao, 2)}")
         md.append("")
@@ -149,34 +165,159 @@ def export_sector_sec_file(sector: Sector) -> str:
     lines = []
     # Header format
     lines.append(f"# Sector Data for {sector.name}")
-    lines.append("# Hex Name         UWP       Bases   Allegiance  Notes")
-    lines.append("# ---- ------------ --------- ------- ----------- -----")
+    if sector.subsector_names:
+        for letter, sname in sorted(sector.subsector_names.items()):
+            lines.append(f"# Subsector {letter}: {sname}")
+    lines.append("# Hex  Name                 UWP       Bases   Allegiance  Zone PBG   Notes")
+    lines.append("# ---- -------------------- --------- ------- ----------- ---- ----- -----")
     
-    for hex_coord, system in sector.systems.items():
+    for hex_coord, system in sorted(sector.systems.items()):
         mainworld = next((w for w in system.all_worlds if w.is_mainworld), None)
         if not mainworld: continue
         
-        # Format spacing to match standard .sec layout
-        # Col 1: Hex (4 chars)
-        # Col 6: Name (12 chars)
-        # Col 19: UWP (9 chars)
-        # Col 29: Bases (2 chars)
-        # Col 37: Allegiance (2 chars)
-        name_str = system.name.ljust(12)
+        disp_hex = (system.hex_coord or hex_coord).ljust(4)
+        name_str = system.name[:20].ljust(20)
         uwp_str = str(mainworld.uwp).ljust(9)
         
         base_char = ""
         if "Naval" in system.bases or "Zhodani Naval" in system.bases: base_char += "N"
         if "Scout" in system.bases: base_char += "S"
+        if "Military" in system.bases or "Zhodani Base" in system.bases: base_char += "M"
         base_str = base_char.ljust(7)
         
         alleg_str = system.allegiance.ljust(11)
+        zone_str = (system.travel_zone or "-").ljust(4)
+        pbg_str = (system.pbg or "000").ljust(5)
         
         tcodes_str = " ".join(mainworld.trade_codes)
         
-        lines.append(f"{hex_coord} {name_str} {uwp_str} {base_str} {alleg_str} {tcodes_str}")
+        lines.append(f"{disp_hex} {name_str} {uwp_str} {base_str} {alleg_str} {zone_str} {pbg_str} {tcodes_str}")
         
     return "\n".join(lines)
+
+
+def export_foreven_gazetteer_markdown(sector: Sector) -> str:
+    """Exports a comprehensive Gazetteer & Macro-History Dossier for the Foreven Sector (1107)."""
+    md = []
+    total_worlds = sum(len(s.all_worlds) for s in sector.systems.values())
+    total_secondary = sum(max(0, len(s.all_worlds) - 1) for s in sector.systems.values())
+    total_moons = sum(sum(len([m for m in w.satellites if not m.is_ring]) for w in s.all_worlds) for s in sector.systems.values())
+
+    md.append(f"# {sector.name} — Comprehensive Sector Gazetteer & Macro-History")
+    md.append("")
+    md.append("## 1. Sector Overview (Imperial Year 1107)")
+    md.append(f"* **Total Star Systems**: {len(sector.systems)} (all canonical FFE Reserve star coordinates)")
+    md.append(f"* **Total Planetary Bodies**: {total_worlds} ({len(sector.systems)} Mainworlds + {total_secondary} Secondary Worlds + {total_moons} Major/Minor Moons)")
+    md.append(f"* **Most Earth-like World ('Erith')**: Hex `{sector.erith_hex}`")
+    if sector.solar_analogue_hex and sector.solar_analogue_hex in sector.systems:
+        sol_s = sector.systems[sector.solar_analogue_hex]
+        md.append(f"* **Closest Solar Analogue Star**: Hex `{sector.solar_analogue_hex}` ({sol_s.name} — `{sol_s.primary_star.spectral_type}`, {sol_s.age_gyr} Gyr, `[Fe/H] = {sol_s.metallicity_feh:+.2f} dex`)")
+    if sector.solar_system_analogue_hex and sector.solar_system_analogue_hex in sector.systems:
+        ss_s = sector.systems[sector.solar_system_analogue_hex]
+        md.append(f"* **Closest Solar System Architectural Analogue**: Hex `{sector.solar_system_analogue_hex}` ({ss_s.name} — `{ss_s.primary_star.spectral_type}`, {ss_s.terrestrial_planet_count} Terrestrials, {ss_s.gas_giant_count} Gas Giants, {ss_s.planetoid_belt_count} Belts)")
+    md.append(f"* **Interstellar Trade & Comm Routes**: {len(sector.routes)}")
+    md.append("")
+
+    md.append("## 2. Subsectors of Foreven (Iakr)")
+    md.append("| Code | Subsector Name | Systems | Dominant Allegiance | Historical & Geopolitical Character |")
+    md.append("| :--- | :--- | :---: | :---: | :--- |")
+    for letter, sname in sorted(sector.subsector_names.items()):
+        sub_sys = [s for s in sector.systems.values() if s.subsector_code == letter]
+        allegs = {}
+        waves = {}
+        for s in sub_sys:
+            allegs[s.allegiance] = allegs.get(s.allegiance, 0) + 1
+            waves[s.settlement_wave] = waves.get(s.settlement_wave, 0) + 1
+        dom_alleg = max(allegs, key=allegs.get) if allegs else "Na"
+        wave_sample = max(waves, key=waves.get) if waves else "Frontier"
+        md.append(f"| **{letter}** | **{sname}** | {len(sub_sys)} | `{dom_alleg}` | {wave_sample} |")
+    md.append("")
+
+    md.append("## 3. Five-Epoch Deep Macro-History (-300,000 to 1107)")
+    for ep in sector.macro_history:
+        md.append(f"### {ep['epoch']} (`{ep['dates']}`)")
+        md.append(ep["summary"])
+        md.append("")
+
+    md.append("## 4. Major & Minor Polities (1107)")
+    for pol in sector.polities:
+        md.append(f"### {pol.name} (`{pol.allegiance_code}`)")
+        md.append(f"* **Capital Hex**: `{pol.capital_hex}` | **Type**: {pol.polity_type} | **Controlled Systems**: {len(pol.controlled_systems)}")
+    md.append("")
+
+    md.append("## 5. Major & Indigenous Sophont Species")
+    for hex_c, soph in sorted(sector.native_sophonts.items()):
+        md.append(f"### {soph.name} (Homeworld Hex `{hex_c}`)")
+        md.append(f"* **Morphology**: {soph.morphology} ({soph.limbs})")
+        md.append(f"* **Senses & Diet**: {', '.join(soph.sensory_organs)} | {soph.diet}")
+        md.append(f"* **Psychology**: {soph.psychology}")
+        md.append(f"* **Historical Summary**: {soph.history_summary}")
+        md.append("")
+
+    md.append("## 6. Key Canonical & Referee-Preserve Anchor Worlds")
+    highlight_hexes = [
+        sector.erith_hex, "1212", "1618", "2523", "3229", "3230", "3018",
+        "1636", "1630", "1432", "1734", "2135", "1938",
+        "1628", "1528", "0131", "0232", "0332", "2835", "2834", "0720",
+    ]
+    seen = set()
+    for h in highlight_hexes:
+        if not h or h in seen or h not in sector.systems:
+            continue
+        seen.add(h)
+        sys = sector.systems[h]
+        mw = next((w for w in sys.all_worlds if w.is_mainworld), None)
+        if not mw:
+            continue
+        sec_worlds = [w for w in sys.all_worlds if not w.is_mainworld]
+        md.append(f"### Hex {h}: {sys.name} (`{mw.uwp}`, Allegiance `{sys.allegiance}`, Subsector {sys.subsector_code}: {sys.subsector_name})")
+        md.append(f"* **Primary/Companion Stars**: {', '.join(f'{s.designation} ({s.spectral_type})' for s in sys.stars if not s.is_composite)}")
+        md.append(f"* **System Inventory**: 1 Mainworld (`{mw.designation}`), {len(sec_worlds)} Secondary Worlds ({sys.gas_giant_count} Gas Giants, {sys.planetoid_belt_count} Planetoid Belts)")
+        if sys.historical_notes:
+            md.append(f"* **Lore**: {sys.historical_notes[0]}")
+        md.append("")
+
+    if sector.solar_analogues or sector.solar_system_analogues:
+        md.append("## 7. Solar, Solar System & Age-Coupled Earth Analogues")
+        if sector.solar_analogues:
+            md.append("### 7.1 Closest Solar Analogue Stars (Spectral/Luminosity Class, Age & Metallicity)")
+            md.append("| Rank | Hex | System | Stars | Mass ($M_\\odot$) | Lum ($L_\\odot$) | $T_{\\text{eff}}$ (K) | Age (Gyr) | `[Fe/H]` | Evolutionary Epoch | Score |")
+            md.append("| :---: | :---: | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :--- | :---: |")
+            for idx, sa in enumerate(sector.solar_analogues[:5], 1):
+                stars_str = ", ".join(sa["all_stars"])
+                md.append(
+                    f"| {idx} | `{sa['hex_coord']}` | **{sa['name']}** | `{stars_str}` | "
+                    f"{sa['mass']:.2f} | {sa['luminosity']:.2f} | {sa['temp_k']} | "
+                    f"{sa['age_gyr']:.2f} | `{sa['metallicity_feh']:+.2f}` | {sa['geological_epoch']} | {sa['score']:.1f} |"
+                )
+            md.append("")
+
+        if sector.solar_system_analogues:
+            md.append("### 7.2 Closest Solar System Architectural Analogues (Inner Terrestrials & Outer Gas Giants)")
+            md.append("| Rank | Hex | System | Primary | Age (Gyr) | `[Fe/H]` | Inner T | Inner G | Outer G | Belts | Score |")
+            md.append("| :---: | :---: | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |")
+            for idx, ssa in enumerate(sector.solar_system_analogues[:5], 1):
+                md.append(
+                    f"| {idx} | `{ssa['hex_coord']}` | **{ssa['name']}** | `{ssa['primary_star']}` | "
+                    f"{ssa['age_gyr']:.2f} | `{ssa['metallicity_feh']:+.2f}` | "
+                    f"{ssa['inner_terrestrial_count']} | {ssa['inner_gas_giant_count']} | "
+                    f"{ssa['outer_gas_giant_count']} | {ssa['planetoid_belt_count']} | {ssa['score']:.1f} |"
+                )
+            md.append("")
+
+        if sector.earth_analogues:
+            md.append("### 7.3 Top Age & Metallicity-Coupled Earth Analogue Candidates (Unmutated)")
+            md.append("| Rank | Hex | System / World | UWP | Star | Orbit (AU) | Temp (K) | Age (Gyr) | `[Fe/H]` | Evolutionary Epoch | Score |")
+            md.append("| :---: | :---: | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :--- | :---: |")
+            for idx, ea in enumerate(sector.earth_analogues[:5], 1):
+                md.append(
+                    f"| {idx} | `{ea['hex_coord']}` | **{ea['system_name']}** (`{ea['designation']}`) | `{ea['uwp']}` | "
+                    f"`{ea['primary_star']}` | {ea['orbit_au']:.2f} | {ea['mean_temperature_k']:.1f} | "
+                    f"{ea['age_gyr']:.2f} | `{ea['metallicity_feh']:+.2f}` | {ea['geological_epoch']} | {ea['score']:.1f} |"
+                )
+            md.append("")
+
+    return "\n".join(md)
 
 def export_system_html(system: StellarSystem) -> str:
     """Returns a rich, CSS-styled HTML card presentation of a stellar system suitable for IPython/Jupyter rendering."""

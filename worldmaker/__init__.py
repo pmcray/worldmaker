@@ -29,7 +29,34 @@ from .society import (
 from .sophont import get_major_race, generate_minor_race
 from .polity import define_polities, generate_bases
 from .sector import generate_sector, generate_sector_svg, generate_subsector_svg
-from .exporters import create_system_dataframe, export_system_markdown, export_sector_sec_file, export_system_html
+from .foreven import (
+    generate_foreven_sector,
+    FOREVEN_RESERVE_HEXES,
+    FOREVEN_ZHODANI_HEXES,
+    FOREVEN_SUBSECTORS,
+    FOREVEN_MACRO_HISTORY,
+    FOREVEN_FIXED_SYSTEMS,
+    SUBSECTOR_J_BARREN_ANOMALY,
+)
+from .analogues import (
+    SOL_BENCHMARK,
+    SOL_PLANET_SLOTS,
+    calculate_stellar_metallicity,
+    evaluate_planetary_age_habitability,
+    compute_solar_analogue_score,
+    find_solar_analogues,
+    compute_solar_system_analogue_score,
+    find_solar_system_analogues,
+    compute_coupled_earth_similarity_score,
+    find_earth_analogues,
+)
+from .exporters import (
+    create_system_dataframe,
+    export_system_markdown,
+    export_sector_sec_file,
+    export_system_html,
+    export_foreven_gazetteer_markdown,
+)
 from .visualization import plot_system_orbit_diagram
 from .visualization_3d import plot_system_3d_orbit_diagram
 from .trade_network import plot_subsector_trade_network

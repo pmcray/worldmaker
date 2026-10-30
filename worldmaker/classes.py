@@ -145,6 +145,7 @@ class Star:
     diameter: float = 0.0 # Solar diameters
     luminosity: float = 0.0 # Solar luminosity
     temp_k: float = 0.0
+    metallicity_feh: float = 0.0 # [Fe/H] in dex (Sol = 0.00)
     # Orbital info if secondary
     parent: Optional['Star'] = None
     orbit_class: str = "" # Close, Near, Far, Companion
@@ -161,6 +162,7 @@ class Star:
 class StellarSystem:
     name: str = "Generated System"
     age_gyr: float = 0.0
+    metallicity_feh: float = 0.0 # [Fe/H] in dex (Sol = 0.00)
     stars: List[Star] = field(default_factory=list)
     gas_giant_count: int = 0
     planetoid_belt_count: int = 0
@@ -173,6 +175,15 @@ class StellarSystem:
     spread: float = 0.0
     allegiance: str = "Na"
     bases: List[str] = field(default_factory=list)
+    hex_coord: str = ""
+    subsector_code: str = ""
+    subsector_name: str = ""
+    travel_zone: str = ""  # "", "A" (Amber), "R" (Red)
+    settlement_epoch: str = ""
+    settlement_wave: str = ""
+    population_dm: int = 0
+    historical_notes: List[str] = field(default_factory=list)
+    pbg: str = ""
 
     @property
     def primary_star(self):
@@ -195,3 +206,12 @@ class Sector:
     native_sophonts: Dict[str, Sophont] = field(default_factory=dict)
     settlement_waves: List[Wave] = field(default_factory=list)
     routes: List[Tuple[str, str, str]] = field(default_factory=list) # (hex1, hex2, type)
+    subsector_names: Dict[str, str] = field(default_factory=dict)
+    polities: List[Polity] = field(default_factory=list)
+    macro_history: List[Dict[str, Any]] = field(default_factory=list)
+    erith_hex: str = ""
+    solar_analogue_hex: str = ""
+    solar_system_analogue_hex: str = ""
+    solar_analogues: List[Dict[str, Any]] = field(default_factory=list)
+    solar_system_analogues: List[Dict[str, Any]] = field(default_factory=list)
+    earth_analogues: List[Dict[str, Any]] = field(default_factory=list)

@@ -217,3 +217,7 @@ def generate_stellar_system_stars(system: StellarSystem):
     else:
         system.age_gyr = lifespan * (Utils.d10() / 10.0)
     system.age_gyr = round(max(0.1, min(system.age_gyr, 13.5)), 3)
+
+    # Initial stellar metallicity [Fe/H] (refined once gas giant count is known)
+    from .analogues import calculate_stellar_metallicity
+    calculate_stellar_metallicity(system)

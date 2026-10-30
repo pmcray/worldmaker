@@ -3,7 +3,7 @@
     .subsector-title { font-family: "Georgia", serif; font-size: 18px; font-weight: bold; fill: #000; text-anchor: middle; }
     .subsector-subtitle { font-family: "Georgia", serif; font-style: italic; font-size: 11px; fill: #555; text-anchor: middle; }
     .classic-hex { stroke: #000; stroke-width: 0.8; fill: none; transition: all 0.2s ease; }
-    .classic-hex-filled { fill: #fcfbfa; }
+    .classic-hex-filled { fill: #fcfbfa; fill-opacity: 0.75; }
     .hex-group { cursor: pointer; }
     .hex-group:hover .classic-hex { stroke: #0284c7 !important; stroke-width: 2.5 !important; fill: #e0f2fe !important; }
     .hex-group:hover .classic-world-dot { fill: #0284c7 !important; r: 5; }
@@ -12,844 +12,707 @@
     .classic-text { font-family: "Courier New", monospace; font-size: 7px; text-anchor: middle; fill: #000; font-weight: bold; }
     .classic-coord { font-size: 6px; fill: #555; font-weight: normal; }
     .classic-uwp { font-size: 6px; fill: #333; font-weight: bold; }
+    .classic-alleg { font-size: 5.5px; fill: #444; font-weight: normal; }
     .classic-world-dot { fill: #000; stroke: #000; stroke-width: 1; transition: all 0.2s ease; }
     .classic-gas-ring { fill: none; stroke: #000; stroke-width: 1; }
-    .classic-base { font-family: "Courier New", monospace; font-size: 9px; fill: #000; font-weight: bold; }
+    .classic-zone-amber { fill: none; stroke: #d97706; stroke-width: 1.5; stroke-dasharray: 3, 2; }
+    .classic-zone-red { fill: none; stroke: #b91c1c; stroke-width: 1.8; }
+    .classic-base { font-family: "Courier New", monospace; font-size: 8px; fill: #000; font-weight: bold; }
     .classic-route-major { stroke: #000; stroke-width: 1.5; fill: none; }
     .classic-route-minor { stroke: #000; stroke-width: 0.8; stroke-dasharray: 2, 2; fill: none; }
 </style>
-<text x="225.0" y="35" class="subsector-title">SUBSECTOR F</text>
-<text x="225.0" y="52" class="subsector-subtitle">IISS Survey Grid - Traveller 1981 De Luxe Style</text>
-<line x1="78.0" y1="201.2435565298214" x2="78.0" y2="249.74097914175" class="classic-route-major" />
-<line x1="78.0" y1="201.2435565298214" x2="120.0" y2="176.99484522385714" class="classic-route-major" />
-<line x1="78.0" y1="201.2435565298214" x2="120.0" y2="225.4922678357857" class="classic-route-major" />
-<line x1="78.0" y1="249.74097914175" x2="120.0" y2="225.4922678357857" class="classic-route-major" />
-<line x1="78.0" y1="346.7358243656071" x2="78.0" y2="395.23324697753566" class="classic-route-major" />
-<line x1="78.0" y1="395.23324697753566" x2="78.0" y2="443.7306695894642" class="classic-route-major" />
-<line x1="78.0" y1="395.23324697753566" x2="120.0" y2="419.4819582834999" class="classic-route-major" />
-<line x1="78.0" y1="443.7306695894642" x2="120.0" y2="419.4819582834999" class="classic-route-major" />
-<line x1="78.0" y1="443.7306695894642" x2="120.0" y2="467.97938089542845" class="classic-route-major" />
-<line x1="120.0" y1="128.49742261192856" x2="120.0" y2="176.99484522385714" class="classic-route-major" />
-<line x1="120.0" y1="128.49742261192856" x2="162.0" y2="104.24871130596428" class="classic-route-major" />
-<line x1="120.0" y1="128.49742261192856" x2="162.0" y2="152.74613391789285" class="classic-route-major" />
-<line x1="120.0" y1="176.99484522385714" x2="120.0" y2="225.4922678357857" class="classic-route-major" />
-<line x1="120.0" y1="176.99484522385714" x2="162.0" y2="152.74613391789285" class="classic-route-major" />
-<line x1="120.0" y1="176.99484522385714" x2="162.0" y2="201.2435565298214" class="classic-route-major" />
-<line x1="120.0" y1="225.4922678357857" x2="162.0" y2="201.2435565298214" class="classic-route-major" />
-<line x1="120.0" y1="225.4922678357857" x2="162.0" y2="249.74097914175" class="classic-route-major" />
-<line x1="120.0" y1="419.4819582834999" x2="120.0" y2="467.97938089542845" class="classic-route-major" />
-<line x1="120.0" y1="419.4819582834999" x2="162.0" y2="395.23324697753566" class="classic-route-major" />
-<line x1="162.0" y1="104.24871130596428" x2="162.0" y2="152.74613391789285" class="classic-route-major" />
-<line x1="162.0" y1="104.24871130596428" x2="204.0" y2="128.49742261192856" class="classic-route-major" />
-<line x1="162.0" y1="152.74613391789285" x2="162.0" y2="201.2435565298214" class="classic-route-major" />
-<line x1="162.0" y1="152.74613391789285" x2="204.0" y2="128.49742261192856" class="classic-route-major" />
+<text x="225.0" y="35" class="subsector-title">SUBSECTOR F: TLEBRIA</text>
+<text x="225.0" y="52" class="subsector-subtitle">Foreven Sector (Iakr) — Year 1107 IISS Survey Grid</text>
+<line x1="78.0" y1="104.24871130596428" x2="120.0" y2="176.99484522385714" class="classic-route-minor" />
+<line x1="78.0" y1="249.74097914175" x2="78.0" y2="298.23840175367854" class="classic-route-minor" />
+<line x1="78.0" y1="298.23840175367854" x2="120.0" y2="370.98453567157134" class="classic-route-minor" />
+<line x1="78.0" y1="298.23840175367854" x2="162.0" y2="298.23840175367854" class="classic-route-minor" />
+<line x1="120.0" y1="176.99484522385714" x2="162.0" y2="152.74613391789285" class="classic-route-minor" />
+<line x1="120.0" y1="176.99484522385714" x2="204.0" y2="176.99484522385714" class="classic-route-minor" />
+<line x1="120.0" y1="370.98453567157134" x2="162.0" y2="298.23840175367854" class="classic-route-minor" />
+<line x1="120.0" y1="370.98453567157134" x2="204.0" y2="370.98453567157134" class="classic-route-minor" />
+<line x1="162.0" y1="104.24871130596428" x2="162.0" y2="152.74613391789285" class="classic-route-minor" />
+<line x1="162.0" y1="104.24871130596428" x2="204.0" y2="176.99484522385714" class="classic-route-minor" />
 <line x1="162.0" y1="152.74613391789285" x2="204.0" y2="176.99484522385714" class="classic-route-major" />
-<line x1="162.0" y1="201.2435565298214" x2="162.0" y2="249.74097914175" class="classic-route-major" />
-<line x1="162.0" y1="201.2435565298214" x2="204.0" y2="176.99484522385714" class="classic-route-major" />
-<line x1="162.0" y1="201.2435565298214" x2="204.0" y2="225.4922678357857" class="classic-route-major" />
-<line x1="162.0" y1="249.74097914175" x2="162.0" y2="298.23840175367854" class="classic-route-major" />
-<line x1="162.0" y1="249.74097914175" x2="204.0" y2="225.4922678357857" class="classic-route-major" />
-<line x1="162.0" y1="249.74097914175" x2="204.0" y2="273.9896904477143" class="classic-route-major" />
-<line x1="162.0" y1="298.23840175367854" x2="204.0" y2="273.9896904477143" class="classic-route-major" />
-<line x1="162.0" y1="298.23840175367854" x2="204.0" y2="322.4871130596428" class="classic-route-major" />
-<line x1="162.0" y1="395.23324697753566" x2="204.0" y2="419.4819582834999" class="classic-route-major" />
-<line x1="162.0" y1="540.7255148133213" x2="204.0" y2="516.4768035073571" class="classic-route-major" />
-<line x1="204.0" y1="128.49742261192856" x2="204.0" y2="176.99484522385714" class="classic-route-major" />
-<line x1="204.0" y1="128.49742261192856" x2="246.0" y2="104.24871130596428" class="classic-route-major" />
-<line x1="204.0" y1="128.49742261192856" x2="246.0" y2="152.74613391789285" class="classic-route-major" />
-<line x1="204.0" y1="176.99484522385714" x2="204.0" y2="225.4922678357857" class="classic-route-major" />
+<line x1="162.0" y1="298.23840175367854" x2="204.0" y2="273.9896904477143" class="classic-route-minor" />
+<line x1="162.0" y1="298.23840175367854" x2="204.0" y2="370.98453567157134" class="classic-route-minor" />
+<line x1="162.0" y1="298.23840175367854" x2="246.0" y2="346.7358243656071" class="classic-route-minor" />
+<line x1="204.0" y1="176.99484522385714" x2="204.0" y2="273.9896904477143" class="classic-route-minor" />
 <line x1="204.0" y1="176.99484522385714" x2="246.0" y2="152.74613391789285" class="classic-route-major" />
-<line x1="204.0" y1="225.4922678357857" x2="204.0" y2="273.9896904477143" class="classic-route-major" />
-<line x1="204.0" y1="225.4922678357857" x2="246.0" y2="249.74097914175" class="classic-route-major" />
-<line x1="204.0" y1="273.9896904477143" x2="204.0" y2="322.4871130596428" class="classic-route-major" />
-<line x1="204.0" y1="273.9896904477143" x2="246.0" y2="249.74097914175" class="classic-route-major" />
-<line x1="204.0" y1="273.9896904477143" x2="246.0" y2="298.23840175367854" class="classic-route-major" />
-<line x1="204.0" y1="322.4871130596428" x2="246.0" y2="298.23840175367854" class="classic-route-major" />
-<line x1="204.0" y1="419.4819582834999" x2="246.0" y2="395.23324697753566" class="classic-route-major" />
-<line x1="204.0" y1="516.4768035073571" x2="246.0" y2="492.22809220139277" class="classic-route-major" />
-<line x1="246.0" y1="104.24871130596428" x2="246.0" y2="152.74613391789285" class="classic-route-major" />
-<line x1="246.0" y1="152.74613391789285" x2="288.0" y2="176.99484522385714" class="classic-route-major" />
-<line x1="246.0" y1="249.74097914175" x2="246.0" y2="298.23840175367854" class="classic-route-major" />
-<line x1="246.0" y1="249.74097914175" x2="288.0" y2="225.4922678357857" class="classic-route-major" />
-<line x1="246.0" y1="395.23324697753566" x2="288.0" y2="370.98453567157134" class="classic-route-major" />
-<line x1="246.0" y1="492.22809220139277" x2="288.0" y2="467.97938089542845" class="classic-route-major" />
-<line x1="288.0" y1="176.99484522385714" x2="288.0" y2="225.4922678357857" class="classic-route-major" />
-<line x1="288.0" y1="370.98453567157134" x2="330.0" y2="346.7358243656071" class="classic-route-major" />
-<line x1="288.0" y1="370.98453567157134" x2="330.0" y2="395.23324697753566" class="classic-route-major" />
-<line x1="288.0" y1="467.97938089542845" x2="330.0" y2="492.22809220139277" class="classic-route-major" />
-<line x1="330.0" y1="104.24871130596428" x2="372.0" y2="128.49742261192856" class="classic-route-major" />
-<line x1="330.0" y1="346.7358243656071" x2="330.0" y2="395.23324697753566" class="classic-route-major" />
-<line x1="330.0" y1="346.7358243656071" x2="372.0" y2="370.98453567157134" class="classic-route-major" />
-<line x1="330.0" y1="395.23324697753566" x2="372.0" y2="370.98453567157134" class="classic-route-major" />
-<line x1="330.0" y1="492.22809220139277" x2="330.0" y2="540.7255148133213" class="classic-route-major" />
-<line x1="330.0" y1="492.22809220139277" x2="372.0" y2="516.4768035073571" class="classic-route-major" />
-<line x1="330.0" y1="540.7255148133213" x2="372.0" y2="516.4768035073571" class="classic-route-minor" />
-<line x1="330.0" y1="540.7255148133213" x2="372.0" y2="564.9742261192856" class="classic-route-minor" />
-<g class="hex-group"><title>Hex 0101</title>
-<polygon class="classic-hex " points="106.0,104.24871130596428 92.0,128.49742261192856 64.0,128.49742261192856 50.0,104.24871130596428 63.999999999999986,80.0 91.99999999999999,79.99999999999999"/>
-<text x="78.0" y="86.74871130596428" class="classic-text classic-coord">0101</text>
+<line x1="204.0" y1="176.99484522385714" x2="288.0" y2="128.49742261192856" class="classic-route-minor" />
+<line x1="204.0" y1="176.99484522385714" x2="288.0" y2="176.99484522385714" class="classic-route-minor" />
+<line x1="204.0" y1="273.9896904477143" x2="204.0" y2="370.98453567157134" class="classic-route-minor" />
+<line x1="204.0" y1="370.98453567157134" x2="246.0" y2="346.7358243656071" class="classic-route-major" />
+<line x1="246.0" y1="152.74613391789285" x2="288.0" y2="176.99484522385714" class="classic-route-minor" />
+<line x1="288.0" y1="128.49742261192856" x2="288.0" y2="176.99484522385714" class="classic-route-minor" />
+<line x1="330.0" y1="492.22809220139277" x2="372.0" y2="467.97938089542845" class="classic-route-minor" />
+<line x1="372.0" y1="467.97938089542845" x2="372.0" y2="516.4768035073571" class="classic-route-minor" />
+<line x1="372.0" y1="516.4768035073571" x2="372.0" y2="564.9742261192856" class="classic-route-minor" />
+<g class="hex-group"><title>Hex 0911: Qlaqlech-09
+UWP: B741420-8 | Allegiance: Zh
+Bases: Zhodani Naval, Zhodani Base
+Secondary Worlds: 8 (Gas Giants: 0, Belts: 0)
+Trade Codes: Ni, Po
+History: Epoch IV (600–700) (Zhodani Post-Frontier-War Thin Wave)
+Lore: Macro-History: Epoch IV (600–700) — Zhodani Post-Frontier-War Thin Wave (Pop DM -1).</title>
+<polygon class="classic-hex classic-hex-filled" points="106.0,104.24871130596428 92.0,128.49742261192856 64.0,128.49742261192856 50.0,104.24871130596428 63.999999999999986,80.0 91.99999999999999,79.99999999999999"/>
+<text x="78.0" y="86.74871130596428" class="classic-text classic-coord">0911</text>
+<circle cx="78.0" cy="104.24871130596428" r="3.5" class="classic-world-dot" />
+<text x="64.0" y="100.24871130596428" class="classic-base">★■</text>
+<text x="90.0" y="100.24871130596428" class="classic-text classic-alleg">Zh</text>
+<text x="78.0" y="115.24871130596428" class="classic-text">QLAQLECH-09</text>
+<text x="78.0" y="122.24871130596428" class="classic-text classic-uwp">B741420-8</text>
 </g>
-<g class="hex-group"><title>Hex 0201: Goria
-UWP: C563EFL-5
-Allegiance: Zh
-Bases: None
-Gas Giants: 4
-Trade Codes: Hi, Lt</title>
-<polygon class="classic-hex classic-hex-filled" points="148.0,128.49742261192856 134.0,152.74613391789285 106.0,152.74613391789285 92.0,128.49742261192856 105.99999999999999,104.24871130596428 133.99999999999997,104.24871130596426"/>
-<text x="120.0" y="110.99742261192856" class="classic-text classic-coord">0201</text>
-<circle cx="120.0" cy="128.49742261192856" r="3.5" class="classic-world-dot" />
-<circle cx="120.0" cy="128.49742261192856" r="6.5" class="classic-gas-ring" />
-<text x="120.0" y="138.49742261192856" class="classic-text">GORIA</text>
-<text x="120.0" y="145.49742261192856" class="classic-text classic-uwp">C563EFL-5</text>
+<g class="hex-group"><title>Hex 1011</title>
+<polygon class="classic-hex " points="148.0,128.49742261192856 134.0,152.74613391789285 106.0,152.74613391789285 92.0,128.49742261192856 105.99999999999999,104.24871130596428 133.99999999999997,104.24871130596426"/>
+<text x="120.0" y="110.99742261192856" class="classic-text classic-coord">1011</text>
 </g>
-<g class="hex-group"><title>Hex 0301: Coren
-UWP: C8D9HEG-6
-Allegiance: Zh
+<g class="hex-group"><title>Hex 1111: Flesht 1111
+UWP: D566224-7 | Allegiance: Zh
 Bases: None
-Gas Giants: 2
-Trade Codes: Fl</title>
+Secondary Worlds: 8 (Gas Giants: 6, Belts: 0)
+Trade Codes: Lo
+History: Epoch IV (600–700) (Zhodani Post-Frontier-War Thin Wave)
+Lore: Macro-History: Epoch IV (600–700) — Zhodani Post-Frontier-War Thin Wave (Pop DM -1).</title>
 <polygon class="classic-hex classic-hex-filled" points="190.0,104.24871130596428 176.0,128.49742261192856 148.0,128.49742261192856 134.0,104.24871130596428 148.0,80.0 175.99999999999997,79.99999999999999"/>
-<text x="162.0" y="86.74871130596428" class="classic-text classic-coord">0301</text>
+<text x="162.0" y="86.74871130596428" class="classic-text classic-coord">1111</text>
 <circle cx="162.0" cy="104.24871130596428" r="3.5" class="classic-world-dot" />
 <circle cx="162.0" cy="104.24871130596428" r="6.5" class="classic-gas-ring" />
-<text x="162.0" y="114.24871130596428" class="classic-text">COREN</text>
-<text x="162.0" y="121.24871130596428" class="classic-text classic-uwp">C8D9HEG-6</text>
+<text x="174.0" y="100.24871130596428" class="classic-text classic-alleg">Zh</text>
+<text x="162.0" y="115.24871130596428" class="classic-text">FLESHT 1111</text>
+<text x="162.0" y="122.24871130596428" class="classic-text classic-uwp">D566224-7</text>
 </g>
-<g class="hex-group"><title>Hex 0401: Isha
-UWP: B683B8B-8
-Allegiance: Zh
+<g class="hex-group"><title>Hex 1211</title>
+<polygon class="classic-hex " points="232.0,128.49742261192856 218.0,152.74613391789285 190.0,152.74613391789285 176.0,128.49742261192856 190.0,104.24871130596428 217.99999999999997,104.24871130596426"/>
+<text x="204.0" y="110.99742261192856" class="classic-text classic-coord">1211</text>
+</g>
+<g class="hex-group"><title>Hex 1311</title>
+<polygon class="classic-hex " points="274.0,104.24871130596428 260.0,128.49742261192856 232.0,128.49742261192856 218.0,104.24871130596428 232.0,80.0 260.0,79.99999999999999"/>
+<text x="246.0" y="86.74871130596428" class="classic-text classic-coord">1311</text>
+</g>
+<g class="hex-group"><title>Hex 1411: Tleshia 1411
+UWP: C677230-8 | Allegiance: Zh
 Bases: None
-Gas Giants: 2
-Trade Codes: Hi</title>
-<polygon class="classic-hex classic-hex-filled" points="232.0,128.49742261192856 218.0,152.74613391789285 190.0,152.74613391789285 176.0,128.49742261192856 190.0,104.24871130596428 217.99999999999997,104.24871130596426"/>
-<text x="204.0" y="110.99742261192856" class="classic-text classic-coord">0401</text>
-<circle cx="204.0" cy="128.49742261192856" r="3.5" class="classic-world-dot" />
-<circle cx="204.0" cy="128.49742261192856" r="6.5" class="classic-gas-ring" />
-<text x="204.0" y="138.49742261192856" class="classic-text">ISHA</text>
-<text x="204.0" y="145.49742261192856" class="classic-text classic-uwp">B683B8B-8</text>
+Secondary Worlds: 5 (Gas Giants: 2, Belts: 0)
+Trade Codes: Lo
+History: Epoch IV (600–700) (Zhodani Post-Frontier-War Thin Wave)
+Lore: Macro-History: Epoch IV (600–700) — Zhodani Post-Frontier-War Thin Wave (Pop DM -1).</title>
+<polygon class="classic-hex classic-hex-filled" points="316.0,128.49742261192856 302.0,152.74613391789285 274.0,152.74613391789285 260.0,128.49742261192856 274.0,104.24871130596428 302.0,104.24871130596426"/>
+<text x="288.0" y="110.99742261192856" class="classic-text classic-coord">1411</text>
+<circle cx="288.0" cy="128.49742261192856" r="3.5" class="classic-world-dot" />
+<circle cx="288.0" cy="128.49742261192856" r="6.5" class="classic-gas-ring" />
+<text x="300.0" y="124.49742261192856" class="classic-text classic-alleg">Zh</text>
+<text x="288.0" y="139.49742261192856" class="classic-text">TLESHIA 141</text>
+<text x="288.0" y="146.49742261192856" class="classic-text classic-uwp">C677230-8</text>
 </g>
-<g class="hex-group"><title>Hex 0501: Morel
-UWP: D234ABA-A
-Allegiance: Zh
-Bases: None
-Gas Giants: 2
-Trade Codes: Hi</title>
-<polygon class="classic-hex classic-hex-filled" points="274.0,104.24871130596428 260.0,128.49742261192856 232.0,128.49742261192856 218.0,104.24871130596428 232.0,80.0 260.0,79.99999999999999"/>
-<text x="246.0" y="86.74871130596428" class="classic-text classic-coord">0501</text>
-<circle cx="246.0" cy="104.24871130596428" r="3.5" class="classic-world-dot" />
-<circle cx="246.0" cy="104.24871130596428" r="6.5" class="classic-gas-ring" />
-<text x="246.0" y="114.24871130596428" class="classic-text">MOREL</text>
-<text x="246.0" y="121.24871130596428" class="classic-text classic-uwp">D234ABA-A</text>
+<g class="hex-group"><title>Hex 1511</title>
+<polygon class="classic-hex " points="358.0,104.24871130596428 344.0,128.49742261192856 316.0,128.49742261192856 302.0,104.24871130596428 316.0,80.0 344.0,79.99999999999999"/>
+<text x="330.0" y="86.74871130596428" class="classic-text classic-coord">1511</text>
 </g>
-<g class="hex-group"><title>Hex 0601</title>
-<polygon class="classic-hex " points="316.0,128.49742261192856 302.0,152.74613391789285 274.0,152.74613391789285 260.0,128.49742261192856 274.0,104.24871130596428 302.0,104.24871130596426"/>
-<text x="288.0" y="110.99742261192856" class="classic-text classic-coord">0601</text>
+<g class="hex-group"><title>Hex 1611</title>
+<polygon class="classic-hex " points="400.0,128.49742261192856 386.0,152.74613391789285 358.0,152.74613391789285 344.0,128.49742261192856 358.0,104.24871130596428 386.0,104.24871130596426"/>
+<text x="372.0" y="110.99742261192856" class="classic-text classic-coord">1611</text>
 </g>
-<g class="hex-group"><title>Hex 0701: Loror
-UWP: C635BBF-7
-Allegiance: Zh
-Bases: None
-Gas Giants: 3
-Trade Codes: Hi</title>
-<polygon class="classic-hex classic-hex-filled" points="358.0,104.24871130596428 344.0,128.49742261192856 316.0,128.49742261192856 302.0,104.24871130596428 316.0,80.0 344.0,79.99999999999999"/>
-<text x="330.0" y="86.74871130596428" class="classic-text classic-coord">0701</text>
-<circle cx="330.0" cy="104.24871130596428" r="3.5" class="classic-world-dot" />
-<circle cx="330.0" cy="104.24871130596428" r="6.5" class="classic-gas-ring" />
-<text x="330.0" y="114.24871130596428" class="classic-text">LOROR</text>
-<text x="330.0" y="121.24871130596428" class="classic-text classic-uwp">C635BBF-7</text>
-</g>
-<g class="hex-group"><title>Hex 0801: Arden
-UWP: A534D98-C
-Allegiance: Zh
-Bases: Zhodani Base
-Gas Giants: 3
-Trade Codes: Hi, Ht</title>
-<polygon class="classic-hex classic-hex-filled" points="400.0,128.49742261192856 386.0,152.74613391789285 358.0,152.74613391789285 344.0,128.49742261192856 358.0,104.24871130596428 386.0,104.24871130596426"/>
-<text x="372.0" y="110.99742261192856" class="classic-text classic-coord">0801</text>
-<circle cx="372.0" cy="128.49742261192856" r="3.5" class="classic-world-dot" />
-<circle cx="372.0" cy="128.49742261192856" r="6.5" class="classic-gas-ring" />
-<text x="372.0" y="138.49742261192856" class="classic-text">ARDEN</text>
-<text x="372.0" y="145.49742261192856" class="classic-text classic-uwp">A534D98-C</text>
-</g>
-<g class="hex-group"><title>Hex 0102</title>
+<g class="hex-group"><title>Hex 0912</title>
 <polygon class="classic-hex " points="106.0,152.74613391789285 92.0,176.99484522385714 64.0,176.99484522385714 50.0,152.74613391789285 63.999999999999986,128.49742261192858 91.99999999999999,128.49742261192856"/>
-<text x="78.0" y="135.24613391789285" class="classic-text classic-coord">0102</text>
+<text x="78.0" y="135.24613391789285" class="classic-text classic-coord">0912</text>
 </g>
-<g class="hex-group"><title>Hex 0202: Zoria
-UWP: C457EEG-7
-Allegiance: Zh
+<g class="hex-group"><title>Hex 1012: Dlazh-10
+UWP: D8A7666-8 | Allegiance: Zh
 Bases: None
-Gas Giants: 4
-Trade Codes: Hi</title>
+Secondary Worlds: 6 (Gas Giants: 3, Belts: 0)
+Trade Codes: Fl, Ni
+History: Epoch IV (600–700) (Zhodani Post-Frontier-War Thin Wave)
+Lore: Macro-History: Epoch IV (600–700) — Zhodani Post-Frontier-War Thin Wave (Pop DM -1).</title>
 <polygon class="classic-hex classic-hex-filled" points="148.0,176.99484522385714 134.0,201.24355652982143 106.0,201.24355652982143 92.0,176.99484522385714 105.99999999999999,152.74613391789288 133.99999999999997,152.74613391789285"/>
-<text x="120.0" y="159.49484522385714" class="classic-text classic-coord">0202</text>
+<text x="120.0" y="159.49484522385714" class="classic-text classic-coord">1012</text>
 <circle cx="120.0" cy="176.99484522385714" r="3.5" class="classic-world-dot" />
 <circle cx="120.0" cy="176.99484522385714" r="6.5" class="classic-gas-ring" />
-<text x="120.0" y="186.99484522385714" class="classic-text">ZORIA</text>
-<text x="120.0" y="193.99484522385714" class="classic-text classic-uwp">C457EEG-7</text>
+<text x="132.0" y="172.99484522385714" class="classic-text classic-alleg">Zh</text>
+<text x="120.0" y="187.99484522385714" class="classic-text">DLAZH-10</text>
+<text x="120.0" y="194.99484522385714" class="classic-text classic-uwp">D8A7666-8</text>
 </g>
-<g class="hex-group"><title>Hex 0302: Vera
-UWP: D565CED-6
-Allegiance: Zh
+<g class="hex-group"><title>Hex 1112: Tlanzh-11
+UWP: C444334-A | Allegiance: Zh
 Bases: None
-Gas Giants: 3
-Trade Codes: Hi</title>
+Secondary Worlds: 8 (Gas Giants: 3, Belts: 2)
+Trade Codes: Lo
+History: Epoch IV (600–700) (Zhodani Post-Frontier-War Thin Wave)
+Lore: Macro-History: Epoch IV (600–700) — Zhodani Post-Frontier-War Thin Wave (Pop DM -1).</title>
 <polygon class="classic-hex classic-hex-filled" points="190.0,152.74613391789285 176.0,176.99484522385714 148.0,176.99484522385714 134.0,152.74613391789285 148.0,128.49742261192858 175.99999999999997,128.49742261192856"/>
-<text x="162.0" y="135.24613391789285" class="classic-text classic-coord">0302</text>
+<text x="162.0" y="135.24613391789285" class="classic-text classic-coord">1112</text>
 <circle cx="162.0" cy="152.74613391789285" r="3.5" class="classic-world-dot" />
 <circle cx="162.0" cy="152.74613391789285" r="6.5" class="classic-gas-ring" />
-<text x="162.0" y="162.74613391789285" class="classic-text">VERA</text>
-<text x="162.0" y="169.74613391789285" class="classic-text classic-uwp">D565CED-6</text>
+<text x="174.0" y="148.74613391789285" class="classic-text classic-alleg">Zh</text>
+<text x="162.0" y="163.74613391789285" class="classic-text">TLANZH-11</text>
+<text x="162.0" y="170.74613391789285" class="classic-text classic-uwp">C444334-A</text>
 </g>
-<g class="hex-group"><title>Hex 0402: Noris
-UWP: E424DEK-5
-Allegiance: Zh
-Bases: None
-Gas Giants: 0
-Trade Codes: Hi, In, Lt</title>
+<g class="hex-group"><title>Hex 1212: Zdovesil
+UWP: A65588A-9 | Allegiance: Zh
+Bases: Zhodani Naval, Zhodani Base
+Secondary Worlds: 4 (Gas Giants: 3, Belts: 0)
+Trade Codes: Ga
+History: Epoch II (-4000) (Zhodani Coreward Heartland)
+Lore: Canonical Zhodani provincial capital for Iakr (Foreven) Sector within Iadr Nsobl Province.</title>
 <polygon class="classic-hex classic-hex-filled" points="232.0,176.99484522385714 218.0,201.24355652982143 190.0,201.24355652982143 176.0,176.99484522385714 190.0,152.74613391789288 217.99999999999997,152.74613391789285"/>
-<text x="204.0" y="159.49484522385714" class="classic-text classic-coord">0402</text>
+<text x="204.0" y="159.49484522385714" class="classic-text classic-coord">1212</text>
 <circle cx="204.0" cy="176.99484522385714" r="3.5" class="classic-world-dot" />
-<text x="204.0" y="186.99484522385714" class="classic-text">NORIS</text>
-<text x="204.0" y="193.99484522385714" class="classic-text classic-uwp">E424DEK-5</text>
+<circle cx="204.0" cy="176.99484522385714" r="6.5" class="classic-gas-ring" />
+<text x="190.0" y="172.99484522385714" class="classic-base">★■</text>
+<text x="216.0" y="172.99484522385714" class="classic-text classic-alleg">Zh</text>
+<text x="204.0" y="187.99484522385714" class="classic-text">ZDOVESIL</text>
+<text x="204.0" y="194.99484522385714" class="classic-text classic-uwp">A65588A-9</text>
 </g>
-<g class="hex-group"><title>Hex 0502: Boror
-UWP: C330DHM-9
-Allegiance: Zh
+<g class="hex-group"><title>Hex 1312: Zhdorv-13
+UWP: E000300-B | Allegiance: Zh
 Bases: None
-Gas Giants: 4
-Trade Codes: De, Hi, Na, Po</title>
+Secondary Worlds: 15 (Gas Giants: 4, Belts: 2)
+Trade Codes: As, Lo, Va
+History: Epoch IV (600–700) (Zhodani Post-Frontier-War Thin Wave)
+Lore: Macro-History: Epoch IV (600–700) — Zhodani Post-Frontier-War Thin Wave (Pop DM -1).</title>
 <polygon class="classic-hex classic-hex-filled" points="274.0,152.74613391789285 260.0,176.99484522385714 232.0,176.99484522385714 218.0,152.74613391789285 232.0,128.49742261192858 260.0,128.49742261192856"/>
-<text x="246.0" y="135.24613391789285" class="classic-text classic-coord">0502</text>
+<text x="246.0" y="135.24613391789285" class="classic-text classic-coord">1312</text>
 <circle cx="246.0" cy="152.74613391789285" r="3.5" class="classic-world-dot" />
 <circle cx="246.0" cy="152.74613391789285" r="6.5" class="classic-gas-ring" />
-<text x="246.0" y="162.74613391789285" class="classic-text">BOROR</text>
-<text x="246.0" y="169.74613391789285" class="classic-text classic-uwp">C330DHM-9</text>
+<text x="258.0" y="148.74613391789285" class="classic-text classic-alleg">Zh</text>
+<text x="246.0" y="163.74613391789285" class="classic-text">ZHDORV-13</text>
+<text x="246.0" y="170.74613391789285" class="classic-text classic-uwp">E000300-B</text>
 </g>
-<g class="hex-group"><title>Hex 0602: Morar
-UWP: B100CEB-A
-Allegiance: Zh
+<g class="hex-group"><title>Hex 1412: Chiepavr 1412
+UWP: C430540-A | Allegiance: Zh
 Bases: None
-Gas Giants: 2
-Trade Codes: Hi, In, Na, Va</title>
+Secondary Worlds: 10 (Gas Giants: 2, Belts: 3)
+Trade Codes: De, Ni, Po
+History: Epoch IV (600–700) (Zhodani Post-Frontier-War Thin Wave)
+Lore: Macro-History: Epoch IV (600–700) — Zhodani Post-Frontier-War Thin Wave (Pop DM -1).</title>
 <polygon class="classic-hex classic-hex-filled" points="316.0,176.99484522385714 302.0,201.24355652982143 274.0,201.24355652982143 260.0,176.99484522385714 274.0,152.74613391789288 302.0,152.74613391789285"/>
-<text x="288.0" y="159.49484522385714" class="classic-text classic-coord">0602</text>
+<text x="288.0" y="159.49484522385714" class="classic-text classic-coord">1412</text>
 <circle cx="288.0" cy="176.99484522385714" r="3.5" class="classic-world-dot" />
 <circle cx="288.0" cy="176.99484522385714" r="6.5" class="classic-gas-ring" />
-<text x="288.0" y="186.99484522385714" class="classic-text">MORAR</text>
-<text x="288.0" y="193.99484522385714" class="classic-text classic-uwp">B100CEB-A</text>
+<text x="300.0" y="172.99484522385714" class="classic-text classic-alleg">Zh</text>
+<text x="288.0" y="187.99484522385714" class="classic-text">CHIEPAVR 14</text>
+<text x="288.0" y="194.99484522385714" class="classic-text classic-uwp">C430540-A</text>
 </g>
-<g class="hex-group"><title>Hex 0702</title>
+<g class="hex-group"><title>Hex 1512</title>
 <polygon class="classic-hex " points="358.0,152.74613391789285 344.0,176.99484522385714 316.0,176.99484522385714 302.0,152.74613391789285 316.0,128.49742261192858 344.0,128.49742261192856"/>
-<text x="330.0" y="135.24613391789285" class="classic-text classic-coord">0702</text>
+<text x="330.0" y="135.24613391789285" class="classic-text classic-coord">1512</text>
 </g>
-<g class="hex-group"><title>Hex 0802</title>
-<polygon class="classic-hex " points="400.0,176.99484522385714 386.0,201.24355652982143 358.0,201.24355652982143 344.0,176.99484522385714 358.0,152.74613391789288 386.0,152.74613391789285"/>
-<text x="372.0" y="159.49484522385714" class="classic-text classic-coord">0802</text>
-</g>
-<g class="hex-group"><title>Hex 0103: Jenen
-UWP: C979BBD-5
-Allegiance: Zh
+<g class="hex-group"><title>Hex 1612: Nsoblir 1612
+UWP: E66568A-4 | Allegiance: Zh
 Bases: None
-Gas Giants: 2
-Trade Codes: Hi, In, Lt</title>
-<polygon class="classic-hex classic-hex-filled" points="106.0,201.2435565298214 92.0,225.4922678357857 64.0,225.4922678357857 50.0,201.2435565298214 63.999999999999986,176.99484522385714 91.99999999999999,176.9948452238571"/>
-<text x="78.0" y="183.7435565298214" class="classic-text classic-coord">0103</text>
-<circle cx="78.0" cy="201.2435565298214" r="3.5" class="classic-world-dot" />
-<circle cx="78.0" cy="201.2435565298214" r="6.5" class="classic-gas-ring" />
-<text x="78.0" y="211.2435565298214" class="classic-text">JENEN</text>
-<text x="78.0" y="218.2435565298214" class="classic-text classic-uwp">C979BBD-5</text>
+Secondary Worlds: 5 (Gas Giants: 0, Belts: 0)
+Trade Codes: Ag, Ga, Lt, Ni, Ri
+History: Epoch IV (600–700) (Zhodani Post-Frontier-War Thin Wave)
+Lore: Macro-History: Epoch IV (600–700) — Zhodani Post-Frontier-War Thin Wave (Pop DM -1).</title>
+<polygon class="classic-hex classic-hex-filled" points="400.0,176.99484522385714 386.0,201.24355652982143 358.0,201.24355652982143 344.0,176.99484522385714 358.0,152.74613391789288 386.0,152.74613391789285"/>
+<text x="372.0" y="159.49484522385714" class="classic-text classic-coord">1612</text>
+<circle cx="372.0" cy="176.99484522385714" r="3.5" class="classic-world-dot" />
+<text x="384.0" y="172.99484522385714" class="classic-text classic-alleg">Zh</text>
+<text x="372.0" y="187.99484522385714" class="classic-text">NSOBLIR 161</text>
+<text x="372.0" y="194.99484522385714" class="classic-text classic-uwp">E66568A-4</text>
 </g>
-<g class="hex-group"><title>Hex 0203: Quoren
-UWP: C334EFD-A
-Allegiance: Zh
-Bases: None
-Gas Giants: 0
-Trade Codes: Hi</title>
-<polygon class="classic-hex classic-hex-filled" points="148.0,225.4922678357857 134.0,249.74097914175 106.0,249.74097914175 92.0,225.4922678357857 105.99999999999999,201.24355652982143 133.99999999999997,201.2435565298214"/>
-<text x="120.0" y="207.9922678357857" class="classic-text classic-coord">0203</text>
-<circle cx="120.0" cy="225.4922678357857" r="3.5" class="classic-world-dot" />
-<text x="120.0" y="235.4922678357857" class="classic-text">QUOREN</text>
-<text x="120.0" y="242.4922678357857" class="classic-text classic-uwp">C334EFD-A</text>
+<g class="hex-group"><title>Hex 0913</title>
+<polygon class="classic-hex " points="106.0,201.2435565298214 92.0,225.4922678357857 64.0,225.4922678357857 50.0,201.2435565298214 63.999999999999986,176.99484522385714 91.99999999999999,176.9948452238571"/>
+<text x="78.0" y="183.7435565298214" class="classic-text classic-coord">0913</text>
 </g>
-<g class="hex-group"><title>Hex 0303: Uren
-UWP: B340999-B
-Allegiance: Zh
-Bases: None
-Gas Giants: 1
-Trade Codes: De, Hi, In, Po</title>
-<polygon class="classic-hex classic-hex-filled" points="190.0,201.2435565298214 176.0,225.4922678357857 148.0,225.4922678357857 134.0,201.2435565298214 148.0,176.99484522385714 175.99999999999997,176.9948452238571"/>
-<text x="162.0" y="183.7435565298214" class="classic-text classic-coord">0303</text>
-<circle cx="162.0" cy="201.2435565298214" r="3.5" class="classic-world-dot" />
-<circle cx="162.0" cy="201.2435565298214" r="6.5" class="classic-gas-ring" />
-<text x="162.0" y="211.2435565298214" class="classic-text">UREN</text>
-<text x="162.0" y="218.2435565298214" class="classic-text classic-uwp">B340999-B</text>
+<g class="hex-group"><title>Hex 1013</title>
+<polygon class="classic-hex " points="148.0,225.4922678357857 134.0,249.74097914175 106.0,249.74097914175 92.0,225.4922678357857 105.99999999999999,201.24355652982143 133.99999999999997,201.2435565298214"/>
+<text x="120.0" y="207.9922678357857" class="classic-text classic-coord">1013</text>
 </g>
-<g class="hex-group"><title>Hex 0403: Uris
-UWP: D233CCE-3
-Allegiance: Zh
-Bases: None
-Gas Giants: 0
-Trade Codes: Hi, Lt, Na, Po</title>
-<polygon class="classic-hex classic-hex-filled" points="232.0,225.4922678357857 218.0,249.74097914175 190.0,249.74097914175 176.0,225.4922678357857 190.0,201.24355652982143 217.99999999999997,201.2435565298214"/>
-<text x="204.0" y="207.9922678357857" class="classic-text classic-coord">0403</text>
-<circle cx="204.0" cy="225.4922678357857" r="3.5" class="classic-world-dot" />
-<text x="204.0" y="235.4922678357857" class="classic-text">URIS</text>
-<text x="204.0" y="242.4922678357857" class="classic-text classic-uwp">D233CCE-3</text>
+<g class="hex-group"><title>Hex 1113</title>
+<polygon class="classic-hex " points="190.0,201.2435565298214 176.0,225.4922678357857 148.0,225.4922678357857 134.0,201.2435565298214 148.0,176.99484522385714 175.99999999999997,176.9948452238571"/>
+<text x="162.0" y="183.7435565298214" class="classic-text classic-coord">1113</text>
 </g>
-<g class="hex-group"><title>Hex 0503</title>
+<g class="hex-group"><title>Hex 1213</title>
+<polygon class="classic-hex " points="232.0,225.4922678357857 218.0,249.74097914175 190.0,249.74097914175 176.0,225.4922678357857 190.0,201.24355652982143 217.99999999999997,201.2435565298214"/>
+<text x="204.0" y="207.9922678357857" class="classic-text classic-coord">1213</text>
+</g>
+<g class="hex-group"><title>Hex 1313</title>
 <polygon class="classic-hex " points="274.0,201.2435565298214 260.0,225.4922678357857 232.0,225.4922678357857 218.0,201.2435565298214 232.0,176.99484522385714 260.0,176.9948452238571"/>
-<text x="246.0" y="183.7435565298214" class="classic-text classic-coord">0503</text>
+<text x="246.0" y="183.7435565298214" class="classic-text classic-coord">1313</text>
 </g>
-<g class="hex-group"><title>Hex 0603: Fenus
-UWP: A20098B-C
-Allegiance: Zh
-Bases: Zhodani Base
-Gas Giants: 3
-Trade Codes: Hi, Ht, In, Na, Va</title>
-<polygon class="classic-hex classic-hex-filled" points="316.0,225.4922678357857 302.0,249.74097914175 274.0,249.74097914175 260.0,225.4922678357857 274.0,201.24355652982143 302.0,201.2435565298214"/>
-<text x="288.0" y="207.9922678357857" class="classic-text classic-coord">0603</text>
-<circle cx="288.0" cy="225.4922678357857" r="3.5" class="classic-world-dot" />
-<circle cx="288.0" cy="225.4922678357857" r="6.5" class="classic-gas-ring" />
-<text x="288.0" y="235.4922678357857" class="classic-text">FENUS</text>
-<text x="288.0" y="242.4922678357857" class="classic-text classic-uwp">A20098B-C</text>
+<g class="hex-group"><title>Hex 1413</title>
+<polygon class="classic-hex " points="316.0,225.4922678357857 302.0,249.74097914175 274.0,249.74097914175 260.0,225.4922678357857 274.0,201.24355652982143 302.0,201.2435565298214"/>
+<text x="288.0" y="207.9922678357857" class="classic-text classic-coord">1413</text>
 </g>
-<g class="hex-group"><title>Hex 0703</title>
+<g class="hex-group"><title>Hex 1513</title>
 <polygon class="classic-hex " points="358.0,201.2435565298214 344.0,225.4922678357857 316.0,225.4922678357857 302.0,201.2435565298214 316.0,176.99484522385714 344.0,176.9948452238571"/>
-<text x="330.0" y="183.7435565298214" class="classic-text classic-coord">0703</text>
+<text x="330.0" y="183.7435565298214" class="classic-text classic-coord">1513</text>
 </g>
-<g class="hex-group"><title>Hex 0803: Renar
-UWP: D58ADEE-3
-Allegiance: Zh
-Bases: None
-Gas Giants: 2
-Trade Codes: Hi, Lt, Wa</title>
-<polygon class="classic-hex classic-hex-filled" points="400.0,225.4922678357857 386.0,249.74097914175 358.0,249.74097914175 344.0,225.4922678357857 358.0,201.24355652982143 386.0,201.2435565298214"/>
-<text x="372.0" y="207.9922678357857" class="classic-text classic-coord">0803</text>
-<circle cx="372.0" cy="225.4922678357857" r="3.5" class="classic-world-dot" />
-<circle cx="372.0" cy="225.4922678357857" r="6.5" class="classic-gas-ring" />
-<text x="372.0" y="235.4922678357857" class="classic-text">RENAR</text>
-<text x="372.0" y="242.4922678357857" class="classic-text classic-uwp">D58ADEE-3</text>
+<g class="hex-group"><title>Hex 1613</title>
+<polygon class="classic-hex " points="400.0,225.4922678357857 386.0,249.74097914175 358.0,249.74097914175 344.0,225.4922678357857 358.0,201.24355652982143 386.0,201.2435565298214"/>
+<text x="372.0" y="207.9922678357857" class="classic-text classic-coord">1613</text>
 </g>
-<g class="hex-group"><title>Hex 0104: Verel
-UWP: D668CDE-1
-Allegiance: Zh
+<g class="hex-group"><title>Hex 0914: Chlebl 0914
+UWP: C730200-7 | Allegiance: Zh
 Bases: None
-Gas Giants: 0
-Trade Codes: Hi, Lt</title>
+Secondary Worlds: 12 (Gas Giants: 3, Belts: 1)
+Trade Codes: De, Lo, Po
+History: Epoch IV (600–700) (Zhodani Post-Frontier-War Thin Wave)
+Lore: Macro-History: Epoch IV (600–700) — Zhodani Post-Frontier-War Thin Wave (Pop DM -1).</title>
 <polygon class="classic-hex classic-hex-filled" points="106.0,249.74097914175 92.0,273.9896904477143 64.0,273.9896904477143 50.0,249.74097914175 63.999999999999986,225.49226783578573 91.99999999999999,225.4922678357857"/>
-<text x="78.0" y="232.24097914175" class="classic-text classic-coord">0104</text>
+<text x="78.0" y="232.24097914175" class="classic-text classic-coord">0914</text>
 <circle cx="78.0" cy="249.74097914175" r="3.5" class="classic-world-dot" />
-<text x="78.0" y="259.74097914175" class="classic-text">VEREL</text>
-<text x="78.0" y="266.74097914175" class="classic-text classic-uwp">D668CDE-1</text>
+<circle cx="78.0" cy="249.74097914175" r="6.5" class="classic-gas-ring" />
+<text x="90.0" y="245.74097914175" class="classic-text classic-alleg">Zh</text>
+<text x="78.0" y="260.74097914175" class="classic-text">CHLEBL 0914</text>
+<text x="78.0" y="267.74097914175" class="classic-text classic-uwp">C730200-7</text>
 </g>
-<g class="hex-group"><title>Hex 0204</title>
+<g class="hex-group"><title>Hex 1014</title>
 <polygon class="classic-hex " points="148.0,273.9896904477143 134.0,298.23840175367854 106.0,298.23840175367854 92.0,273.9896904477143 105.99999999999999,249.74097914175002 133.99999999999997,249.74097914175"/>
-<text x="120.0" y="256.4896904477143" class="classic-text classic-coord">0204</text>
+<text x="120.0" y="256.4896904477143" class="classic-text classic-coord">1014</text>
 </g>
-<g class="hex-group"><title>Hex 0304: Renor
-UWP: B510EKG-B
-Allegiance: Zh
-Bases: None
-Gas Giants: 4
-Trade Codes: Hi, In, Na</title>
-<polygon class="classic-hex classic-hex-filled" points="190.0,249.74097914175 176.0,273.9896904477143 148.0,273.9896904477143 134.0,249.74097914175 148.0,225.49226783578573 175.99999999999997,225.4922678357857"/>
-<text x="162.0" y="232.24097914175" class="classic-text classic-coord">0304</text>
-<circle cx="162.0" cy="249.74097914175" r="3.5" class="classic-world-dot" />
-<circle cx="162.0" cy="249.74097914175" r="6.5" class="classic-gas-ring" />
-<text x="162.0" y="259.74097914175" class="classic-text">RENOR</text>
-<text x="162.0" y="266.74097914175" class="classic-text classic-uwp">B510EKG-B</text>
+<g class="hex-group"><title>Hex 1114</title>
+<polygon class="classic-hex " points="190.0,249.74097914175 176.0,273.9896904477143 148.0,273.9896904477143 134.0,249.74097914175 148.0,225.49226783578573 175.99999999999997,225.4922678357857"/>
+<text x="162.0" y="232.24097914175" class="classic-text classic-coord">1114</text>
 </g>
-<g class="hex-group"><title>Hex 0404: Denos
-UWP: A451EDB-8
-Allegiance: Zh
+<g class="hex-group"><title>Hex 1214: Vrenzh 1214
+UWP: D540687-3 | Allegiance: Zh
 Bases: None
-Gas Giants: 1
-Trade Codes: Hi, Po</title>
+Secondary Worlds: 10 (Gas Giants: 4, Belts: 1)
+Trade Codes: De, Lt, Ni, Po
+History: Epoch IV (600–700) (Zhodani Post-Frontier-War Thin Wave)
+Lore: Macro-History: Epoch IV (600–700) — Zhodani Post-Frontier-War Thin Wave (Pop DM -1).</title>
 <polygon class="classic-hex classic-hex-filled" points="232.0,273.9896904477143 218.0,298.23840175367854 190.0,298.23840175367854 176.0,273.9896904477143 190.0,249.74097914175002 217.99999999999997,249.74097914175"/>
-<text x="204.0" y="256.4896904477143" class="classic-text classic-coord">0404</text>
+<text x="204.0" y="256.4896904477143" class="classic-text classic-coord">1214</text>
 <circle cx="204.0" cy="273.9896904477143" r="3.5" class="classic-world-dot" />
 <circle cx="204.0" cy="273.9896904477143" r="6.5" class="classic-gas-ring" />
-<text x="204.0" y="283.9896904477143" class="classic-text">DENOS</text>
-<text x="204.0" y="290.9896904477143" class="classic-text classic-uwp">A451EDB-8</text>
+<text x="216.0" y="269.9896904477143" class="classic-text classic-alleg">Zh</text>
+<text x="204.0" y="284.9896904477143" class="classic-text">VRENZH 1214</text>
+<text x="204.0" y="291.9896904477143" class="classic-text classic-uwp">D540687-3</text>
 </g>
-<g class="hex-group"><title>Hex 0504: Boren
-UWP: C577GLL-4
-Allegiance: Zh
+<g class="hex-group"><title>Hex 1314: Tleshia-13
+UWP: X987255-0 | Allegiance: Zh
 Bases: None
-Gas Giants: 2
-Trade Codes: Lt</title>
+Secondary Worlds: 10 (Gas Giants: 5, Belts: 1)
+Trade Codes: Lo, Lt
+History: Epoch IV (600–700) (Zhodani Post-Frontier-War Thin Wave)
+Lore: Macro-History: Epoch IV (600–700) — Zhodani Post-Frontier-War Thin Wave (Pop DM -1).</title>
 <polygon class="classic-hex classic-hex-filled" points="274.0,249.74097914175 260.0,273.9896904477143 232.0,273.9896904477143 218.0,249.74097914175 232.0,225.49226783578573 260.0,225.4922678357857"/>
-<text x="246.0" y="232.24097914175" class="classic-text classic-coord">0504</text>
+<text x="246.0" y="232.24097914175" class="classic-text classic-coord">1314</text>
 <circle cx="246.0" cy="249.74097914175" r="3.5" class="classic-world-dot" />
 <circle cx="246.0" cy="249.74097914175" r="6.5" class="classic-gas-ring" />
-<text x="246.0" y="259.74097914175" class="classic-text">BOREN</text>
-<text x="246.0" y="266.74097914175" class="classic-text classic-uwp">C577GLL-4</text>
+<text x="258.0" y="245.74097914175" class="classic-text classic-alleg">Zh</text>
+<text x="246.0" y="260.74097914175" class="classic-text">TLESHIA-13</text>
+<text x="246.0" y="267.74097914175" class="classic-text classic-uwp">X987255-0</text>
 </g>
-<g class="hex-group"><title>Hex 0604</title>
+<g class="hex-group"><title>Hex 1414</title>
 <polygon class="classic-hex " points="316.0,273.9896904477143 302.0,298.23840175367854 274.0,298.23840175367854 260.0,273.9896904477143 274.0,249.74097914175002 302.0,249.74097914175"/>
-<text x="288.0" y="256.4896904477143" class="classic-text classic-coord">0604</text>
+<text x="288.0" y="256.4896904477143" class="classic-text classic-coord">1414</text>
 </g>
-<g class="hex-group"><title>Hex 0704</title>
+<g class="hex-group"><title>Hex 1514</title>
 <polygon class="classic-hex " points="358.0,249.74097914175 344.0,273.9896904477143 316.0,273.9896904477143 302.0,249.74097914175 316.0,225.49226783578573 344.0,225.4922678357857"/>
-<text x="330.0" y="232.24097914175" class="classic-text classic-coord">0704</text>
+<text x="330.0" y="232.24097914175" class="classic-text classic-coord">1514</text>
 </g>
-<g class="hex-group"><title>Hex 0804</title>
+<g class="hex-group"><title>Hex 1614</title>
 <polygon class="classic-hex " points="400.0,273.9896904477143 386.0,298.23840175367854 358.0,298.23840175367854 344.0,273.9896904477143 358.0,249.74097914175002 386.0,249.74097914175"/>
-<text x="372.0" y="256.4896904477143" class="classic-text classic-coord">0804</text>
+<text x="372.0" y="256.4896904477143" class="classic-text classic-coord">1614</text>
 </g>
-<g class="hex-group"><title>Hex 0105</title>
-<polygon class="classic-hex " points="106.0,298.23840175367854 92.0,322.4871130596428 64.0,322.4871130596428 50.0,298.23840175367854 63.999999999999986,273.9896904477143 91.99999999999999,273.9896904477142"/>
-<text x="78.0" y="280.73840175367854" class="classic-text classic-coord">0105</text>
+<g class="hex-group"><title>Hex 0915: Dravzhd 0915
+UWP: B55A433-8 | Allegiance: Zh
+Bases: None
+Secondary Worlds: 8 (Gas Giants: 0, Belts: 2)
+Trade Codes: Ni, Wa
+History: Epoch IV (600–700) (Zhodani Post-Frontier-War Thin Wave)
+Lore: Macro-History: Epoch IV (600–700) — Zhodani Post-Frontier-War Thin Wave (Pop DM -1).</title>
+<polygon class="classic-hex classic-hex-filled" points="106.0,298.23840175367854 92.0,322.4871130596428 64.0,322.4871130596428 50.0,298.23840175367854 63.999999999999986,273.9896904477143 91.99999999999999,273.9896904477142"/>
+<text x="78.0" y="280.73840175367854" class="classic-text classic-coord">0915</text>
+<circle cx="78.0" cy="298.23840175367854" r="3.5" class="classic-world-dot" />
+<text x="90.0" y="294.23840175367854" class="classic-text classic-alleg">Zh</text>
+<text x="78.0" y="309.23840175367854" class="classic-text">DRAVZHD 091</text>
+<text x="78.0" y="316.23840175367854" class="classic-text classic-uwp">B55A433-8</text>
 </g>
-<g class="hex-group"><title>Hex 0205</title>
+<g class="hex-group"><title>Hex 1015</title>
 <polygon class="classic-hex " points="148.0,322.4871130596428 134.0,346.7358243656071 106.0,346.7358243656071 92.0,322.4871130596428 105.99999999999999,298.23840175367854 133.99999999999997,298.23840175367854"/>
-<text x="120.0" y="304.9871130596428" class="classic-text classic-coord">0205</text>
+<text x="120.0" y="304.9871130596428" class="classic-text classic-coord">1015</text>
 </g>
-<g class="hex-group"><title>Hex 0305: Denar
-UWP: D000FGD-5
-Allegiance: Na
-Bases: Scout
-Gas Giants: 3
-Trade Codes: As, Hi, In, Lt, Na, Va</title>
+<g class="hex-group"><title>Hex 1115: Vlazhdu 1115
+UWP: C563696-8 | Allegiance: Zh
+Bases: None
+Secondary Worlds: 8 (Gas Giants: 3, Belts: 0)
+Trade Codes: Ni, Ri
+History: Epoch IV (600–700) (Zhodani Post-Frontier-War Thin Wave)
+Lore: Macro-History: Epoch IV (600–700) — Zhodani Post-Frontier-War Thin Wave (Pop DM -1).</title>
 <polygon class="classic-hex classic-hex-filled" points="190.0,298.23840175367854 176.0,322.4871130596428 148.0,322.4871130596428 134.0,298.23840175367854 148.0,273.9896904477143 175.99999999999997,273.9896904477142"/>
-<text x="162.0" y="280.73840175367854" class="classic-text classic-coord">0305</text>
+<text x="162.0" y="280.73840175367854" class="classic-text classic-coord">1115</text>
 <circle cx="162.0" cy="298.23840175367854" r="3.5" class="classic-world-dot" />
 <circle cx="162.0" cy="298.23840175367854" r="6.5" class="classic-gas-ring" />
-<text x="150.0" y="293.23840175367854" class="classic-base">▲</text>
-<text x="162.0" y="308.23840175367854" class="classic-text">DENAR</text>
-<text x="162.0" y="315.23840175367854" class="classic-text classic-uwp">D000FGD-5</text>
+<text x="174.0" y="294.23840175367854" class="classic-text classic-alleg">Zh</text>
+<text x="162.0" y="309.23840175367854" class="classic-text">VLAZHDU 111</text>
+<text x="162.0" y="316.23840175367854" class="classic-text classic-uwp">C563696-8</text>
 </g>
-<g class="hex-group"><title>Hex 0405: Kelar
-UWP: D85ACDJ-5
-Allegiance: Na
-Bases: Scout
-Gas Giants: 4
-Trade Codes: Hi, Lt, Wa</title>
-<polygon class="classic-hex classic-hex-filled" points="232.0,322.4871130596428 218.0,346.7358243656071 190.0,346.7358243656071 176.0,322.4871130596428 190.0,298.23840175367854 217.99999999999997,298.23840175367854"/>
-<text x="204.0" y="304.9871130596428" class="classic-text classic-coord">0405</text>
-<circle cx="204.0" cy="322.4871130596428" r="3.5" class="classic-world-dot" />
-<circle cx="204.0" cy="322.4871130596428" r="6.5" class="classic-gas-ring" />
-<text x="192.0" y="317.4871130596428" class="classic-base">▲</text>
-<text x="204.0" y="332.4871130596428" class="classic-text">KELAR</text>
-<text x="204.0" y="339.4871130596428" class="classic-text classic-uwp">D85ACDJ-5</text>
+<g class="hex-group"><title>Hex 1215</title>
+<polygon class="classic-hex " points="232.0,322.4871130596428 218.0,346.7358243656071 190.0,346.7358243656071 176.0,322.4871130596428 190.0,298.23840175367854 217.99999999999997,298.23840175367854"/>
+<text x="204.0" y="304.9871130596428" class="classic-text classic-coord">1215</text>
 </g>
-<g class="hex-group"><title>Hex 0505: Woris
-UWP: A531BDC-A
-Allegiance: Na
-Bases: None
-Gas Giants: 4
-Trade Codes: Hi, Na, Po</title>
-<polygon class="classic-hex classic-hex-filled" points="274.0,298.23840175367854 260.0,322.4871130596428 232.0,322.4871130596428 218.0,298.23840175367854 232.0,273.9896904477143 260.0,273.9896904477142"/>
-<text x="246.0" y="280.73840175367854" class="classic-text classic-coord">0505</text>
-<circle cx="246.0" cy="298.23840175367854" r="3.5" class="classic-world-dot" />
-<circle cx="246.0" cy="298.23840175367854" r="6.5" class="classic-gas-ring" />
-<text x="246.0" y="308.23840175367854" class="classic-text">WORIS</text>
-<text x="246.0" y="315.23840175367854" class="classic-text classic-uwp">A531BDC-A</text>
+<g class="hex-group"><title>Hex 1315</title>
+<polygon class="classic-hex " points="274.0,298.23840175367854 260.0,322.4871130596428 232.0,322.4871130596428 218.0,298.23840175367854 232.0,273.9896904477143 260.0,273.9896904477142"/>
+<text x="246.0" y="280.73840175367854" class="classic-text classic-coord">1315</text>
 </g>
-<g class="hex-group"><title>Hex 0605</title>
+<g class="hex-group"><title>Hex 1415</title>
 <polygon class="classic-hex " points="316.0,322.4871130596428 302.0,346.7358243656071 274.0,346.7358243656071 260.0,322.4871130596428 274.0,298.23840175367854 302.0,298.23840175367854"/>
-<text x="288.0" y="304.9871130596428" class="classic-text classic-coord">0605</text>
+<text x="288.0" y="304.9871130596428" class="classic-text classic-coord">1415</text>
 </g>
-<g class="hex-group"><title>Hex 0705</title>
+<g class="hex-group"><title>Hex 1515</title>
 <polygon class="classic-hex " points="358.0,298.23840175367854 344.0,322.4871130596428 316.0,322.4871130596428 302.0,298.23840175367854 316.0,273.9896904477143 344.0,273.9896904477142"/>
-<text x="330.0" y="280.73840175367854" class="classic-text classic-coord">0705</text>
+<text x="330.0" y="280.73840175367854" class="classic-text classic-coord">1515</text>
 </g>
-<g class="hex-group"><title>Hex 0805</title>
+<g class="hex-group"><title>Hex 1615</title>
 <polygon class="classic-hex " points="400.0,322.4871130596428 386.0,346.7358243656071 358.0,346.7358243656071 344.0,322.4871130596428 358.0,298.23840175367854 386.0,298.23840175367854"/>
-<text x="372.0" y="304.9871130596428" class="classic-text classic-coord">0805</text>
+<text x="372.0" y="304.9871130596428" class="classic-text classic-coord">1615</text>
 </g>
-<g class="hex-group"><title>Hex 0106: Moros
-UWP: B677DFE-8
-Allegiance: Na
-Bases: Naval
-Gas Giants: 0
-Trade Codes: Hi, In</title>
-<polygon class="classic-hex classic-hex-filled" points="106.0,346.7358243656071 92.0,370.98453567157134 64.0,370.98453567157134 50.0,346.7358243656071 63.999999999999986,322.4871130596428 91.99999999999999,322.48711305964275"/>
-<text x="78.0" y="329.2358243656071" class="classic-text classic-coord">0106</text>
-<circle cx="78.0" cy="346.7358243656071" r="3.5" class="classic-world-dot" />
-<text x="66.0" y="341.7358243656071" class="classic-base">★</text>
-<text x="78.0" y="356.7358243656071" class="classic-text">MOROS</text>
-<text x="78.0" y="363.7358243656071" class="classic-text classic-uwp">B677DFE-8</text>
+<g class="hex-group"><title>Hex 0916</title>
+<polygon class="classic-hex " points="106.0,346.7358243656071 92.0,370.98453567157134 64.0,370.98453567157134 50.0,346.7358243656071 63.999999999999986,322.4871130596428 91.99999999999999,322.48711305964275"/>
+<text x="78.0" y="329.2358243656071" class="classic-text classic-coord">0916</text>
 </g>
-<g class="hex-group"><title>Hex 0206</title>
-<polygon class="classic-hex " points="148.0,370.98453567157134 134.0,395.2332469775356 106.0,395.2332469775356 92.0,370.98453567157134 105.99999999999999,346.7358243656071 133.99999999999997,346.7358243656071"/>
-<text x="120.0" y="353.48453567157134" class="classic-text classic-coord">0206</text>
+<g class="hex-group"><title>Hex 1016: Khezhda-10
+UWP: B422740-A | Allegiance: Zh
+Bases: None
+Secondary Worlds: 10 (Gas Giants: 5, Belts: 0)
+Trade Codes: Na, Po
+History: Epoch IV (600–700) (Zhodani Post-Frontier-War Thin Wave)
+Lore: Macro-History: Epoch IV (600–700) — Zhodani Post-Frontier-War Thin Wave (Pop DM -1).</title>
+<polygon class="classic-hex classic-hex-filled" points="148.0,370.98453567157134 134.0,395.2332469775356 106.0,395.2332469775356 92.0,370.98453567157134 105.99999999999999,346.7358243656071 133.99999999999997,346.7358243656071"/>
+<text x="120.0" y="353.48453567157134" class="classic-text classic-coord">1016</text>
+<circle cx="120.0" cy="370.98453567157134" r="3.5" class="classic-world-dot" />
+<circle cx="120.0" cy="370.98453567157134" r="6.5" class="classic-gas-ring" />
+<text x="132.0" y="366.98453567157134" class="classic-text classic-alleg">Zh</text>
+<text x="120.0" y="381.98453567157134" class="classic-text">KHEZHDA-10</text>
+<text x="120.0" y="388.98453567157134" class="classic-text classic-uwp">B422740-A</text>
 </g>
-<g class="hex-group"><title>Hex 0306</title>
+<g class="hex-group"><title>Hex 1116</title>
 <polygon class="classic-hex " points="190.0,346.7358243656071 176.0,370.98453567157134 148.0,370.98453567157134 134.0,346.7358243656071 148.0,322.4871130596428 175.99999999999997,322.48711305964275"/>
-<text x="162.0" y="329.2358243656071" class="classic-text classic-coord">0306</text>
+<text x="162.0" y="329.2358243656071" class="classic-text classic-coord">1116</text>
 </g>
-<g class="hex-group"><title>Hex 0406</title>
-<polygon class="classic-hex " points="232.0,370.98453567157134 218.0,395.2332469775356 190.0,395.2332469775356 176.0,370.98453567157134 190.0,346.7358243656071 217.99999999999997,346.7358243656071"/>
-<text x="204.0" y="353.48453567157134" class="classic-text classic-coord">0406</text>
+<g class="hex-group"><title>Hex 1216: Droyne-1216
+UWP: B767837-9 | Allegiance: Zh
+Bases: None
+Secondary Worlds: 6 (Gas Giants: 3, Belts: 0)
+Trade Codes: Ga
+History: Epoch I (-300,000 Droyne) (Scattered Settlement (Zhodani Full Member))
+Lore: SCG Scattered Settlement: Droyne garden world integrated as a full member of the Zhodani Consulate.</title>
+<polygon class="classic-hex classic-hex-filled" points="232.0,370.98453567157134 218.0,395.2332469775356 190.0,395.2332469775356 176.0,370.98453567157134 190.0,346.7358243656071 217.99999999999997,346.7358243656071"/>
+<text x="204.0" y="353.48453567157134" class="classic-text classic-coord">1216</text>
+<circle cx="204.0" cy="370.98453567157134" r="3.5" class="classic-world-dot" />
+<circle cx="204.0" cy="370.98453567157134" r="6.5" class="classic-gas-ring" />
+<text x="216.0" y="366.98453567157134" class="classic-text classic-alleg">Zh</text>
+<text x="204.0" y="381.98453567157134" class="classic-text">DROYNE-1216</text>
+<text x="204.0" y="388.98453567157134" class="classic-text classic-uwp">B767837-9</text>
 </g>
-<g class="hex-group"><title>Hex 0506</title>
-<polygon class="classic-hex " points="274.0,346.7358243656071 260.0,370.98453567157134 232.0,370.98453567157134 218.0,346.7358243656071 232.0,322.4871130596428 260.0,322.48711305964275"/>
-<text x="246.0" y="329.2358243656071" class="classic-text classic-coord">0506</text>
+<g class="hex-group"><title>Hex 1316: Shtebr 1316
+UWP: C523431-A | Allegiance: Zh
+Bases: None
+Secondary Worlds: 12 (Gas Giants: 4, Belts: 2)
+Trade Codes: Ni, Po
+History: Epoch IV (600–700) (Zhodani Post-Frontier-War Thin Wave)
+Lore: Macro-History: Epoch IV (600–700) — Zhodani Post-Frontier-War Thin Wave (Pop DM -1).</title>
+<polygon class="classic-hex classic-hex-filled" points="274.0,346.7358243656071 260.0,370.98453567157134 232.0,370.98453567157134 218.0,346.7358243656071 232.0,322.4871130596428 260.0,322.48711305964275"/>
+<text x="246.0" y="329.2358243656071" class="classic-text classic-coord">1316</text>
+<circle cx="246.0" cy="346.7358243656071" r="3.5" class="classic-world-dot" />
+<circle cx="246.0" cy="346.7358243656071" r="6.5" class="classic-gas-ring" />
+<text x="258.0" y="342.7358243656071" class="classic-text classic-alleg">Zh</text>
+<text x="246.0" y="357.7358243656071" class="classic-text">SHTEBR 1316</text>
+<text x="246.0" y="364.7358243656071" class="classic-text classic-uwp">C523431-A</text>
 </g>
-<g class="hex-group"><title>Hex 0606: Worus
-UWP: B552CFD-9
-Allegiance: Na
-Bases: Naval, Scout
-Gas Giants: 4
-Trade Codes: Hi, Po</title>
+<g class="hex-group"><title>Hex 1416: Vlazhdu 1416
+UWP: X100000-0 | Allegiance: Na
+Bases: None
+Secondary Worlds: 10 (Gas Giants: 4, Belts: 0)
+Trade Codes: Ba, Lt, Va
+History: Epoch IV (600–700) (Zhodani Post-Frontier-War Thin Wave)
+Lore: Macro-History: Epoch IV (600–700) — Zhodani Post-Frontier-War Thin Wave (Pop DM -1).</title>
 <polygon class="classic-hex classic-hex-filled" points="316.0,370.98453567157134 302.0,395.2332469775356 274.0,395.2332469775356 260.0,370.98453567157134 274.0,346.7358243656071 302.0,346.7358243656071"/>
-<text x="288.0" y="353.48453567157134" class="classic-text classic-coord">0606</text>
+<text x="288.0" y="353.48453567157134" class="classic-text classic-coord">1416</text>
 <circle cx="288.0" cy="370.98453567157134" r="3.5" class="classic-world-dot" />
 <circle cx="288.0" cy="370.98453567157134" r="6.5" class="classic-gas-ring" />
-<text x="276.0" y="365.98453567157134" class="classic-base">★▲</text>
-<text x="288.0" y="380.98453567157134" class="classic-text">WORUS</text>
-<text x="288.0" y="387.98453567157134" class="classic-text classic-uwp">B552CFD-9</text>
+<text x="300.0" y="366.98453567157134" class="classic-text classic-alleg">Na</text>
+<text x="288.0" y="381.98453567157134" class="classic-text">VLAZHDU 141</text>
+<text x="288.0" y="388.98453567157134" class="classic-text classic-uwp">X100000-0</text>
 </g>
-<g class="hex-group"><title>Hex 0706: Ethis
-UWP: B437CBB-7
-Allegiance: Na
+<g class="hex-group"><title>Hex 1516</title>
+<polygon class="classic-hex " points="358.0,346.7358243656071 344.0,370.98453567157134 316.0,370.98453567157134 302.0,346.7358243656071 316.0,322.4871130596428 344.0,322.48711305964275"/>
+<text x="330.0" y="329.2358243656071" class="classic-text classic-coord">1516</text>
+</g>
+<g class="hex-group"><title>Hex 1616</title>
+<polygon class="classic-hex " points="400.0,370.98453567157134 386.0,395.2332469775356 358.0,395.2332469775356 344.0,370.98453567157134 358.0,346.7358243656071 386.0,346.7358243656071"/>
+<text x="372.0" y="353.48453567157134" class="classic-text classic-coord">1616</text>
+</g>
+<g class="hex-group"><title>Hex 0917</title>
+<polygon class="classic-hex " points="106.0,395.23324697753566 92.0,419.4819582834999 64.0,419.4819582834999 50.0,395.23324697753566 63.999999999999986,370.9845356715714 91.99999999999999,370.9845356715714"/>
+<text x="78.0" y="377.73324697753566" class="classic-text classic-coord">0917</text>
+</g>
+<g class="hex-group"><title>Hex 1017</title>
+<polygon class="classic-hex " points="148.0,419.4819582834999 134.0,443.7306695894642 106.0,443.7306695894642 92.0,419.4819582834999 105.99999999999999,395.23324697753566 133.99999999999997,395.2332469775356"/>
+<text x="120.0" y="401.9819582834999" class="classic-text classic-coord">1017</text>
+</g>
+<g class="hex-group"><title>Hex 1117</title>
+<polygon class="classic-hex " points="190.0,395.23324697753566 176.0,419.4819582834999 148.0,419.4819582834999 134.0,395.23324697753566 148.0,370.9845356715714 175.99999999999997,370.9845356715714"/>
+<text x="162.0" y="377.73324697753566" class="classic-text classic-coord">1117</text>
+</g>
+<g class="hex-group"><title>Hex 1217</title>
+<polygon class="classic-hex " points="232.0,419.4819582834999 218.0,443.7306695894642 190.0,443.7306695894642 176.0,419.4819582834999 190.0,395.23324697753566 217.99999999999997,395.2332469775356"/>
+<text x="204.0" y="401.9819582834999" class="classic-text classic-coord">1217</text>
+</g>
+<g class="hex-group"><title>Hex 1317: Zhdovl 1317
+UWP: X8A3000-0 | Allegiance: Na
 Bases: None
-Gas Giants: 6
-Trade Codes: Hi</title>
-<polygon class="classic-hex classic-hex-filled" points="358.0,346.7358243656071 344.0,370.98453567157134 316.0,370.98453567157134 302.0,346.7358243656071 316.0,322.4871130596428 344.0,322.48711305964275"/>
-<text x="330.0" y="329.2358243656071" class="classic-text classic-coord">0706</text>
-<circle cx="330.0" cy="346.7358243656071" r="3.5" class="classic-world-dot" />
-<circle cx="330.0" cy="346.7358243656071" r="6.5" class="classic-gas-ring" />
-<text x="330.0" y="356.7358243656071" class="classic-text">ETHIS</text>
-<text x="330.0" y="363.7358243656071" class="classic-text classic-uwp">B437CBB-7</text>
-</g>
-<g class="hex-group"><title>Hex 0806: Pera
-UWP: A652B99-9
-Allegiance: Na
-Bases: Scout
-Gas Giants: 4
-Trade Codes: Hi, Po</title>
-<polygon class="classic-hex classic-hex-filled" points="400.0,370.98453567157134 386.0,395.2332469775356 358.0,395.2332469775356 344.0,370.98453567157134 358.0,346.7358243656071 386.0,346.7358243656071"/>
-<text x="372.0" y="353.48453567157134" class="classic-text classic-coord">0806</text>
-<circle cx="372.0" cy="370.98453567157134" r="3.5" class="classic-world-dot" />
-<circle cx="372.0" cy="370.98453567157134" r="6.5" class="classic-gas-ring" />
-<text x="360.0" y="365.98453567157134" class="classic-base">▲</text>
-<text x="372.0" y="380.98453567157134" class="classic-text">PERA</text>
-<text x="372.0" y="387.98453567157134" class="classic-text classic-uwp">A652B99-9</text>
-</g>
-<g class="hex-group"><title>Hex 0107: Perel
-UWP: E240HE9-8
-Allegiance: Na
-Bases: None
-Gas Giants: 2
-Trade Codes: De, Po</title>
-<polygon class="classic-hex classic-hex-filled" points="106.0,395.23324697753566 92.0,419.4819582834999 64.0,419.4819582834999 50.0,395.23324697753566 63.999999999999986,370.9845356715714 91.99999999999999,370.9845356715714"/>
-<text x="78.0" y="377.73324697753566" class="classic-text classic-coord">0107</text>
-<circle cx="78.0" cy="395.23324697753566" r="3.5" class="classic-world-dot" />
-<circle cx="78.0" cy="395.23324697753566" r="6.5" class="classic-gas-ring" />
-<text x="78.0" y="405.23324697753566" class="classic-text">PEREL</text>
-<text x="78.0" y="412.23324697753566" class="classic-text classic-uwp">E240HE9-8</text>
-</g>
-<g class="hex-group"><title>Hex 0207: Sorus
-UWP: A310A89-G
-Allegiance: Na
-Bases: None
-Gas Giants: 0
-Trade Codes: Hi, Ht, In, Na</title>
-<polygon class="classic-hex classic-hex-filled" points="148.0,419.4819582834999 134.0,443.7306695894642 106.0,443.7306695894642 92.0,419.4819582834999 105.99999999999999,395.23324697753566 133.99999999999997,395.2332469775356"/>
-<text x="120.0" y="401.9819582834999" class="classic-text classic-coord">0207</text>
-<circle cx="120.0" cy="419.4819582834999" r="3.5" class="classic-world-dot" />
-<text x="120.0" y="429.4819582834999" class="classic-text">SORUS</text>
-<text x="120.0" y="436.4819582834999" class="classic-text classic-uwp">A310A89-G</text>
-</g>
-<g class="hex-group"><title>Hex 0307: Uria
-UWP: B47AADE-D
-Allegiance: Na
-Bases: Naval, Scout
-Gas Giants: 0
-Trade Codes: Hi, Ht, In, Wa</title>
-<polygon class="classic-hex classic-hex-filled" points="190.0,395.23324697753566 176.0,419.4819582834999 148.0,419.4819582834999 134.0,395.23324697753566 148.0,370.9845356715714 175.99999999999997,370.9845356715714"/>
-<text x="162.0" y="377.73324697753566" class="classic-text classic-coord">0307</text>
-<circle cx="162.0" cy="395.23324697753566" r="3.5" class="classic-world-dot" />
-<text x="150.0" y="390.23324697753566" class="classic-base">★▲</text>
-<text x="162.0" y="405.23324697753566" class="classic-text">URIA</text>
-<text x="162.0" y="412.23324697753566" class="classic-text classic-uwp">B47AADE-D</text>
-</g>
-<g class="hex-group"><title>Hex 0407: Corus
-UWP: A200A86-H
-Allegiance: Na
-Bases: None
-Gas Giants: 1
-Trade Codes: Hi, Ht, In, Na, Va</title>
-<polygon class="classic-hex classic-hex-filled" points="232.0,419.4819582834999 218.0,443.7306695894642 190.0,443.7306695894642 176.0,419.4819582834999 190.0,395.23324697753566 217.99999999999997,395.2332469775356"/>
-<text x="204.0" y="401.9819582834999" class="classic-text classic-coord">0407</text>
-<circle cx="204.0" cy="419.4819582834999" r="3.5" class="classic-world-dot" />
-<circle cx="204.0" cy="419.4819582834999" r="6.5" class="classic-gas-ring" />
-<text x="204.0" y="429.4819582834999" class="classic-text">CORUS</text>
-<text x="204.0" y="436.4819582834999" class="classic-text classic-uwp">A200A86-H</text>
-</g>
-<g class="hex-group"><title>Hex 0507: Denar
-UWP: BA87CFC-7
-Allegiance: Na
-Bases: Scout
-Gas Giants: 0
-Trade Codes: Hi</title>
+Secondary Worlds: 7 (Gas Giants: 4, Belts: 0)
+Trade Codes: Ba, Fl, Lt
+History: Epoch IV (600–700) (Zhodani Post-Frontier-War Thin Wave)
+Lore: Macro-History: Epoch IV (600–700) — Zhodani Post-Frontier-War Thin Wave (Pop DM -1).</title>
 <polygon class="classic-hex classic-hex-filled" points="274.0,395.23324697753566 260.0,419.4819582834999 232.0,419.4819582834999 218.0,395.23324697753566 232.0,370.9845356715714 260.0,370.9845356715714"/>
-<text x="246.0" y="377.73324697753566" class="classic-text classic-coord">0507</text>
+<text x="246.0" y="377.73324697753566" class="classic-text classic-coord">1317</text>
 <circle cx="246.0" cy="395.23324697753566" r="3.5" class="classic-world-dot" />
-<text x="234.0" y="390.23324697753566" class="classic-base">▲</text>
-<text x="246.0" y="405.23324697753566" class="classic-text">DENAR</text>
-<text x="246.0" y="412.23324697753566" class="classic-text classic-uwp">BA87CFC-7</text>
+<circle cx="246.0" cy="395.23324697753566" r="6.5" class="classic-gas-ring" />
+<text x="258.0" y="391.23324697753566" class="classic-text classic-alleg">Na</text>
+<text x="246.0" y="406.23324697753566" class="classic-text">ZHDOVL 1317</text>
+<text x="246.0" y="413.23324697753566" class="classic-text classic-uwp">X8A3000-0</text>
 </g>
-<g class="hex-group"><title>Hex 0607</title>
+<g class="hex-group"><title>Hex 1417</title>
 <polygon class="classic-hex " points="316.0,419.4819582834999 302.0,443.7306695894642 274.0,443.7306695894642 260.0,419.4819582834999 274.0,395.23324697753566 302.0,395.2332469775356"/>
-<text x="288.0" y="401.9819582834999" class="classic-text classic-coord">0607</text>
+<text x="288.0" y="401.9819582834999" class="classic-text classic-coord">1417</text>
 </g>
-<g class="hex-group"><title>Hex 0707: Renar
-UWP: C200DB8-A
-Allegiance: Na
+<g class="hex-group"><title>Hex 1517</title>
+<polygon class="classic-hex " points="358.0,395.23324697753566 344.0,419.4819582834999 316.0,419.4819582834999 302.0,395.23324697753566 316.0,370.9845356715714 344.0,370.9845356715714"/>
+<text x="330.0" y="377.73324697753566" class="classic-text classic-coord">1517</text>
+</g>
+<g class="hex-group"><title>Hex 1617: Zhdovl 1617
+UWP: X657000-0 | Allegiance: Na
 Bases: None
-Gas Giants: 4
-Trade Codes: Hi, In, Na, Va</title>
-<polygon class="classic-hex classic-hex-filled" points="358.0,395.23324697753566 344.0,419.4819582834999 316.0,419.4819582834999 302.0,395.23324697753566 316.0,370.9845356715714 344.0,370.9845356715714"/>
-<text x="330.0" y="377.73324697753566" class="classic-text classic-coord">0707</text>
-<circle cx="330.0" cy="395.23324697753566" r="3.5" class="classic-world-dot" />
-<circle cx="330.0" cy="395.23324697753566" r="6.5" class="classic-gas-ring" />
-<text x="330.0" y="405.23324697753566" class="classic-text">RENAR</text>
-<text x="330.0" y="412.23324697753566" class="classic-text classic-uwp">C200DB8-A</text>
+Secondary Worlds: 10 (Gas Giants: 2, Belts: 0)
+Trade Codes: Ba, Ga, Lt
+History: Epoch IV (600–700) (Zhodani Post-Frontier-War Thin Wave)
+Lore: Macro-History: Epoch IV (600–700) — Zhodani Post-Frontier-War Thin Wave (Pop DM -1).</title>
+<polygon class="classic-hex classic-hex-filled" points="400.0,419.4819582834999 386.0,443.7306695894642 358.0,443.7306695894642 344.0,419.4819582834999 358.0,395.23324697753566 386.0,395.2332469775356"/>
+<text x="372.0" y="401.9819582834999" class="classic-text classic-coord">1617</text>
+<circle cx="372.0" cy="419.4819582834999" r="3.5" class="classic-world-dot" />
+<circle cx="372.0" cy="419.4819582834999" r="6.5" class="classic-gas-ring" />
+<text x="384.0" y="415.4819582834999" class="classic-text classic-alleg">Na</text>
+<text x="372.0" y="430.4819582834999" class="classic-text">ZHDOVL 1617</text>
+<text x="372.0" y="437.4819582834999" class="classic-text classic-uwp">X657000-0</text>
 </g>
-<g class="hex-group"><title>Hex 0807</title>
-<polygon class="classic-hex " points="400.0,419.4819582834999 386.0,443.7306695894642 358.0,443.7306695894642 344.0,419.4819582834999 358.0,395.23324697753566 386.0,395.2332469775356"/>
-<text x="372.0" y="401.9819582834999" class="classic-text classic-coord">0807</text>
+<g class="hex-group"><title>Hex 0918</title>
+<polygon class="classic-hex " points="106.0,443.7306695894642 92.0,467.97938089542845 64.0,467.97938089542845 50.0,443.7306695894642 63.999999999999986,419.4819582834999 91.99999999999999,419.4819582834999"/>
+<text x="78.0" y="426.2306695894642" class="classic-text classic-coord">0918</text>
 </g>
-<g class="hex-group"><title>Hex 0108: Xenen
-UWP: A220ECB-C
-Allegiance: Na
-Bases: None
-Gas Giants: 3
-Trade Codes: De, Hi, Ht, In, Na, Po</title>
-<polygon class="classic-hex classic-hex-filled" points="106.0,443.7306695894642 92.0,467.97938089542845 64.0,467.97938089542845 50.0,443.7306695894642 63.999999999999986,419.4819582834999 91.99999999999999,419.4819582834999"/>
-<text x="78.0" y="426.2306695894642" class="classic-text classic-coord">0108</text>
-<circle cx="78.0" cy="443.7306695894642" r="3.5" class="classic-world-dot" />
-<circle cx="78.0" cy="443.7306695894642" r="6.5" class="classic-gas-ring" />
-<text x="78.0" y="453.7306695894642" class="classic-text">XENEN</text>
-<text x="78.0" y="460.7306695894642" class="classic-text classic-uwp">A220ECB-C</text>
+<g class="hex-group"><title>Hex 1018</title>
+<polygon class="classic-hex " points="148.0,467.97938089542845 134.0,492.2280922013927 106.0,492.2280922013927 92.0,467.97938089542845 105.99999999999999,443.7306695894642 133.99999999999997,443.7306695894641"/>
+<text x="120.0" y="450.47938089542845" class="classic-text classic-coord">1018</text>
 </g>
-<g class="hex-group"><title>Hex 0208: Orrus
-UWP: A345A98-G
-Allegiance: Na
-Bases: None
-Gas Giants: 0
-Trade Codes: Hi, Ht, In</title>
-<polygon class="classic-hex classic-hex-filled" points="148.0,467.97938089542845 134.0,492.2280922013927 106.0,492.2280922013927 92.0,467.97938089542845 105.99999999999999,443.7306695894642 133.99999999999997,443.7306695894641"/>
-<text x="120.0" y="450.47938089542845" class="classic-text classic-coord">0208</text>
-<circle cx="120.0" cy="467.97938089542845" r="3.5" class="classic-world-dot" />
-<text x="120.0" y="477.97938089542845" class="classic-text">ORRUS</text>
-<text x="120.0" y="484.97938089542845" class="classic-text classic-uwp">A345A98-G</text>
-</g>
-<g class="hex-group"><title>Hex 0308</title>
+<g class="hex-group"><title>Hex 1118</title>
 <polygon class="classic-hex " points="190.0,443.7306695894642 176.0,467.97938089542845 148.0,467.97938089542845 134.0,443.7306695894642 148.0,419.4819582834999 175.99999999999997,419.4819582834999"/>
-<text x="162.0" y="426.2306695894642" class="classic-text classic-coord">0308</text>
+<text x="162.0" y="426.2306695894642" class="classic-text classic-coord">1118</text>
 </g>
-<g class="hex-group"><title>Hex 0408</title>
-<polygon class="classic-hex " points="232.0,467.97938089542845 218.0,492.2280922013927 190.0,492.2280922013927 176.0,467.97938089542845 190.0,443.7306695894642 217.99999999999997,443.7306695894641"/>
-<text x="204.0" y="450.47938089542845" class="classic-text classic-coord">0408</text>
+<g class="hex-group"><title>Hex 1218: Periphery-1218
+UWP: X794000-0 | Allegiance: Na
+Bases: None
+Secondary Worlds: 10 (Gas Giants: 3, Belts: 1)
+Trade Codes: Ba, Lt
+History: Epoch V (Anomalous Void) (Subsector J Barren Anomaly)
+Lore: Anomaly Periphery: abandoned Zhodani border listening post.</title>
+<polygon class="classic-hex classic-hex-filled" points="232.0,467.97938089542845 218.0,492.2280922013927 190.0,492.2280922013927 176.0,467.97938089542845 190.0,443.7306695894642 217.99999999999997,443.7306695894641"/>
+<text x="204.0" y="450.47938089542845" class="classic-text classic-coord">1218</text>
+<circle cx="204.0" cy="467.97938089542845" r="19" class="classic-zone-amber" />
+<circle cx="204.0" cy="467.97938089542845" r="3.5" class="classic-world-dot" />
+<circle cx="204.0" cy="467.97938089542845" r="6.5" class="classic-gas-ring" />
+<text x="216.0" y="463.97938089542845" class="classic-text classic-alleg">Na</text>
+<text x="204.0" y="478.97938089542845" class="classic-text">PERIPHERY-1</text>
+<text x="204.0" y="485.97938089542845" class="classic-text classic-uwp">X794000-0</text>
 </g>
-<g class="hex-group"><title>Hex 0508</title>
+<g class="hex-group"><title>Hex 1318</title>
 <polygon class="classic-hex " points="274.0,443.7306695894642 260.0,467.97938089542845 232.0,467.97938089542845 218.0,443.7306695894642 232.0,419.4819582834999 260.0,419.4819582834999"/>
-<text x="246.0" y="426.2306695894642" class="classic-text classic-coord">0508</text>
+<text x="246.0" y="426.2306695894642" class="classic-text classic-coord">1318</text>
 </g>
-<g class="hex-group"><title>Hex 0608: Soros
-UWP: D747BB8-4
-Allegiance: Na
-Bases: None
-Gas Giants: 4
-Trade Codes: Hi, In, Lt</title>
-<polygon class="classic-hex classic-hex-filled" points="316.0,467.97938089542845 302.0,492.2280922013927 274.0,492.2280922013927 260.0,467.97938089542845 274.0,443.7306695894642 302.0,443.7306695894641"/>
-<text x="288.0" y="450.47938089542845" class="classic-text classic-coord">0608</text>
-<circle cx="288.0" cy="467.97938089542845" r="3.5" class="classic-world-dot" />
-<circle cx="288.0" cy="467.97938089542845" r="6.5" class="classic-gas-ring" />
-<text x="288.0" y="477.97938089542845" class="classic-text">SOROS</text>
-<text x="288.0" y="484.97938089542845" class="classic-text classic-uwp">D747BB8-4</text>
+<g class="hex-group"><title>Hex 1418</title>
+<polygon class="classic-hex " points="316.0,467.97938089542845 302.0,492.2280922013927 274.0,492.2280922013927 260.0,467.97938089542845 274.0,443.7306695894642 302.0,443.7306695894641"/>
+<text x="288.0" y="450.47938089542845" class="classic-text classic-coord">1418</text>
 </g>
-<g class="hex-group"><title>Hex 0708</title>
+<g class="hex-group"><title>Hex 1518</title>
 <polygon class="classic-hex " points="358.0,443.7306695894642 344.0,467.97938089542845 316.0,467.97938089542845 302.0,443.7306695894642 316.0,419.4819582834999 344.0,419.4819582834999"/>
-<text x="330.0" y="426.2306695894642" class="classic-text classic-coord">0708</text>
+<text x="330.0" y="426.2306695894642" class="classic-text classic-coord">1518</text>
 </g>
-<g class="hex-group"><title>Hex 0808</title>
-<polygon class="classic-hex " points="400.0,467.97938089542845 386.0,492.2280922013927 358.0,492.2280922013927 344.0,467.97938089542845 358.0,443.7306695894642 386.0,443.7306695894641"/>
-<text x="372.0" y="450.47938089542845" class="classic-text classic-coord">0808</text>
+<g class="hex-group"><title>Hex 1618: Tlebria
+UWP: B667876-C | Allegiance: Zh
+Bases: Zhodani Base
+Secondary Worlds: 11 (Gas Giants: 2, Belts: 1)
+Trade Codes: Ga, Ht, Ri
+History: Epoch IV (640) (Zhodani Counter-Expansion Wave)
+Lore: Canonical Zhodani corporate shipping hub (CT Book 7: Merchant Prince); headquarters of Tlebria Interstellar.</title>
+<polygon class="classic-hex classic-hex-filled" points="400.0,467.97938089542845 386.0,492.2280922013927 358.0,492.2280922013927 344.0,467.97938089542845 358.0,443.7306695894642 386.0,443.7306695894641"/>
+<text x="372.0" y="450.47938089542845" class="classic-text classic-coord">1618</text>
+<circle cx="372.0" cy="467.97938089542845" r="19" class="classic-zone-amber" />
+<circle cx="372.0" cy="467.97938089542845" r="3.5" class="classic-world-dot" />
+<circle cx="372.0" cy="467.97938089542845" r="6.5" class="classic-gas-ring" />
+<text x="358.0" y="463.97938089542845" class="classic-base">■</text>
+<text x="384.0" y="463.97938089542845" class="classic-text classic-alleg">Zh</text>
+<text x="372.0" y="478.97938089542845" class="classic-text">TLEBRIA</text>
+<text x="372.0" y="485.97938089542845" class="classic-text classic-uwp">B667876-C</text>
 </g>
-<g class="hex-group"><title>Hex 0109</title>
-<polygon class="classic-hex " points="106.0,492.22809220139277 92.0,516.4768035073571 64.0,516.4768035073571 50.0,492.22809220139277 63.999999999999986,467.9793808954285 91.99999999999999,467.97938089542845"/>
-<text x="78.0" y="474.72809220139277" class="classic-text classic-coord">0109</text>
-</g>
-<g class="hex-group"><title>Hex 0209</title>
-<polygon class="classic-hex " points="148.0,516.4768035073571 134.0,540.7255148133214 106.0,540.7255148133214 92.0,516.4768035073571 105.99999999999999,492.2280922013928 133.99999999999997,492.22809220139277"/>
-<text x="120.0" y="498.9768035073571" class="classic-text classic-coord">0209</text>
-</g>
-<g class="hex-group"><title>Hex 0309</title>
-<polygon class="classic-hex " points="190.0,492.22809220139277 176.0,516.4768035073571 148.0,516.4768035073571 134.0,492.22809220139277 148.0,467.9793808954285 175.99999999999997,467.97938089542845"/>
-<text x="162.0" y="474.72809220139277" class="classic-text classic-coord">0309</text>
-</g>
-<g class="hex-group"><title>Hex 0409: Loran
-UWP: A656DBC-7
-Allegiance: Na
+<g class="hex-group"><title>Hex 0919: Zdefr
+UWP: D433546-8 | Allegiance: Tl
 Bases: None
-Gas Giants: 4
-Trade Codes: Ga, Hi</title>
-<polygon class="classic-hex classic-hex-filled" points="232.0,516.4768035073571 218.0,540.7255148133214 190.0,540.7255148133214 176.0,516.4768035073571 190.0,492.2280922013928 217.99999999999997,492.22809220139277"/>
-<text x="204.0" y="498.9768035073571" class="classic-text classic-coord">0409</text>
-<circle cx="204.0" cy="516.4768035073571" r="3.5" class="classic-world-dot" />
-<circle cx="204.0" cy="516.4768035073571" r="6.5" class="classic-gas-ring" />
-<text x="204.0" y="526.4768035073571" class="classic-text">LORAN</text>
-<text x="204.0" y="533.4768035073571" class="classic-text classic-uwp">A656DBC-7</text>
+Secondary Worlds: 8 (Gas Giants: 3, Belts: 1)
+Trade Codes: Ni, Po
+History: Epoch III (410) (Tlesho Union Expansion)
+Lore: Trailing picket world of the Tlesho Union governed by the Scholars of the Protocols of the Consumption of Meats.</title>
+<polygon class="classic-hex classic-hex-filled" points="106.0,492.22809220139277 92.0,516.4768035073571 64.0,516.4768035073571 50.0,492.22809220139277 63.999999999999986,467.9793808954285 91.99999999999999,467.97938089542845"/>
+<text x="78.0" y="474.72809220139277" class="classic-text classic-coord">0919</text>
+<circle cx="78.0" cy="492.22809220139277" r="19" class="classic-zone-amber" />
+<circle cx="78.0" cy="492.22809220139277" r="3.5" class="classic-world-dot" />
+<circle cx="78.0" cy="492.22809220139277" r="6.5" class="classic-gas-ring" />
+<text x="90.0" y="488.22809220139277" class="classic-text classic-alleg">Tl</text>
+<text x="78.0" y="503.22809220139277" class="classic-text">ZDEFR</text>
+<text x="78.0" y="510.22809220139277" class="classic-text classic-uwp">D433546-8</text>
 </g>
-<g class="hex-group"><title>Hex 0509: Ethus
-UWP: C787ADF-B
-Allegiance: Na
-Bases: Scout
-Gas Giants: 1
-Trade Codes: Ga, Hi</title>
+<g class="hex-group"><title>Hex 1019</title>
+<polygon class="classic-hex " points="148.0,516.4768035073571 134.0,540.7255148133214 106.0,540.7255148133214 92.0,516.4768035073571 105.99999999999999,492.2280922013928 133.99999999999997,492.22809220139277"/>
+<text x="120.0" y="498.9768035073571" class="classic-text classic-coord">1019</text>
+</g>
+<g class="hex-group"><title>Hex 1119</title>
+<polygon class="classic-hex " points="190.0,492.22809220139277 176.0,516.4768035073571 148.0,516.4768035073571 134.0,492.22809220139277 148.0,467.9793808954285 175.99999999999997,467.97938089542845"/>
+<text x="162.0" y="474.72809220139277" class="classic-text classic-coord">1119</text>
+</g>
+<g class="hex-group"><title>Hex 1219</title>
+<polygon class="classic-hex " points="232.0,516.4768035073571 218.0,540.7255148133214 190.0,540.7255148133214 176.0,516.4768035073571 190.0,492.2280922013928 217.99999999999997,492.22809220139277"/>
+<text x="204.0" y="498.9768035073571" class="classic-text classic-coord">1219</text>
+</g>
+<g class="hex-group"><title>Hex 1319: Periphery-1319
+UWP: X500000-0 | Allegiance: Na
+Bases: None
+Secondary Worlds: 7 (Gas Giants: 0, Belts: 0)
+Trade Codes: Ba, Lt, Va
+History: Epoch V (Anomalous Void) (Subsector J Barren Anomaly)
+Lore: Anomaly Periphery: failed frontier settlement on edge of the Septiman void.</title>
 <polygon class="classic-hex classic-hex-filled" points="274.0,492.22809220139277 260.0,516.4768035073571 232.0,516.4768035073571 218.0,492.22809220139277 232.0,467.9793808954285 260.0,467.97938089542845"/>
-<text x="246.0" y="474.72809220139277" class="classic-text classic-coord">0509</text>
+<text x="246.0" y="474.72809220139277" class="classic-text classic-coord">1319</text>
+<circle cx="246.0" cy="492.22809220139277" r="19" class="classic-zone-amber" />
 <circle cx="246.0" cy="492.22809220139277" r="3.5" class="classic-world-dot" />
-<circle cx="246.0" cy="492.22809220139277" r="6.5" class="classic-gas-ring" />
-<text x="234.0" y="487.22809220139277" class="classic-base">▲</text>
-<text x="246.0" y="502.22809220139277" class="classic-text">ETHUS</text>
-<text x="246.0" y="509.22809220139277" class="classic-text classic-uwp">C787ADF-B</text>
+<text x="258.0" y="488.22809220139277" class="classic-text classic-alleg">Na</text>
+<text x="246.0" y="503.22809220139277" class="classic-text">PERIPHERY-1</text>
+<text x="246.0" y="510.22809220139277" class="classic-text classic-uwp">X500000-0</text>
 </g>
-<g class="hex-group"><title>Hex 0609</title>
-<polygon class="classic-hex " points="316.0,516.4768035073571 302.0,540.7255148133214 274.0,540.7255148133214 260.0,516.4768035073571 274.0,492.2280922013928 302.0,492.22809220139277"/>
-<text x="288.0" y="498.9768035073571" class="classic-text classic-coord">0609</text>
+<g class="hex-group"><title>Hex 1419: Periphery-1419
+UWP: X364000-0 | Allegiance: Na
+Bases: None
+Secondary Worlds: 9 (Gas Giants: 4, Belts: 0)
+Trade Codes: Ba, Lt
+History: Epoch V (Anomalous Void) (Subsector J Barren Anomaly)
+Lore: Anomaly Periphery: barren rock marking the northern quarantine line of Subsector J.</title>
+<polygon class="classic-hex classic-hex-filled" points="316.0,516.4768035073571 302.0,540.7255148133214 274.0,540.7255148133214 260.0,516.4768035073571 274.0,492.2280922013928 302.0,492.22809220139277"/>
+<text x="288.0" y="498.9768035073571" class="classic-text classic-coord">1419</text>
+<circle cx="288.0" cy="516.4768035073571" r="19" class="classic-zone-amber" />
+<circle cx="288.0" cy="516.4768035073571" r="3.5" class="classic-world-dot" />
+<circle cx="288.0" cy="516.4768035073571" r="6.5" class="classic-gas-ring" />
+<text x="300.0" y="512.4768035073571" class="classic-text classic-alleg">Na</text>
+<text x="288.0" y="527.4768035073571" class="classic-text">PERIPHERY-1</text>
+<text x="288.0" y="534.4768035073571" class="classic-text classic-uwp">X364000-0</text>
 </g>
-<g class="hex-group"><title>Hex 0709: Henis
-UWP: B200DFJ-8
-Allegiance: Na
-Bases: Scout
-Gas Giants: 1
-Trade Codes: Hi, In, Na, Va</title>
+<g class="hex-group"><title>Hex 1519: Dravzhd 1519
+UWP: E53136A-7 | Allegiance: Na
+Bases: None
+Secondary Worlds: 8 (Gas Giants: 0, Belts: 0)
+Trade Codes: Lo, Po
+History: Epoch IV (600–700) (Zhodani Post-Frontier-War Thin Wave)
+Lore: Macro-History: Epoch IV (600–700) — Zhodani Post-Frontier-War Thin Wave (Pop DM -1).</title>
 <polygon class="classic-hex classic-hex-filled" points="358.0,492.22809220139277 344.0,516.4768035073571 316.0,516.4768035073571 302.0,492.22809220139277 316.0,467.9793808954285 344.0,467.97938089542845"/>
-<text x="330.0" y="474.72809220139277" class="classic-text classic-coord">0709</text>
+<text x="330.0" y="474.72809220139277" class="classic-text classic-coord">1519</text>
 <circle cx="330.0" cy="492.22809220139277" r="3.5" class="classic-world-dot" />
-<circle cx="330.0" cy="492.22809220139277" r="6.5" class="classic-gas-ring" />
-<text x="318.0" y="487.22809220139277" class="classic-base">▲</text>
-<text x="330.0" y="502.22809220139277" class="classic-text">HENIS</text>
-<text x="330.0" y="509.22809220139277" class="classic-text classic-uwp">B200DFJ-8</text>
+<text x="342.0" y="488.22809220139277" class="classic-text classic-alleg">Na</text>
+<text x="330.0" y="503.22809220139277" class="classic-text">DRAVZHD 151</text>
+<text x="330.0" y="510.22809220139277" class="classic-text classic-uwp">E53136A-7</text>
 </g>
-<g class="hex-group"><title>Hex 0809: Jenan
-UWP: D53659B-4
-Allegiance: Na
-Bases: Scout
-Gas Giants: 2
-Trade Codes: Lt, Ni</title>
+<g class="hex-group"><title>Hex 1619: Dlazh-16
+UWP: D353579-8 | Allegiance: Na
+Bases: None
+Secondary Worlds: 6 (Gas Giants: 3, Belts: 0)
+Trade Codes: Ni, Po
+History: Epoch IV (600–700) (Zhodani Post-Frontier-War Thin Wave)
+Lore: Macro-History: Epoch IV (600–700) — Zhodani Post-Frontier-War Thin Wave (Pop DM -1).</title>
 <polygon class="classic-hex classic-hex-filled" points="400.0,516.4768035073571 386.0,540.7255148133214 358.0,540.7255148133214 344.0,516.4768035073571 358.0,492.2280922013928 386.0,492.22809220139277"/>
-<text x="372.0" y="498.9768035073571" class="classic-text classic-coord">0809</text>
+<text x="372.0" y="498.9768035073571" class="classic-text classic-coord">1619</text>
 <circle cx="372.0" cy="516.4768035073571" r="3.5" class="classic-world-dot" />
 <circle cx="372.0" cy="516.4768035073571" r="6.5" class="classic-gas-ring" />
-<text x="360.0" y="511.4768035073571" class="classic-base">▲</text>
-<text x="372.0" y="526.4768035073571" class="classic-text">JENAN</text>
-<text x="372.0" y="533.4768035073571" class="classic-text classic-uwp">D53659B-4</text>
+<text x="384.0" y="512.4768035073571" class="classic-text classic-alleg">Na</text>
+<text x="372.0" y="527.4768035073571" class="classic-text">DLAZH-16</text>
+<text x="372.0" y="534.4768035073571" class="classic-text classic-uwp">D353579-8</text>
 </g>
-<g class="hex-group"><title>Hex 0110: Quoros
-UWP: C310GHG-8
-Allegiance: Na
-Bases: Scout
-Gas Giants: 2
-Trade Codes: None</title>
-<polygon class="classic-hex classic-hex-filled" points="106.0,540.7255148133213 92.0,564.9742261192856 64.0,564.9742261192856 50.0,540.7255148133213 63.999999999999986,516.476803507357 91.99999999999999,516.476803507357"/>
-<text x="78.0" y="523.2255148133213" class="classic-text classic-coord">0110</text>
-<circle cx="78.0" cy="540.7255148133213" r="3.5" class="classic-world-dot" />
-<circle cx="78.0" cy="540.7255148133213" r="6.5" class="classic-gas-ring" />
-<text x="66.0" y="535.7255148133213" class="classic-base">▲</text>
-<text x="78.0" y="550.7255148133213" class="classic-text">QUOROS</text>
-<text x="78.0" y="557.7255148133213" class="classic-text classic-uwp">C310GHG-8</text>
+<g class="hex-group"><title>Hex 0920</title>
+<polygon class="classic-hex " points="106.0,540.7255148133213 92.0,564.9742261192856 64.0,564.9742261192856 50.0,540.7255148133213 63.999999999999986,516.476803507357 91.99999999999999,516.476803507357"/>
+<text x="78.0" y="523.2255148133213" class="classic-text classic-coord">0920</text>
 </g>
-<g class="hex-group"><title>Hex 0210</title>
+<g class="hex-group"><title>Hex 1020</title>
 <polygon class="classic-hex " points="148.0,564.9742261192856 134.0,589.2229374252499 106.0,589.2229374252499 92.0,564.9742261192856 105.99999999999999,540.7255148133213 133.99999999999997,540.7255148133213"/>
-<text x="120.0" y="547.4742261192856" class="classic-text classic-coord">0210</text>
+<text x="120.0" y="547.4742261192856" class="classic-text classic-coord">1020</text>
 </g>
-<g class="hex-group"><title>Hex 0310: Soris
-UWP: C467ACD-B
-Allegiance: Na
-Bases: Scout, Pirate
-Gas Giants: 4
-Trade Codes: Hi</title>
-<polygon class="classic-hex classic-hex-filled" points="190.0,540.7255148133213 176.0,564.9742261192856 148.0,564.9742261192856 134.0,540.7255148133213 148.0,516.476803507357 175.99999999999997,516.476803507357"/>
-<text x="162.0" y="523.2255148133213" class="classic-text classic-coord">0310</text>
-<circle cx="162.0" cy="540.7255148133213" r="3.5" class="classic-world-dot" />
-<circle cx="162.0" cy="540.7255148133213" r="6.5" class="classic-gas-ring" />
-<text x="150.0" y="535.7255148133213" class="classic-base">▲</text>
-<text x="162.0" y="550.7255148133213" class="classic-text">SORIS</text>
-<text x="162.0" y="557.7255148133213" class="classic-text classic-uwp">C467ACD-B</text>
+<g class="hex-group"><title>Hex 1120</title>
+<polygon class="classic-hex " points="190.0,540.7255148133213 176.0,564.9742261192856 148.0,564.9742261192856 134.0,540.7255148133213 148.0,516.476803507357 175.99999999999997,516.476803507357"/>
+<text x="162.0" y="523.2255148133213" class="classic-text classic-coord">1120</text>
 </g>
-<g class="hex-group"><title>Hex 0410</title>
+<g class="hex-group"><title>Hex 1220</title>
 <polygon class="classic-hex " points="232.0,564.9742261192856 218.0,589.2229374252499 190.0,589.2229374252499 176.0,564.9742261192856 190.0,540.7255148133213 217.99999999999997,540.7255148133213"/>
-<text x="204.0" y="547.4742261192856" class="classic-text classic-coord">0410</text>
+<text x="204.0" y="547.4742261192856" class="classic-text classic-coord">1220</text>
 </g>
-<g class="hex-group"><title>Hex 0510</title>
+<g class="hex-group"><title>Hex 1320</title>
 <polygon class="classic-hex " points="274.0,540.7255148133213 260.0,564.9742261192856 232.0,564.9742261192856 218.0,540.7255148133213 232.0,516.476803507357 260.0,516.476803507357"/>
-<text x="246.0" y="523.2255148133213" class="classic-text classic-coord">0510</text>
+<text x="246.0" y="523.2255148133213" class="classic-text classic-coord">1320</text>
 </g>
-<g class="hex-group"><title>Hex 0610</title>
+<g class="hex-group"><title>Hex 1420</title>
 <polygon class="classic-hex " points="316.0,564.9742261192856 302.0,589.2229374252499 274.0,589.2229374252499 260.0,564.9742261192856 274.0,540.7255148133213 302.0,540.7255148133213"/>
-<text x="288.0" y="547.4742261192856" class="classic-text classic-coord">0610</text>
+<text x="288.0" y="547.4742261192856" class="classic-text classic-coord">1420</text>
 </g>
-<g class="hex-group"><title>Hex 0710: Ardor
-UWP: D12079E-A
-Allegiance: Na
-Bases: Scout
-Gas Giants: 2
-Trade Codes: De, Na, Po</title>
-<polygon class="classic-hex classic-hex-filled" points="358.0,540.7255148133213 344.0,564.9742261192856 316.0,564.9742261192856 302.0,540.7255148133213 316.0,516.476803507357 344.0,516.476803507357"/>
-<text x="330.0" y="523.2255148133213" class="classic-text classic-coord">0710</text>
-<circle cx="330.0" cy="540.7255148133213" r="3.5" class="classic-world-dot" />
-<circle cx="330.0" cy="540.7255148133213" r="6.5" class="classic-gas-ring" />
-<text x="318.0" y="535.7255148133213" class="classic-base">▲</text>
-<text x="330.0" y="550.7255148133213" class="classic-text">ARDOR</text>
-<text x="330.0" y="557.7255148133213" class="classic-text classic-uwp">D12079E-A</text>
+<g class="hex-group"><title>Hex 1520</title>
+<polygon class="classic-hex " points="358.0,540.7255148133213 344.0,564.9742261192856 316.0,564.9742261192856 302.0,540.7255148133213 316.0,516.476803507357 344.0,516.476803507357"/>
+<text x="330.0" y="523.2255148133213" class="classic-text classic-coord">1520</text>
 </g>
-<g class="hex-group"><title>Hex 0810: Orros
-UWP: D576449-4
-Allegiance: Na
-Bases: Scout
-Gas Giants: 4
-Trade Codes: Lt, Ni</title>
+<g class="hex-group"><title>Hex 1620: Chlebl 1620
+UWP: B300430-A | Allegiance: Na
+Bases: None
+Secondary Worlds: 5 (Gas Giants: 0, Belts: 0)
+Trade Codes: Ni, Va
+History: Epoch IV (600–700) (Zhodani Post-Frontier-War Thin Wave)
+Lore: Macro-History: Epoch IV (600–700) — Zhodani Post-Frontier-War Thin Wave (Pop DM -1).</title>
 <polygon class="classic-hex classic-hex-filled" points="400.0,564.9742261192856 386.0,589.2229374252499 358.0,589.2229374252499 344.0,564.9742261192856 358.0,540.7255148133213 386.0,540.7255148133213"/>
-<text x="372.0" y="547.4742261192856" class="classic-text classic-coord">0810</text>
+<text x="372.0" y="547.4742261192856" class="classic-text classic-coord">1620</text>
 <circle cx="372.0" cy="564.9742261192856" r="3.5" class="classic-world-dot" />
-<circle cx="372.0" cy="564.9742261192856" r="6.5" class="classic-gas-ring" />
-<text x="360.0" y="559.9742261192856" class="classic-base">▲</text>
-<text x="372.0" y="574.9742261192856" class="classic-text">ORROS</text>
-<text x="372.0" y="581.9742261192856" class="classic-text classic-uwp">D576449-4</text>
+<text x="384.0" y="560.9742261192856" class="classic-text classic-alleg">Na</text>
+<text x="372.0" y="575.9742261192856" class="classic-text">CHLEBL 1620</text>
+<text x="372.0" y="582.9742261192856" class="classic-text classic-uwp">B300430-A</text>
 </g>
 <rect x="50" y="80" width="350.0" height="509.2229374252499" class="grid-border" />
-<text x="78.0" y="68" class="grid-label">01</text>
-<text x="78.0" y="601.2229374252499" class="grid-label">01</text>
-<text x="120.0" y="68" class="grid-label">02</text>
-<text x="120.0" y="601.2229374252499" class="grid-label">02</text>
-<text x="162.0" y="68" class="grid-label">03</text>
-<text x="162.0" y="601.2229374252499" class="grid-label">03</text>
-<text x="204.0" y="68" class="grid-label">04</text>
-<text x="204.0" y="601.2229374252499" class="grid-label">04</text>
-<text x="246.0" y="68" class="grid-label">05</text>
-<text x="246.0" y="601.2229374252499" class="grid-label">05</text>
-<text x="288.0" y="68" class="grid-label">06</text>
-<text x="288.0" y="601.2229374252499" class="grid-label">06</text>
-<text x="330.0" y="68" class="grid-label">07</text>
-<text x="330.0" y="601.2229374252499" class="grid-label">07</text>
-<text x="372.0" y="68" class="grid-label">08</text>
-<text x="372.0" y="601.2229374252499" class="grid-label">08</text>
-<text x="35" y="104.24871130596428" class="grid-label">01</text>
-<text x="415.0" y="104.24871130596428" class="grid-label">01</text>
-<text x="35" y="152.74613391789285" class="grid-label">02</text>
-<text x="415.0" y="152.74613391789285" class="grid-label">02</text>
-<text x="35" y="201.2435565298214" class="grid-label">03</text>
-<text x="415.0" y="201.2435565298214" class="grid-label">03</text>
-<text x="35" y="249.74097914175" class="grid-label">04</text>
-<text x="415.0" y="249.74097914175" class="grid-label">04</text>
-<text x="35" y="298.23840175367854" class="grid-label">05</text>
-<text x="415.0" y="298.23840175367854" class="grid-label">05</text>
-<text x="35" y="346.7358243656071" class="grid-label">06</text>
-<text x="415.0" y="346.7358243656071" class="grid-label">06</text>
-<text x="35" y="395.23324697753566" class="grid-label">07</text>
-<text x="415.0" y="395.23324697753566" class="grid-label">07</text>
-<text x="35" y="443.7306695894642" class="grid-label">08</text>
-<text x="415.0" y="443.7306695894642" class="grid-label">08</text>
-<text x="35" y="492.22809220139277" class="grid-label">09</text>
-<text x="415.0" y="492.22809220139277" class="grid-label">09</text>
-<text x="35" y="540.7255148133213" class="grid-label">10</text>
-<text x="415.0" y="540.7255148133213" class="grid-label">10</text>
+<text x="78.0" y="68" class="grid-label">09</text>
+<text x="78.0" y="601.2229374252499" class="grid-label">09</text>
+<text x="120.0" y="68" class="grid-label">10</text>
+<text x="120.0" y="601.2229374252499" class="grid-label">10</text>
+<text x="162.0" y="68" class="grid-label">11</text>
+<text x="162.0" y="601.2229374252499" class="grid-label">11</text>
+<text x="204.0" y="68" class="grid-label">12</text>
+<text x="204.0" y="601.2229374252499" class="grid-label">12</text>
+<text x="246.0" y="68" class="grid-label">13</text>
+<text x="246.0" y="601.2229374252499" class="grid-label">13</text>
+<text x="288.0" y="68" class="grid-label">14</text>
+<text x="288.0" y="601.2229374252499" class="grid-label">14</text>
+<text x="330.0" y="68" class="grid-label">15</text>
+<text x="330.0" y="601.2229374252499" class="grid-label">15</text>
+<text x="372.0" y="68" class="grid-label">16</text>
+<text x="372.0" y="601.2229374252499" class="grid-label">16</text>
+<text x="35" y="104.24871130596428" class="grid-label">11</text>
+<text x="415.0" y="104.24871130596428" class="grid-label">11</text>
+<text x="35" y="152.74613391789285" class="grid-label">12</text>
+<text x="415.0" y="152.74613391789285" class="grid-label">12</text>
+<text x="35" y="201.2435565298214" class="grid-label">13</text>
+<text x="415.0" y="201.2435565298214" class="grid-label">13</text>
+<text x="35" y="249.74097914175" class="grid-label">14</text>
+<text x="415.0" y="249.74097914175" class="grid-label">14</text>
+<text x="35" y="298.23840175367854" class="grid-label">15</text>
+<text x="415.0" y="298.23840175367854" class="grid-label">15</text>
+<text x="35" y="346.7358243656071" class="grid-label">16</text>
+<text x="415.0" y="346.7358243656071" class="grid-label">16</text>
+<text x="35" y="395.23324697753566" class="grid-label">17</text>
+<text x="415.0" y="395.23324697753566" class="grid-label">17</text>
+<text x="35" y="443.7306695894642" class="grid-label">18</text>
+<text x="415.0" y="443.7306695894642" class="grid-label">18</text>
+<text x="35" y="492.22809220139277" class="grid-label">19</text>
+<text x="415.0" y="492.22809220139277" class="grid-label">19</text>
+<text x="35" y="540.7255148133213" class="grid-label">20</text>
+<text x="415.0" y="540.7255148133213" class="grid-label">20</text>
 </svg>

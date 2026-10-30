@@ -1,0 +1,377 @@
+# Sector Data for Foreven Sector (Iakr - 1107)
+# Subsector A: Vlazhdum
+# Subsector B: Chtierabl
+# Subsector C: Zdovesil
+# Subsector D: Massina
+# Subsector E: Tlesho
+# Subsector F: Tlebria
+# Subsector G: Chiepzh
+# Subsector H: Fessor
+# Subsector I: Khefr
+# Subsector J: Septima
+# Subsector K: Hollis
+# Subsector L: Reidain
+# Subsector M: Bastet
+# Subsector N: Avalar
+# Subsector O: Presidio
+# Subsector P: Urnian
+# Hex  Name                 UWP       Bases   Allegiance  Zone PBG   Notes
+# ---- -------------------- --------- ------- ----------- ---- ----- -----
+0103 Vlazh-0103           E5589BD-3         Zh          R    304   Hi Lt
+0104 Chirper-0104         B35A515-E         Zh          -    303   Ht Ni Wa
+0112 Nchaq 0112           E100567-A         Zh          -    214   Ni Va
+0113 Chiepavr 0113        C523100-9         Zh          -    723   Lo Po
+0116 Tleshia-01           X525000-0         Zh          -    022   Ba Lt
+0129 Aethelgard           D874200-3         Na          -    703   Lo Lt
+0130 Bellerophon 0130     X100000-0         Na          -    003   Ba Lt Va
+0131 Bastet               A654956-E NS      Fe          -    602   Hi Ht
+0135 Khoros 0135          C58A231-9         Na          -    804   Lo Wa
+0136 Siren 0136           X8BA000-0         Na          -    003   Ba Fl Lt
+0202 Zhdant               D200785-9         Zh          -    902   Na Va
+0203 Zdefral              E652310-4         Zh          -    402   Lo Lt Po
+0211 Tleshia 0211         X432000-0         Zh          -    021   Ba Lt Po
+0212 Tlovr 0212           D945622-4         Zh          -    322   Ag Lt Ni
+0213 Tlovr 0213           E667261-3         Zh          -    603   Ga Lo Lt
+0214 Krrzhd-0214          E5209EF-6         Zh          R    204   De Hi In Na Po
+0218 Tlovr 0218           D544531-3         Zh          -    924   Ag Lt Ni
+0223 Anvil                X320000-0         Na          -    012   Ba De Lt Po
+0224 Coldwater            C203545-8         Na          -    803   Ic Ni Va
+0226 Kintyre 0226         X88A000-0         Na          -    002   Ba Lt Wa
+0227 Castellan 0227       B794777-5         Na          A    823   Ag Lt
+0232 Chatelaine           B666754-C S       Fe          -    723   Ag Ga Ht Ri
+0235 Outreach             D545224-4         Na          -    720   Lo Lt
+0236 Ironwood 0236        C322549-A         Na          -    120   Ni Po
+0239 Caledon 0239         X638000-0         Na          -    014   Ba Lt
+0302 Chlovr               B200688-A NM      Zh          -    802   Na Ni Va
+0304 Zhdikol              D200132-8         Zh          -    704   Lo Va
+0305 Dlazh                D400344-8         Zh          -    723   Lo Va
+0306 Nchaq                X421000-0         Zh          -    021   Ba Lt Po
+0308 Qrabl                B310533-9         Zh          -    612   Ni
+0309 Nchaq-03             C3019A5-C         Zh          -    623   Hi Ht Ic In Na Va
+0312 Tleshia 0312         E8DA7CB-5         Zh          A    504   Fl Lt
+0332 Mau                  B565743-C         Fe          -    223   Ag Ht Ri
+0335 Wayfarer 0335        E665440-4         Na          -    303   Ga Lt Ni
+0336 Marches Reach 0336   E304300-9         Na          -    202   Ic Lo Va
+0401 Tliavzh-04           C45898C-B         Zh          A    204   Hi
+0402 Tlanzh               D664647-2         Zh          -    600   Ag Lt Ni Ri
+0403 Vlozh                D201543-8         Zh          -    202   Ic Ni Va
+0404 Bliazh               D320588-5         Zh          -    101   De Lt Ni Po
+0408 Zhod-Preserve        D997648-1         Zh          R    402   Ag Lt Ni
+0411 Tliavzh              D742200-3         Zh          -    603   Lo Lt Po
+0412 Zhdevra 0412         E436455-7         Zh          -    400   Ni
+0418 Dlazh 0418           DAA5589-8         Zh          -    204   Fl Ni
+0422 Driftmark            C64569A-3         Na          -    903   Ag Lt Ni
+0424 Veridian             C451310-8         Na          -    133   Lo Po
+0426 Marches Reach        X310000-0         Na          -    024   Ba Lt
+0431 Pasht                C544642-B         Fe          -    602   Ag Ni
+0436 Caledon 0436         X56A000-0         Na          -    014   Ba Lt Wa
+0437 Solace               B784300-B         Na          -    720   Lo
+0439 Khoros 0439          E300337-9         Na          -    504   Lo Va
+0502 Zhdovl               D744775-3         Zh          A    104   Ag Lt
+0503 Tlovr                B78A577-B         Zh          -    703   Ni Wa
+0504 Zhdovl 0504          C410755-A         Zh          -    400   Na
+0505 Zhdikol 0505         C310788-9         Zh          -    802   Na
+0507 Vrenzh               B845ABE-9         Zh          A    303   Hi In
+0508 Krrzhd-05            C647100-6         Zh          -    412   Lo
+0513 Vlazhdu-05           B210348-A NM      Zh          -    723   Lo
+0516 Tleshia-05           BA8A431-9         Zh          -    103   Ni Wa
+0517 Chiepavr 0517        E661245-6         Zh          -    711   Lo
+0520 Zhdevra 0520         E534142-5         Na          -    720   Lo Lt
+0526 Anvil 0526           A5218CF-C         Na          A    712   Ht Na Po
+0527 Siren                D940347-6         Na          -    205   De Lo Po
+0538 Corinthia 0538       X100000-0         Na          -    004   Ba Lt Va
+0604 Tleshia              C534110-5         Zh          -    913   Lo Lt
+0607 Zdefral 0607         D1007AC-8         Zh          A    802   Na Va
+0610 Chlovr-06            D10048D-9         Zh          A    903   Ni Va
+0612 Zhdovl 0612          X100000-0         Zh          -    003   Ba Lt Va
+0623 Khoros               B978144-6         Na          -    811   Lo
+0633 Aethelgard 0633      B000762-A         Na          -    403   As Na Va
+0634 Caledon 0634         C226366-8         Na          -    604   Lo
+0639 Khoros 0639          C789344-5         Na          -    314   Lo Lt
+0708 Spartan-0708         B66A767-C         Zh          A    404   Ht Ri Wa
+0712 Chiepavr-07          A68A968-E         Zh          -    610   Hi Ht Wa
+0716 Tlanzh 0716          D543324-3         Zh          -    614   Lo Lt Po
+0717 Nchaq-07             X431000-0         Zh          -    003   Ba Lt Po
+0720 Tlesho               A998844-A N       Tl          A    800   
+0723 Perdition            X56A000-0         Na          -    005   Ba Lt Wa
+0730 Wayfarer             C45977B-7         Na          A    701   
+0732 Caledon 0732         X300000-0         Na          -    004   Ba Lt Va
+0734 Vanguard 0734        X521000-0         Na          -    002   Ba Lt Po
+0735 Ashfall              X512000-0         Na          -    034   Ba Ic Lt
+0801 Qrabl-08             D447752-6         Zh          -    922   Ag
+0807 Nchaq 0807           C753555-9         Zh          -    603   Ni Po
+0810 Zhdovl-08            A2018AA-D         Zh          A    232   Ht Ic Na Va
+0814 Vrenzh-08            E200877-A         Zh          A    724   Na Va
+0815 Khezhda 0815         D200100-8         Zh          -    231   Lo Va
+0818 Khezhda 0818         E995300-6         Zh          -    413   Lo
+0819 Zhdikevli            C675656-9         Tl          A    304   Ag Ni
+0820 Chtenchee            C554645-9         Tl          A    421   Ag Ni
+0822 Periphery-0822       X200000-0         Na          A    003   Ba Lt Va
+0825 Catspaw              C677776-9 S       Fe          A    904   Ag
+0837 Coldwater 0837       E323569-8         Na          -    611   Ni Po
+0839 Halcyon 0839         X400000-0         Na          -    020   Ba Lt Va
+0840 Highwatch 0840       C566120-4         Na          -    103   Lo Lt
+0902 Shtebr               B331457-A         Zh          -    904   Ni Po
+0908 Nsoblir              D338875-6         Zh          A    400   
+0909 Vlozh-09             B324799-7 NM      Zh          -    823   
+0910 Dravzhd-09           D68A477-4         Zh          -    104   Lt Ni Wa
+0911 Qlaqlech-09          B741420-8 NM      Zh          -    700   Ni Po
+0914 Chlebl 0914          C730200-7         Zh          -    813   De Lo Po
+0915 Dravzhd 0915         B55A433-8         Zh          -    320   Ni Wa
+0919 Zdefr                D433546-8         Tl          A    313   Ni Po
+0926 Palamon 0926         D200349-9         Na          -    104   Lo Va
+0930 Highwatch            C568266-6         Na          -    702   Lo
+0935 Oytrip-0935          C57488D-9         Na          A    800   
+1007 Vlazhdu              B6626A8-A NM      Zh          -    123   Ni
+1012 Dlazh-10             D8A7666-8         Zh          -    403   Fl Ni
+1016 Khezhda-10           B422740-A         Zh          -    205   Na Po
+1026 Dunbar 1026          E542234-7         Na          -    222   Lo Po
+1032 Erith                C867641-4         Na          -    803   Ag Ga Lt Ni Ri
+1039 Bellerophon 1039     C795776-5         Na          A    401   Ag Lt
+1102 Ziafr-Gate West      B402212-9 NM      Zh          -    620   Ic Lo Va
+1103 Chlovr-11            B579320-B NM      Zh          -    501   Lo
+1109 Zhdorv               D41388C-8         Zh          A    402   Ic Na
+1111 Flesht 1111          D566224-7         Zh          -    206   Lo
+1112 Tlanzh-11            C444334-A         Zh          -    323   Lo
+1115 Vlazhdu 1115         C563696-8         Zh          -    303   Ni Ri
+1124 Velo-Vacua           X537000-0         Na          A    005   Ba Lt
+1126 Marches Reach 1126   X686430-3         Na          -    402   Ga Lt Ni
+1139 Halcyon 1139         A432741-C         Na          -    503   Ht Na Po
+1140 Valkyrie             B763720-5         Na          -    103   Lt
+1205 Bliazh 1205          E777674-6         Zh          A    922   Ag Ni
+1209 Khezhda              A100878-E NM      Zh          A    124   Ht Na Va
+1212 Zdovesil             A65588A-9 NM      Zh          -    103   Ga
+1214 Vrenzh 1214          D540687-3         Zh          -    814   De Lt Ni Po
+1216 Droyne-1216          B767837-9         Zh          -    903   Ga
+1218 Periphery-1218       X794000-0         Na          A    013   Ba Lt
+1224 Verdant Ghost        E666000-0         Na          A    001   Ba Ga Lt
+1234 Amanecer             C212347-9         Av          -    602   Ic Lo
+1239 Caledon 1239         D56367A-6         Na          A    723   Ni Ri
+1240 Outreach 1240        D431987-7         Na          -    203   Hi Na Po
+1303 Chirper-1303         X76737B-0         Zh          R    601   Ga Lo Lt
+1304 Shtebr-13            D100467-8         Zh          -    624   Ni Va
+1307 Chiepavr-13          C595334-8         Zh          -    805   Lo
+1312 Zhdorv-13            E000300-B         Zh          -    624   As Lo Va
+1314 Tleshia-13           X987255-0         Zh          -    515   Lo Lt
+1316 Shtebr 1316          C523431-A         Zh          -    324   Ni Po
+1317 Zhdovl 1317          X8A3000-0         Na          -    004   Ba Fl Lt
+1319 Periphery-1319       X500000-0         Na          A    000   Ba Lt Va
+1325 Silent Eden          E767000-0         Na          A    003   Ba Ga Lt
+1329 Nyx                  X411000-0         Na          -    000   Ba Ic Lt
+1330 Marches Reach 1330   X548000-0         Na          -    004   Ba Lt
+1335 Ardiente             B461885-B         Av          -    502   Ri
+1403 Zhdevra              C401320-9         Zh          -    800   Ic Lo Va
+1404 Zhdikol 1404         E759548-3         Zh          -    113   Lt Ni
+1405 Plesht               A35569A-9         Zh          -    112   Ag Ni
+1410 Tleshia 1410         C694879-7         Zh          A    300   
+1411 Tleshia 1411         C677230-8         Zh          -    902   Lo
+1412 Chiepavr 1412        C430540-A         Zh          -    432   De Ni Po
+1416 Vlazhdu 1416         X100000-0         Na          -    004   Ba Lt Va
+1419 Periphery-1419       X364000-0         Na          A    004   Ba Lt
+1422 Cinder-1422          X8A8000-0         Na          A    032   Ba Fl Lt
+1423 Chokepoint-1423      X656000-0         Na          A    000   Ba Ga Lt
+1426 Stirling 1426        X7B8000-0         Na          -    000   Ba Fl Lt
+1427 Pendragon            C415310-8         Na          -    200   Ic Lo
+1428 Hept-Secundus        C5867FA-B M       He          R    303   Ag
+1429 Synapse-Velo         C4646F9-B         He          R    403   Ag Ni
+1432 Rocaroja             B100798-A N       Av          A    534   Na Va
+1501 Zhdovl 1501          C324555-B         Zh          -    103   Ni
+1504 Tliavzh-15           C000200-B         Zh          -    600   As Lo Va
+1507 Flesht-15            C1009CD-B         Zh          A    221   Hi In Na Va
+1519 Dravzhd 1519         E53136A-7         Na          -    900   Lo Po
+1523 Hollow-1523          X200000-0         Na          A    004   Ba Lt Va
+1528 Chitin-Reach         B7978FB-C N       He          R    734   Ht
+1534 Acerbo               E877100-7         Av          -    511   Lo
+1536 Lun Varga            C336412-9         Av          -    223   Ni
+1539 Horizonte            D87A653-6         Av          -    733   Ni Wa
+1602 Qlaqlech-16          A9999CC-C         Zh          A    803   Hi Ht In
+1612 Nsoblir 1612         E66568A-4         Zh          -    800   Ag Ga Lt Ni Ri
+1617 Zhdovl 1617          X657000-0         Na          -    002   Ba Ga Lt
+1618 Tlebria              B667876-C M       Zh          A    212   Ga Ht Ri
+1619 Dlazh-16             D353579-8         Na          -    603   Ni Po
+1620 Chlebl 1620          B300430-A         Na          -    800   Ni Va
+1622 Frost-1622           X311000-0         Na          A    000   Ba Ic Lt
+1628 Septima Prime        B6A69FB-C N       He          R    624   Fl Hi Ht In
+1630 Lun Escarpa          B400310-C N       Av          A    204   Ht Lo Va
+1631 Buergeria            C542635-6         Av          A    202   Ni Po
+1632 Escandi              E746321-3         Av          -    200   Lo Lt
+1634 Hortali              A9B8787-C         Av          -    424   Fl Ht
+1636 Avalar               A75599C-C N       Av          A    904   Ga Hi Ht
+1637 Tranquilidad         C669638-8         Av          -    723   Ni
+1639 Lun Estrad           B4346A8-A         Av          -    103   Ni
+1640 Orilla               B400233-C N       Av          -    911   Ht Lo Va
+1701 Ziafr-Gate North     A543A78-B NM      Zh          A    435   Hi In Po
+1703 Vlazhdu-17           D226227-6         Zh          -    503   Lo
+1704 Nchaq 1704           B557100-6         Zh          -    401   Lo
+1712 Dravzhd 1712         D205100-8         Zh          -    414   Ic Lo Va
+1724 Arcturus Gate        X632000-0         Na          -    003   Ba Lt Po
+1725 Subterra-1725        E223686-3         Na          -    300   Lt Na Ni Po
+1726 Relic-1726           X300000-0         Na          -    030   Ba Lt Va
+1728 Khept-Spire          C6757FA-B M       He          R    912   Ag
+1729 Resonance-7          D3546F9-A         He          R    801   Ag Ni
+1734 Pres Tinto           B452464-C NM      Av          -    102   Ht Ni Po
+1738 Pres Alfa            B443454-C NM      Av          -    803   Ht Ni Po
+1739 Lun Rico             D442221-7         Av          -    103   Lo Po
+1804 Vlazhdu 1804         D337689-8         Zh          -    215   Ni
+1806 Qrabl 1806           B301754-B NM      Zh          -    902   Ic Na Va
+1807 Zhdevra 1807         B300667-C NM      Zh          -    100   Ht Na Ni Va
+1808 Flesht-18            D650332-7         Zh          -    924   De Lo Po
+1813 Tlovr-18             A983724-8         Zh          -    704   
+1815 Chlovr 1815          C555144-7         Zh          -    520   Lo
+1816 Zhdikol 1816         B9DA523-D NM      Zh          -    400   Fl Ht Ni
+1817 Zhdikol 1817         D310167-8         Zh          -    900   Lo
+1822 Durendal 1822        D685447-2         Na          -    804   Ga Lt Ni
+1828 Biolattice-Alpha     C5667FA-B         He          R    704   Ag
+1833 Salacia              C98A154-C         Av          -    420   Ht Lo Wa
+1834 Cloacina             C510647-8         Av          -    525   Na Ni
+1840 Atun                 C66A336-A         Av          -    900   Lo Wa
+1901 Zhdovl 1901          D7A6853-8         Zh          -    404   Fl
+1905 Krrzhd-19            C202778-8         Zh          A    203   Ic Na Va
+1915 Bliazh 1915          D301100-9         Zh          -    600   Ic Lo Va
+1920 Zhdovl-19            B67A8AA-A NM      Zh          A    110   Wa
+1926 Palamon 1926         X361000-0         Na          -    004   Ba Lt
+1927 Darr-Contact         E666988-7         Na          -    413   Ga Hi
+1936 Tresca               D76A340-6         Av          -    423   Lo Wa
+1938 Zuekgoz              C657864-6 M       Av          A    101   Ga
+2002 Zhdorv 2002          D746946-4         Zh          -    604   Hi In Lt
+2003 Shtebr 2003          D8C6112-A         Zh          -    524   Fl Lo
+2005 Dlazh-20             E423534-7         Zh          -    304   Ni Po
+2017 Tleshia 2017         B234669-A         Zh          -    511   Ni
+2021 Stirling 2021        B643577-B         Na          -    803   Ni Po
+2022 New Vilis 2022       B400484-A         Na          -    202   Ni Va
+2023 Pendragon 2023       X203000-0         Na          -    002   Ba Ic Lt Va
+2040 Glimmer              C444200-7         Na          -    322   Lo
+2102 Vlozh-21             E400688-9         Zh          -    902   Na Ni Va
+2103 Tliavzh-21           C791888-6         Zh          -    600   
+2113 Tliavzh-21 2113      A100476-E         Zh          -    802   Ht Ni Va
+2121 Palamon 2121         X100000-0         Na          -    031   Ba Lt Va
+2123 Miremont             C620441-A         Na          -    421   De Ni Po
+2128 Corinthia            B58A7AC-A         Na          A    513   Wa
+2135 Fragos               A000641-C N       Av          -    424   As Ht Na Ni Va
+2136 Ninfa                B567757-B         Av          -    624   Ag Ri
+2137 Drevas               D410444-9         Av          -    832   Ni
+2202 Shtebr 2202          C9BA667-9         Zh          -    931   Fl Ni
+2209 Zhdo-2209            X576000-0         Zh          A    000   Ba Lt
+2211 Flesht 2211          C100200-B         Zh          -    904   Lo Va
+2214 Qlaqlech-22          C400444-8         Zh          -    203   Ni Va
+2225 Tarsus 2225          B6A2855-8 S       Cs          -    222   Fl
+2230 Veridian 2230        D78A453-8         Na          -    115   Ni Wa
+2231 Montrose             C667868-5         Na          -    513   Ga Lt Ri
+2236 Larissa              C659841-7         Av          -    500   
+2237 Lun Orcus            B100341-C N       Av          -    400   Ht Lo Va
+2304 Shtebr 2304          C355121-8         Zh          -    800   Lo
+2306 Plesht 2306          D755300-2         Zh          -    603   Ga Lo Lt
+2309 Zhdo-2309            X100000-0         Zh          A    021   Ba Lt Va
+2310 Zhdo-2310            X779000-0         Zh          A    002   Ba Lt
+2311 Flesht 2311          C5108AA-B         Zh          A    300   Na
+2320 Vrenzh 2320          D545300-3         Zh          -    904   Lo Lt
+2325 Kintyre 2325         D52338A-5         Na          -    824   Lo Lt Po
+2326 Castellan 2326       C788240-7         Na          -    401   Lo
+2328 Mirel-2328           D87A653-5         Na          -    304   Lt Ni Wa
+2334 Bellerophon 2334     X500000-0         Na          -    003   Ba Lt Va
+2335 Coldwater 2335       E656479-4         Na          -    803   Ga Lt Ni
+2412 Vlazhdu 2412         D00057C-8         Zh          -    603   As Ni Va
+2422 Tarsus 2422          B88A543-B         Na          -    503   Ni Wa
+2427 Stirling 2427        D967567-7         Na          -    801   Ag Ni
+2428 Stirling 2428        X000000-0         Na          -    004   As Ba Lt Va
+2429 Grendel 2429         C000230-A         Na          -    724   As Lo Va
+2430 Vanguard 2430        B593564-8 S       Cs          -    202   Ni
+2431 Durendal 2431        D667211-4         Na          -    220   Ga Lo Lt
+2433 Caledon 2433         B400674-B         Na          A    203   Na Ni Va
+2501 Qrabl 2501           D100423-A         Zh          -    324   Ni Va
+2502 Vrenzh-25            C456559-8         Zh          -    602   Ag Ni
+2517 Palamon              D720200-7         Na          -    403   De Lo Po
+2518 New Vilis            X7C9000-0         Na          A    004   Ba Fl Lt
+2520 Caledon              C647377-6         Na          -    504   Lo
+2523 Hollis               A370642-C NS      Cs          -    303   De Ht Ni
+2527 Vanguard 2527        E000587-B         Na          -    423   As Ni Va
+2528 Highwatch 2528       C684213-8         Na          -    901   Lo
+2532 Kintyre 2532         C5518A9-6         Na          -    110   Po
+2537 Stirling 2537        C66759D-6         Na          A    701   Ag Ga Ni
+2602 Ziafr-Gate Mid       X9B3000-0 NM      Zh          -    004   Ba Fl Lt
+2603 Vlozh 2603           D9A6220-8         Zh          A    102   Fl Lo
+2607 Zhdorv 2607          D300966-A         Zh          A    610   Hi In Na Va
+2608 Qrabl-26             D100323-B         Zh          -    200   Lo Va
+2610 Chlebl               B468421-C NM      Zh          -    525   Ht Ni
+2611 Dunbar               C9C9524-A         Na          A    423   Fl Ni
+2613 Tarsus               A445500-D         Na          -    404   Ag Ht Ni
+2614 Kestrel              DAD9211-7         Na          -    203   Fl Lo
+2615 Relic-2615           E300210-B         Na          -    805   Lo Va
+2616 Palamon 2616         C869686-9         Na          -    323   Ni Ri
+2623 Stirling 2623        D000436-9         Na          -    514   As Ni Va
+2632 Montrose 2632        B865755-6         Na          -    124   Ag Ga Ri
+2634 Galloway 2634        B410551-E         Na          -    103   Ht Ni
+2710 Zdefral 2710         C9DA421-7         Zh          -    903   Fl Ni
+2712 Bellerophon          X201000-0         Na          -    002   Ba Ic Lt Va
+2715 Halcyon              C511344-A         Na          -    905   Ic Lo
+2724 Aethelgard 2724      B555677-6         Na          A    314   Ag Ni
+2731 Corinthia 2731       E778556-3         Na          -    210   Ag Lt Ni
+2736 New Vilis 2736       B630755-8         Na          -    505   De Na Po
+2739 Grendel 2739         A620567-D         Na          -    103   De Ht Ni Po
+2740 Relic-2740           X000000-0         Na          -    024   As Ba Lt Va
+2805 Vlazhdu-28           B6338AC-B         Zh          A    703   Na Po
+2807 Qrabl 2807           A694444-D         Zh          -    103   Ht Ni
+2808 Dlazh-28             D411764-8         Zh          A    602   Ic Na
+2811 Kintyre              D624979-6         Na          A    704   Hi In
+2812 Kestrel 2812         D88A334-8         Na          -    303   Lo Wa
+2814 Castellan            B10068A-D         Na          -    812   Ht Na Ni Va
+2820 Dunbar 2820          D968232-7         Na          -    223   Lo
+2822 Miremont 2822        D323576-7         Na          -    202   Ni Po
+2823 Gvegh-2823           C699876-8         Na          A    933   
+2829 Kintyre 2829         B742965-7         Na          -    203   Hi In Po
+2833 Grendel 2833         B67598C-7         Na          A    400   Hi In
+2834 Bywater              C666643-7         Hl          -    800   Ag Ga Ni Ri
+2835 The Shire            C577757-7         Hl          -    924   Ag
+2836 Arcturus Gate 2836   B522350-8         Na          -    603   Lo Po
+2838 Corinthia 2838       E100522-A         Na          -    822   Ni Va
+2905 Flesht               X555200-0         Zh          -    224   Lo Lt
+2907 Zhdikol 2907         B9C7400-A NM      Zh          A    504   Fl Ni
+2910 Chiepavr             C595323-8         Zh          -    416   Lo
+2920 Oakhaven             B554575-7         Na          -    524   Ag Ni
+2923 Pendragon 2923       B100622-E N       Cs          -    402   Ht Na Ni Va
+2924 New Vilis 2924       CAB5265-9 S       Cs          -    202   Fl Lo
+2925 Oakhaven 2925        X204000-0         Cs          -    023   Ba Ic Lt Va
+2926 Caledon 2926         C220898-B S       Cs          -    123   De Na Po
+2927 Grendel 2927         E30498B-9         Cs          -    224   Hi Ic In Va
+2934 Marches Reach 2934   C543898-8 S       Cs          -    905   Po
+2935 Bucklebury           D566632-6         Hl          -    624   Ag Ni
+2937 Miremont 2937        C202474-8         Cs          -    604   Ic Ni Va
+2938 Vanguard 2938        C300657-8 S       Cs          -    203   Na Ni Va
+2940 Oakhaven 2940        C401631-8         Cs          -    303   Ic Na Ni Va
+3003 Zhdikol 3003         E32249C-7         Zh          A    905   Ni Po
+3006 Nsobl-Relic          X100000-0         Zh          R    012   Ba Lt Va
+3013 Palamon 3013         A202887-B         Na          -    204   Ic Na Va
+3014 Galloway             X8C7000-0         Na          -    012   Ba Fl Lt
+3015 Stirling             B326941-C         Na          -    432   Hi Ht In
+3018 Parthinia            C694655-C         Hl          A    402   Ag Ht Ni
+3020 Grendel              D765489-4         Na          -    604   Ga Lt Ni
+3021 Dunbar 3021          BABA667-B NS      Cs          -    302   Fl Ni
+3027 Bellerophon 3027     B841843-7 N       Cs          -    303   Po
+3028 Marches Reach 3028   C9A567A-9 S       Cs          A    223   Fl Ni
+3034 Marches Reach 3034   D365548-4 S       Cs          -    900   Ag Lt Ni
+3035 Stirling 3035        C345300-9 S       Cs          -    424   Lo
+3037 Kestrel 3037         X687000-0         Cs          -    001   Ba Ga Lt
+3107 Zhdikol 3107         D793635-5         Zh          -    910   Lt Ni
+3108 Nchaq-31             C86827A-9         Zh          A    102   Lo
+3111 Tarsus 3111          X530000-0         Na          -    020   Ba De Lt Po
+3115 Stirling 3115        C100311-8         Na          -    902   Lo Va
+3116 Vanguard             X544000-0         Na          -    022   Ba Lt
+3119 Halcyon 3119         CA67741-6         Na          -    422   Ag Ri
+3126 Bellerophon 3126     D403576-8         Cs          -    922   Ic Ni Va
+3129 Bellerophon 3129     C221541-B         Cs          -    523   Ni Po
+3131 Kestrel 3131         C400348-C         Cs          -    723   Ht Lo Va
+3134 Montrose 3134        B53447B-7 N       Cs          -    603   Ni
+3135 Candory Watch        B434575-D NS      Cs          -    813   Ht Ni
+3201 Ziafr-Gate East      B000641-9 NM      Zh          -    104   As Na Ni Va
+3204 Dravzhd              C8A7378-A         Zh          A    200   Fl Lo
+3205 Zhdevra 3205         C221642-8         Zh          -    703   Na Ni Po
+3206 Dlazh 3206           C974535-9         Zh          -    822   Ag Ni
+3212 Ironwood             A200512-E         Na          -    500   Ht Ni Va
+3214 Durendal             B245526-8 S       Cs          -    601   Ag Ni
+3215 Kintyre 3215         X756100-0         Na          -    504   Ga Lo Lt
+3217 Kestrel 3217         X100000-0         Na          -    003   Ba Lt Va
+3227 Bellerophon 3227     B754225-8         Cs          -    221   Lo
+3229 Alenzar              C000414-9 S       Cs          -    513   As Ni Va
+3230 Raschev              C8697C4-6         Cs          -    123   
+3232 Montrose 3232        C562435-8         Cs          -    704   Ni
+3238 Lismore              E588665-1         Cs          -    203   Ag Lt Ni Ri

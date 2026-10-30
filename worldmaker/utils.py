@@ -4,8 +4,24 @@ import math
 class Utils:
     """Houses all common, low-level functions."""
     
+    _TO_EHEX = {
+        0: '0', 1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9',
+        10: 'A', 11: 'B', 12: 'C', 13: 'D', 14: 'E', 15: 'F', 16: 'G',
+        17: 'H', 18: 'J', 19: 'K', 20: 'L', 21: 'M', 22: 'N', 23: 'P',
+        24: 'Q', 25: 'R', 26: 'S', 27: 'T', 28: 'U', 29: 'V', 30: 'W',
+        31: 'X', 32: 'Y', 33: 'Z'
+    }
+    _FROM_EHEX = {v: k for k, v in _TO_EHEX.items()}
+    _FROM_EHEX.update({v.lower(): k for k, v in _TO_EHEX.items()})
+
     @staticmethod
     def D6(n=1): # 1D, 2D, etc.
+        if n == 1:
+            return random.randint(1, 6)
+        if n == 2:
+            return random.randint(1, 6) + random.randint(1, 6)
+        if n == 3:
+            return random.randint(1, 6) + random.randint(1, 6) + random.randint(1, 6)
         return sum(random.randint(1, 6) for _ in range(n))
 
     @staticmethod
@@ -18,15 +34,7 @@ class Utils:
 
     @staticmethod
     def eHex(value):
-        if 0 <= value <= 9:
-            return str(value)
-        ehex_map = {
-            10: 'A', 11: 'B', 12: 'C', 13: 'D', 14: 'E', 15: 'F', 16: 'G',
-            17: 'H', 18: 'J', 19: 'K', 20: 'L', 21: 'M', 22: 'N', 23: 'P',
-            24: 'Q', 25: 'R', 26: 'S', 27: 'T', 28: 'U', 29: 'V', 30: 'W',
-            31: 'X', 32: 'Y', 33: 'Z'
-        }
-        return ehex_map.get(value, str(value))
+        return Utils._TO_EHEX.get(value, str(value))
 
     @staticmethod
     def from_eHex(ehex_char):
@@ -34,16 +42,7 @@ class Utils:
             return 0
         if isinstance(ehex_char, int):
             return ehex_char
-        ehex_char = str(ehex_char)
-        if ehex_char.isdigit():
-            return int(ehex_char)
-        ehex_map = {
-            'A': 10, 'B': 11, 'C': 12, 'D': 13, 'E': 14, 'F': 15, 'G': 16,
-            'H': 17, 'J': 18, 'K': 19, 'L': 20, 'M': 21, 'N': 22, 'P': 23,
-            'Q': 24, 'R': 25, 'S': 26, 'T': 27, 'U': 28, 'V': 29, 'W': 30,
-            'X': 31, 'Y': 32, 'Z': 33
-        }
-        return ehex_map.get(ehex_char.upper(), 0)
+        return Utils._FROM_EHEX.get(ehex_char, 0)
 
     ORBIT_TABLE = {
         0: {'dist': 0.0, 'diff': 0.4},
@@ -75,6 +74,8 @@ class Utils:
         if orbit_num < 0: return 0.0
         whole_orbit = math.floor(orbit_num)
         fractional_part = orbit_num - whole_orbit
+        if whole_orbit >= 20:
+            return 78700.0 * (2.0 ** (orbit_num - 20.0))
         
         base_dist = cls.ORBIT_TABLE.get(whole_orbit, {}).get('dist', 0)
         diff = cls.ORBIT_TABLE.get(whole_orbit, {}).get('diff', 0)

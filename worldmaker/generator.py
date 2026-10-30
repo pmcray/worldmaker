@@ -198,4 +198,7 @@ def generate_full_system(name="Random System", population_dm=0) -> StellarSystem
     assign_final_designations(system)
     flag_points_of_interest(system)
 
+    from .analogues import calculate_stellar_metallicity
+    calculate_stellar_metallicity(system)
+
     return system
