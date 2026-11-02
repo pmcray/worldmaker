@@ -2485,6 +2485,9 @@ def generate_foreven_1105(
     if cfg.strict_1105_worlds and canon_mode == "pin":
         _attach_chamax_and_raschev_lore(sector)
 
+    from .polity import apply_foreven_timeline_borders
+    apply_foreven_timeline_borders(sector)
+
     # Re-evaluate analogues after canonical world pinning so any pinned stars
     # or physical profiles are accurately reflected in the rankings.
     evaluate_sector_analogues(sector, top_n=10)

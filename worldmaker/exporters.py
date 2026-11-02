@@ -161,11 +161,19 @@ def export_system_markdown(system: StellarSystem) -> str:
             md.append(f"  * Composition/Core: {world.core_composition} (Density: {world.density} Earth average)")
             md.append(f"  * Surface Gravity: {world.gravity} G (Escape Velocity: {world.escape_velocity_kms} km/s)")
             md.append(f"  * Gases Retained: {', '.join(world.gases_retained)}")
-            md.append(f"  * Rotation Period (Day Length): {world.rotation_period_hours} hours")
-            md.append(f"  * Axial Tilt: {round(world.axial_tilt, 1)} degrees")
+            solar_str = (
+                f"{world.solar_day_hours} hours ({world.solar_days_in_year} solar days/year)"
+                if getattr(world, 'solar_day_hours', None) is not None
+                else "Infinite / Undefined (Twilight Zone World)"
+            )
+            md.append(f"  * Rotation Period (Sidereal Day): {world.rotation_period_hours} hours | Solar Day: {solar_str}")
+            md.append(f"  * Tidal Lock Status: {getattr(world, 'tidal_lock_status', 'None')}")
+            tilt_rem = f" ({world.axial_tilt_remarks})" if getattr(world, 'axial_tilt_remarks', '') else ""
+            md.append(f"  * Axial Tilt: {round(world.axial_tilt, 2)} degrees{tilt_rem}")
             md.append(f"  * Climate Zone: {world.climate_zone} (Mean Equilibrium Temperature: {world.mean_temperature} K)")
             md.append(f"  * Primary Biomes: {', '.join(world.biomes)}")
-            md.append(f"  * Surface Hydrology: {world.surface_features}")
+            hyd_prof = f" [`{world.hydrographics_profile}`]" if getattr(world, 'hydrographics_profile', '') else ""
+            md.append(f"  * Surface Hydrology{hyd_prof}: {world.surface_features}")
             md.append(f"  * Biosphere Rating: {world.life_details}")
             
             if world.is_mainworld:

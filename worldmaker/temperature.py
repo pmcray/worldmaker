@@ -142,15 +142,24 @@ def calculate_temperature_range(world: Any, system: Any, luminosity: float,
     if not period and getattr(world, 'parent_body', None):
         period = getattr(world.parent_body, 'period_years', 0.0) or 0.0
 
-    solar_day = getattr(world, 'rotation_period_hours', 0.0) or 0.0
-    locked = any('Tidally Locked' in n for n in getattr(world, 'notes', []))
+    raw_solar_day = getattr(world, 'solar_day_hours', None)
+    if raw_solar_day is not None and raw_solar_day > 0:
+        solar_day = raw_solar_day
+    else:
+        solar_day = getattr(world, 'rotation_period_hours', 0.0) or 0.0
+    locked = (getattr(world, 'is_twilight_zone_world', False)
+              or any('Tidally Locked to Star' in n or n == 'Tidally Locked'
+                     for n in getattr(world, 'notes', [])))
 
     hyd = Utils.from_eHex(getattr(world, 'hydrographics_code', 0) or 0)
     pressure = getattr(world, 'atmos_pressure_bar', 0.0) or 0.0
+    surface_dist = getattr(world, 'surface_distribution', 5)
+    if surface_dist is None:
+        surface_dist = 5
 
     atf = axial_tilt_factor(tilt, period)
     rf = rotation_factor(solar_day, locked)
-    gf = geographic_factor(hyd)
+    gf = geographic_factor(hyd, surface_distribution=surface_dist)
 
     variance = atf + rf + gf
     atmospheric_factor = 1.0 + pressure

@@ -25,7 +25,10 @@ from .geophysics import (
     generate_life,
     place_satellites,
     calculate_habitability_rating,
-    assign_climate_zone
+    assign_climate_zone,
+    roll_axial_tilt,
+    detail_hydrographics,
+    determine_exotic_liquids,
 )
 from .atmosphere import generate_atmosphere_details, refresh_scale_height
 from .temperature import detail_temperatures
@@ -184,39 +187,47 @@ def generate_full_system(name="Random System", population_dm=0,
             world.atmosphere_code = Utils.eHex(atm_val)
             hydro_val = generate_hydrographics(size_val, atm_val)
             world.hydrographics_code = Utils.eHex(hydro_val)
-
             generate_geophysics(world, system)
-            generate_rotation_period(world, system)
-            # Atmosphere pressure first (albedo and greenhouse depend on it),
-            # then the full temperature chain, then the values that depend on
-            # the final temperature.
-            generate_atmosphere_details(world)
-            detail_temperatures(world, system)
-            refresh_scale_height(world)
-            detail_temperature_scenarios(world, system)
-            assign_climate_zone(world)
-            world.surface_features = generate_surface_features(world)
-            world.life_details = generate_life(world, system)
-            world.habitability_rating = calculate_habitability_rating(world, system)
 
-        # Place and detail satellites
+        # Place satellites first so moon orbits exist and moons can be checked
+        # for tidal lock before checking if a terrestrial planet locks to a moon
+        # (WBH p. 107).
         place_satellites(world, system)
         for sat in world.satellites:
             if sat.is_ring or sat.size_code == 'S':
                 continue
 
-            tilt_roll = Utils.D6(2)
-            sat.axial_tilt = DATA['axial_tilt'].get(min(10, max(2, tilt_roll)))()
-            sat.rotation_period_hours = Utils.D6(2) * 24
-
+            sat.axial_tilt, sat.axial_tilt_remarks = roll_axial_tilt()
             generate_atmosphere_details(sat)
+            generate_rotation_period(sat, system)
+            detail_hydrographics(sat, system)
             detail_temperatures(sat, system, is_moon=True)
             refresh_scale_height(sat)
+            determine_exotic_liquids(sat)
             detail_temperature_scenarios(sat, system)
             assign_climate_zone(sat)
             sat.surface_features = generate_surface_features(sat)
             sat.life_details = generate_life(sat, system)
             sat.habitability_rating = calculate_habitability_rating(sat, system)
+
+        if world.body_type == 'Terrestrial':
+            # Atmosphere pressure first (needed by tidal lock DMs, albedo and
+            # greenhouse), then rotation/tidal lock/solar day, hydrographics
+            # distribution, the full temperature chain, and exotic liquids.
+            generate_atmosphere_details(world)
+            generate_rotation_period(world, system)
+            detail_hydrographics(world, system)
+            detail_temperatures(world, system)
+            refresh_scale_height(world)
+            determine_exotic_liquids(world)
+            detail_temperature_scenarios(world, system)
+            assign_climate_zone(world)
+            world.surface_features = generate_surface_features(world)
+            world.life_details = generate_life(world, system)
+            world.habitability_rating = calculate_habitability_rating(world, system)
+        elif world.body_type == 'Gas Giant':
+            world.axial_tilt, world.axial_tilt_remarks = roll_axial_tilt()
+            generate_rotation_period(world, system)
 
     # Phase 6: Final mainworld determination (WBH p.133). Candidates are
     # terrestrial worlds and significant moons; the most habitable wins, with

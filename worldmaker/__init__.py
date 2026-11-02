@@ -80,7 +80,16 @@ from .geophysics import (
     generate_life,
     place_satellites,
     calculate_habitability_rating,
-    calculate_hill_sphere_pd
+    calculate_hill_sphere_pd,
+    roll_axial_tilt,
+    roll_basic_day_length,
+    calculate_tidal_lock_dm,
+    apply_tidal_lock_roll,
+    calculate_solar_day_and_year,
+    roll_hydrographics_percentage,
+    roll_surface_distribution,
+    determine_exotic_liquids,
+    detail_hydrographics,
 )
 from .society import (
     generate_mainworld_uwp,
@@ -104,6 +113,8 @@ from .polity import (
     generate_polities,
     generate_bases,
     generate_travel_zones,
+    evolve_borders_from_history,
+    apply_foreven_timeline_borders,
 )
 from .foreven import (
     generate_foreven_sector,

@@ -178,9 +178,27 @@ class Satellite:
     gravity: float = 0.0
     density: float = 0.0
     axial_tilt: float = 0.0
+    axial_tilt_remarks: str = ""
     rotation_period_hours: float = 0.0
+    sidereal_day_hours: float = 0.0
+    solar_day_hours: Optional[float] = None
+    solar_days_in_year: float = 0.0
+    sidereal_days_in_year: float = 0.0
+    tidal_lock_status: str = "None"
+    tidal_lock_target: str = ""
+    tidal_lock_dm: int = 0
+    is_twilight_zone_world: bool = False
     mean_temperature: float = 0.0
     surface_features: str = ""
+    hydrographics_pct: float = 0.0
+    surface_distribution: int = 5
+    surface_distribution_desc: str = ""
+    dominant_geography: str = ""
+    major_continents: int = 0
+    minor_continents: int = 0
+    hydrographics_liquid: str = ""
+    hydrographics_composition: Dict[str, int] = field(default_factory=dict)
+    hydrographics_profile: str = ""
     life_details: str = ""
     atmosphere_code: str = ""
     hydrographics_code: str = ""
@@ -234,6 +252,9 @@ class Polity:
     polity_type: str = "Interstellar" # Pocket Empire, Major Race Polity, etc.
     defense_index: int = 0
     trade_routes: List[Tuple[str, str]] = field(default_factory=list)
+    history: List[Dict[str, Any]] = field(default_factory=list)
+    border_treaties: List[Dict[str, Any]] = field(default_factory=list)
+    contested_hexes: List[str] = field(default_factory=list)
 
 @dataclass
 class Wave:
@@ -349,9 +370,27 @@ class PlanetaryBody:
     gravity: float = 0.0
     mass_terran: float = 0.0
     axial_tilt: float = 0.0
+    axial_tilt_remarks: str = ""
     rotation_period_hours: float = 0.0
+    sidereal_day_hours: float = 0.0
+    solar_day_hours: Optional[float] = None
+    solar_days_in_year: float = 0.0
+    sidereal_days_in_year: float = 0.0
+    tidal_lock_status: str = "None"
+    tidal_lock_target: str = ""
+    tidal_lock_dm: int = 0
+    is_twilight_zone_world: bool = False
     mean_temperature: float = 0.0
     surface_features: str = ""
+    hydrographics_pct: float = 0.0
+    surface_distribution: int = 5
+    surface_distribution_desc: str = ""
+    dominant_geography: str = ""
+    major_continents: int = 0
+    minor_continents: int = 0
+    hydrographics_liquid: str = ""
+    hydrographics_composition: Dict[str, int] = field(default_factory=dict)
+    hydrographics_profile: str = ""
     life_details: str = ""
     satellites: List[Satellite] = field(default_factory=list)
     notes: List[str] = field(default_factory=list)
@@ -597,6 +636,8 @@ class Sector:
     # (hex, route style)
     off_sector_routes: List[Tuple[str, str]] = field(default_factory=list)
     macro_history: List[Dict[str, Any]] = field(default_factory=list)
+    border_history: List[Dict[str, Any]] = field(default_factory=list)
+    neutral_zones: List[Dict[str, Any]] = field(default_factory=list)
     erith_hex: str = ""
     solar_analogue_hex: str = ""
     solar_system_analogue_hex: str = ""

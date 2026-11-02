@@ -78,10 +78,10 @@ NO absent
 | Size with precise diameter, composition, density, gravity, mass, escape velocity (pp.70-71) | OK |
 | Planetoid belt internals: span, m/s/c-type composition, bulk, resource rating, significant bodies (pp.72-75) | OK |
 | Expanded atmospheres (pp.78-98) | OK - pressure ranges and spans, total pressure, oxygen fraction and ppO2, scale height, pressure at altitude, taint type/severity/persistence, exotic, corrosive, insidious and unusual subtypes, safe-altitude bands, composition, runaway greenhouse |
-| Hydrographics detail (pp.99-102) | APPROX - core roll plus surface distribution; precise percentage and exotic liquids absent |
-| Rotation period (p.103) | APPROX - basic roll; solar day and days-in-year absent |
-| Tidal lock (p.105) | APPROX - single check for close orbits; the full table with 3:2 locks absent |
-| Axial tilt (p.104) | APPROX - main table only; the Extreme Axial Tilt sub-table absent |
+| Hydrographics detail (pp.99-103) | OK - precise percentage by range (0-100%, with Size > 9 Hyd A always 100%), 2D-2 Surface Distribution table (0-10), major/minor continent and ocean counts, Possible Exotic Liquids table for fluidic worlds, magma oceans (>=1000K), and H-D:%%:XX-## profile |
+| Rotation period (pp.103-104) | OK - basic sidereal day roll with 40+ hour escalation, minute/second precision, sidereal/solar days in year, and solar day length (feeding temperature & scenario calculations) |
+| Tidal lock (pp.105-107) | OK - full Tidal Lock Status table (2- to 12+, including 3:2 resonances, 1:1 locks, and natural-12 broken lock check) across planet-to-star, moon-to-planet, and planet-to-moon cases with all common and case-specific DMs |
+| Axial tilt (p.104) | OK - main Axial Tilt table plus the 1D Extreme Axial Tilt sub-table (up to 180° retrograde) |
 | Albedo and greenhouse (p.110) | OK - both tables with all their modifiers |
 | Mean temperature (p.108) | OK - validated against Terra |
 | High and low temperatures (pp.112-115) | OK - axial tilt, rotation and geographic factors, atmospheric damping, luminosity modifier, near and far AU |
@@ -142,7 +142,7 @@ NO absent
 | Creating a Universe (pp.3-8) | OK - `create_universe()` takes the book's high-level choices (theme, density, maximum Tech Level, trajectory, sophont prevalence, polity count) and drives generation from them; anomalies and a rough timeline are modelled. See `universe.py` |
 | System Creation (pp.9-16) | OK - density is a parameter, and rift and cluster anomalies vary it by region; the book's density *contour* drawing is NO |
 | Canonical overlays | OK - `canon.py` loads published sector data (travellermap.com T5 tab) and applies positions, borders, established worlds, native species, Tech Level ceilings and barren declarations. Two Foreven tiers: `scg_foreven()` for the seven worlds the reserve documentation establishes (p.6), `scg_foreven_full()` for the Guide's complete worked treatment (pp.8, 24-27, 46, 61, 63-64). Not a book procedure: the books assume the Referee applies canon by hand |
-| Sector Details (pp.17-27) | OK - settlement waves per p.22 with DMs capped at zero, true hex distances, Xboat network, travel zones. Xboat waystations come from the starport table; border generation from sector history is NO |
+| Sector Details (pp.17-27) | OK - settlement waves per p.22 with DMs capped at zero, true hex distances, Xboat network, travel zones, and historical border evolution from wars, treaties, neutral zones and sector timelines (`evolve_borders_from_history`, `apply_foreven_timeline_borders`). Xboat waystations come from the starport table |
 | Mainworld Design (pp.28-39) | OK via the WBH extensions; the isolation TL variant is NO |
 | Polity Design (pp.40-49) | OK - procedural capitals, jump-range-bounded expansion, government form, naming, type and defence index. `define_foreven_polities()` retains the book's worked example |
 | Sophont Design (pp.50-60) | OK - the full D66 Sophont Physical Characteristics table, with senses, psychology and characteristic DMs derived from the results; the Guide's own Tlinzha, plus Droyne, Chirpers, Solomani and the Minor Human Races, are catalogued rather than rolled |
@@ -383,15 +383,12 @@ Deliberately out of scope, or approximated:
 **Not implemented**
 - Equipment, vehicles, robots and software (pp.235-243) - gear chapters, not
   generation procedures.
-- Precise hydrographic percentages and exotic liquid composition (pp.99-102).
-- Solar day and days-in-year (p.104); the full Tidal Lock Status table with
-  3:2 locks (p.105); the Extreme Axial Tilt sub-table.
 - The empty-hex *detection* procedure (pp.221-222) and the empty-hex arrival
   variance task chain (p.223): both are play procedures rather than
   generation, though the tables they need are present as data.
 - M-drive efficiency in deep space (p.224) and the IISS profile forms
   (pp.233-234).
-- SCG density contour drawing; border generation from sector history.
+- SCG manual density contour drawing.
 
 **Approximated, and flagged in the code**
 - The ring span formula's dice operand is illegible in the source PDF; a d100
@@ -448,22 +445,15 @@ Deliberately out of scope, or approximated:
 
 ## 6. Suggested next steps
 
-The four items this section previously listed - the temperature scenarios,
-the Special Circumstances system types, column-exact T5 output and the
-guided universe entry point - are all implemented; see §1, §2 and §3. What
-is left is smaller and largely a matter of taste:
+All generation procedures across both books — including precise hydrographics
+and exotic liquid compositions, solar days and the full Tidal Lock Status
+table (with 3:2 resonances and moon/planet/star cases), the Extreme Axial Tilt
+sub-table, temperature scenarios, Special Circumstances system types,
+column-exact T5 output, guided universe creation, and historical border
+evolution from sector timelines — are now implemented. What remains is purely
+play-side scene resolution:
 
-1. Precise hydrographic percentages and exotic liquid composition
-   (pp.99-102), the one remaining physical characteristic still rolled at
-   UWP granularity.
-2. Solar day, days-in-year and the full Tidal Lock Status table (pp.104-105).
-   The scenario code already takes a solar day as an argument, so this would
-   feed it real values rather than the rotation period.
-3. Border generation from sector history (SCG p.26): borders are currently
-   traced from the polity territory the generator produces, not from the
-   sequence of wars and treaties that would explain their shape. The Guide's
-   Foreven timeline is transcribed but does not yet drive its borders.
-4. A play-side layer over the empty-hex data: the detection procedure
+1. A play-side layer over the empty-hex data: the detection procedure
    (pp.221-222) and the arrival-variance task chain (p.223) are the only
    parts of Special Circumstances left out, and both are about resolving a
    scene rather than building a sector.

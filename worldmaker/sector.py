@@ -548,7 +548,7 @@ def generate_full_sector(name="Generated Sector", width=32, height=40,
         pass
     elif universe is not None:
         generate_polities(sector, max_polities=universe.polity_count,
-                          reserved=reserved)
+                          reserved=reserved, universe=universe)
     else:
         define_polities(sector, reserved=reserved)
     generate_travel_zones(sector)

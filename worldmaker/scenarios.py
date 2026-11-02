@@ -501,7 +501,9 @@ def _scenario_parameters(world: Any, system: Any) -> Optional[dict]:
         'atmospheric_factor': getattr(world, 'atmospheric_factor', 0.0) or (1.0 + pressure),
         'pressure_bar': pressure,
         'scale_height_km': getattr(world, 'scale_height_km', 0.0) or 0.0,
-        'solar_day_hours': getattr(world, 'rotation_period_hours', 0.0) or 0.0,
+        'solar_day_hours': (getattr(world, 'solar_day_hours', None)
+                            or getattr(world, 'rotation_period_hours', 0.0) or 0.0),
+        'solar_days_in_year': getattr(world, 'solar_days_in_year', 0.0) or 0.0,
         'period_years': (getattr(world, 'period_years', 0.0)
                          or getattr(getattr(world, 'parent_body', None),
                                     'period_years', 0.0) or 1.0),

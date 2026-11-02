@@ -120,7 +120,7 @@ def _allegiance_code(name: str, used: set) -> str:
 
 
 def generate_polities(sector: Sector, max_polities: int = None,
-                      reserved: set = None):
+                      reserved: set = None, universe: Any = None):
     """Generates polities procedurally (SCG pp.40-49).
 
     `reserved` names hexes a published source has already assigned; no
@@ -276,6 +276,481 @@ def generate_polities(sector: Sector, max_polities: int = None,
         for hex_coord in polity.controlled_systems:
             if hex_coord in systems:
                 systems[hex_coord].allegiance = polity.allegiance_code
+
+    # Shape borders through the sequence of wars, treaties and neutral zones
+    # implied by the sector's history (SCG pp. 20, 26, 42, 47).
+    evolve_borders_from_history(sector, universe=universe, reserved=reserved)
+
+
+def _stays_contiguous(capital_hex: str, systems_set: set, jump: int) -> bool:
+    """Checks that every system in `systems_set` remains reachable from
+    `capital_hex` via hops of at most `jump` parsecs."""
+    from .sector import hex_distance
+
+    if not systems_set:
+        return True
+    if capital_hex not in systems_set:
+        return False
+    if len(systems_set) == 1:
+        return True
+    if jump <= 0:
+        return len(systems_set) <= 1
+
+    visited = {capital_hex}
+    queue = [capital_hex]
+    while queue:
+        curr = queue.pop(0)
+        for other in systems_set:
+            if other not in visited and 0 < hex_distance(curr, other) <= jump:
+                visited.add(other)
+                queue.append(other)
+    return len(visited) == len(systems_set)
+
+
+def _recompute_polity_stats(polity: Polity, sector: Sector) -> None:
+    """Refreshes `polity_type` and `defense_index` after border shifts."""
+    cap_sys = sector.systems.get(polity.capital_hex)
+    cap_mw = cap_sys.mainworld if cap_sys else None
+    cap_tl = Utils.from_eHex(cap_mw.uwp.tech_level) if cap_mw else 10
+    jump = _jump_range_for_tech(cap_tl)
+    polity.polity_type = _polity_type_for(
+        cap_tl, len(polity.controlled_systems),
+        is_major_race=bool(sector.native_sophonts.get(polity.capital_hex))
+    )
+    polity.defense_index = max(
+        1, min(12, jump + max(0, cap_tl - 10) + len(polity.controlled_systems) // 25)
+    )
+
+
+def evolve_borders_from_history(sector: Sector, universe: Any = None,
+                                reserved: Optional[set] = None,
+                                current_year: int = 1105) -> List[Dict[str, Any]]:
+    """Evolves polity borders from a sequence of historical expansions, frontier
+    wars, annexations, secessions, and peace treaties (SCG pp. 20, 26, 42, 47).
+
+    Records the resulting historical narrative in `sector.border_history`,
+    `sector.neutral_zones`, `polity.history`, `polity.border_treaties`,
+    `system.historical_notes`, and (when `universe` is supplied)
+    `universe.timeline`."""
+    from .sector import hex_distance
+
+    reserved = set(reserved or ())
+    systems = sector.systems
+    if universe is not None and getattr(universe, 'current_year', None) is not None:
+        current_year = universe.current_year
+
+    # Only evolve procedural polities whose territory is not canon-locked
+    active_polities = [
+        p for p in sector.polities
+        if p.capital_hex in systems and p.capital_hex not in reserved
+    ]
+    if not active_polities:
+        return sector.border_history
+
+    trajectory = getattr(universe, 'trajectory', 'expansion') if universe is not None else 'expansion'
+    events: List[Dict[str, Any]] = []
+
+    # 1. Founding & Initial Expansion Epoch
+    founding_base = current_year - ({
+        'expansion': 350, 'stasis': 900, 'decline': 700,
+        'collapse': 800, 'recovery': 450,
+    }.get(trajectory, 400))
+
+    for idx, polity in enumerate(active_polities):
+        found_year = founding_base + idx * 25
+        cap_sys = systems.get(polity.capital_hex)
+        cap_name = cap_sys.mainworld.name if (cap_sys and cap_sys.mainworld) else polity.capital_hex
+        ev = {
+            'year': found_year,
+            'type': 'founding',
+            'polity': polity.name,
+            'allegiance': polity.allegiance_code,
+            'capital_hex': polity.capital_hex,
+            'systems_count': len(polity.controlled_systems),
+            'description': (
+                f"{polity.name} ({polity.allegiance_code}) established at {cap_name} "
+                f"({polity.capital_hex}), expanding across {len(polity.controlled_systems)} systems."
+            ),
+        }
+        polity.history.append(ev)
+        events.append(ev)
+        if cap_sys:
+            note = f"Founded {polity.name} ({found_year})."
+            if note not in cap_sys.historical_notes:
+                cap_sys.historical_notes.append(note)
+
+    # 2. Frontier Contact, Border Wars & Treaty Buffers between neighbouring polities
+    for i in range(len(active_polities)):
+        for j in range(i + 1, len(active_polities)):
+            pa, pb = active_polities[i], active_polities[j]
+            cap_a = systems[pa.capital_hex].mainworld
+            cap_b = systems[pb.capital_hex].mainworld
+            jump_a = _jump_range_for_tech(Utils.from_eHex(cap_a.uwp.tech_level)) if cap_a else 1
+            jump_b = _jump_range_for_tech(Utils.from_eHex(cap_b.uwp.tech_level)) if cap_b else 1
+            contact_range = max(2, jump_a, jump_b) + 1
+
+            # Find closest border approach between pa and pb
+            border_pairs: List[Tuple[int, str, str]] = []
+            for ha in pa.controlled_systems:
+                for hb in pb.controlled_systems:
+                    d = hex_distance(ha, hb)
+                    if d <= contact_range:
+                        border_pairs.append((d, ha, hb))
+
+            if not border_pairs:
+                continue
+
+            border_pairs.sort()
+            war_year = current_year - random.randint(60, 220)
+            treaty_year = war_year + random.randint(4, 15)
+
+            # Determine aggressor/victor weighted by defense_index and ambition
+            roll_a = Utils.D6(2) + pa.defense_index
+            roll_b = Utils.D6(2) + pb.defense_index
+            if roll_a >= roll_b:
+                victor, loser = pa, pb
+                v_jump, l_jump = jump_a, jump_b
+            else:
+                victor, loser = pb, pa
+                v_jump, l_jump = jump_b, jump_a
+
+            # Candidate border hexes of `loser` that `victor` can reach within
+            # `v_jump` while keeping `loser` contiguous within `l_jump`.
+            conquered: List[str] = []
+            max_transfers = min(2, max(0, len(loser.controlled_systems) - 2))
+            loser_candidates = sorted(
+                [h for h in loser.controlled_systems
+                 if h != loser.capital_hex and h not in reserved],
+                key=lambda h: min(hex_distance(h, vh) for vh in victor.controlled_systems)
+            )
+            for cand in loser_candidates:
+                if len(conquered) >= max_transfers:
+                    break
+                if not any(0 < hex_distance(cand, vh) <= v_jump for vh in victor.controlled_systems):
+                    continue
+                remaining_loser = set(loser.controlled_systems) - {cand}
+                if not _stays_contiguous(loser.capital_hex, remaining_loser, l_jump):
+                    continue
+                loser.controlled_systems.remove(cand)
+                victor.controlled_systems.append(cand)
+                systems[cand].allegiance = victor.allegiance_code
+                conquered.append(cand)
+                if cand not in victor.contested_hexes:
+                    victor.contested_hexes.append(cand)
+                if cand not in loser.contested_hexes:
+                    loser.contested_hexes.append(cand)
+                sys_obj = systems[cand]
+                w_name = sys_obj.mainworld.name if sys_obj.mainworld else cand
+                sys_obj.historical_notes.append(
+                    f"Annexed by {victor.name} from {loser.name} in the "
+                    f"{victor.name}-{loser.name} Frontier War ({war_year})."
+                )
+                if sys_obj.mainworld:
+                    sys_obj.mainworld.notes.append(
+                        f"Former {loser.name} border world conquered in {war_year}"
+                    )
+
+            # Fortify a border bastion on the victor's front line (SCG p. 47)
+            front_hex = border_pairs[0][1] if victor is pa else border_pairs[0][2]
+            if front_hex in systems:
+                front_sys = systems[front_hex]
+                if "Military" not in front_sys.bases:
+                    front_sys.bases.append("Military")
+                front_sys.historical_notes.append(
+                    f"Fortified as a frontier bastion during the {war_year} border war."
+                )
+
+            war_desc = (
+                f"{victor.name}–{loser.name} Frontier War ({war_year}–{treaty_year}): "
+                + (f"{victor.name} seized {', '.join(conquered)} along the contested march."
+                   if conquered else
+                   f"fought to a standstill along the {front_hex} frontier.")
+            )
+            war_ev = {
+                'year': war_year,
+                'type': 'frontier_war',
+                'victor': victor.name,
+                'defender': loser.name,
+                'hexes_transferred': list(conquered),
+                'description': war_desc,
+            }
+            victor.history.append(war_ev)
+            loser.history.append(war_ev)
+            events.append(war_ev)
+            if universe is not None:
+                universe.add_event(war_year, war_desc)
+
+            # 3. Peace Treaty & Neutral / Demilitarised Buffer Zone (SCG p. 20)
+            buffer_hexes = [
+                h for h, s in systems.items()
+                if s.allegiance == 'Na' and h not in reserved
+                and min((hex_distance(h, vh) for vh in pa.controlled_systems), default=99) <= 2
+                and min((hex_distance(h, lh) for lh in pb.controlled_systems), default=99) <= 2
+            ]
+            treaty_world_hex = buffer_hexes[0] if buffer_hexes else front_hex
+            treaty_sys = systems.get(treaty_world_hex)
+            treaty_world_name = (
+                treaty_sys.mainworld.name
+                if (treaty_sys and treaty_sys.mainworld)
+                else treaty_world_hex
+            )
+            treaty_name = f"Treaty of {treaty_world_name}"
+            treaty_desc = (
+                f"{treaty_name} ({treaty_year}) delineates the border between "
+                f"{pa.name} and {pb.name}"
+                + (f", establishing a neutral buffer across {', '.join(buffer_hexes[:4])}."
+                   if buffer_hexes else ".")
+            )
+            treaty_record = {
+                'year': treaty_year,
+                'type': 'treaty',
+                'name': treaty_name,
+                'signatories': [pa.name, pb.name],
+                'buffer_hexes': buffer_hexes[:6],
+                'description': treaty_desc,
+            }
+            pa.border_treaties.append(treaty_record)
+            pb.border_treaties.append(treaty_record)
+            pa.history.append(treaty_record)
+            pb.history.append(treaty_record)
+            events.append(treaty_record)
+            if buffer_hexes:
+                sector.neutral_zones.append({
+                    'name': f"{treaty_world_name} Neutral Buffer",
+                    'treaty': treaty_name,
+                    'year': treaty_year,
+                    'signatories': [pa.name, pb.name],
+                    'hexes': buffer_hexes[:6],
+                })
+                for bh in buffer_hexes[:6]:
+                    systems[bh].historical_notes.append(
+                        f"Designated neutral buffer under the {treaty_name} ({treaty_year})."
+                    )
+            if universe is not None:
+                universe.add_event(treaty_year, treaty_desc)
+
+    # 4. Trajectory-driven border contraction for 'decline' / 'collapse' settings
+    if trajectory in ('decline', 'collapse'):
+        secession_year = current_year - random.randint(30, 120)
+        for polity in active_polities:
+            if len(polity.controlled_systems) <= 3:
+                continue
+            cap_mw = systems[polity.capital_hex].mainworld
+            jump = _jump_range_for_tech(Utils.from_eHex(cap_mw.uwp.tech_level)) if cap_mw else 1
+            # Outermost world furthest from capital
+            by_dist = sorted(
+                [h for h in polity.controlled_systems
+                 if h != polity.capital_hex and h not in reserved],
+                key=lambda h: hex_distance(polity.capital_hex, h),
+                reverse=True
+            )
+            lost: List[str] = []
+            target_loss = 2 if trajectory == 'collapse' else 1
+            for cand in by_dist:
+                if len(lost) >= target_loss or len(polity.controlled_systems) <= 2:
+                    break
+                rem = set(polity.controlled_systems) - {cand}
+                if _stays_contiguous(polity.capital_hex, rem, jump):
+                    polity.controlled_systems.remove(cand)
+                    systems[cand].allegiance = 'Na'
+                    systems[cand].historical_notes.append(
+                        f"Seceded / lost contact with {polity.name} ({secession_year})."
+                    )
+                    lost.append(cand)
+            if lost:
+                sec_desc = (
+                    f"{polity.name} border contraction ({secession_year}): "
+                    f"outer rim {', '.join(lost)} reverted to independent status."
+                )
+                sec_ev = {
+                    'year': secession_year,
+                    'type': 'contraction',
+                    'polity': polity.name,
+                    'hexes_lost': lost,
+                    'description': sec_desc,
+                }
+                polity.history.append(sec_ev)
+                events.append(sec_ev)
+                if universe is not None:
+                    universe.add_event(secession_year, sec_desc)
+
+    for polity in active_polities:
+        _recompute_polity_stats(polity, sector)
+
+    events.sort(key=lambda e: e['year'])
+    sector.border_history.extend(events)
+    sector.border_history.sort(key=lambda e: e['year'])
+    return sector.border_history
+
+
+def apply_foreven_timeline_borders(sector: Sector) -> List[Dict[str, Any]]:
+    """Applies the SCG Foreven & Avalar historical timeline (SCG pp. 26, 47) to
+    explain and annotate the sector's borders, conquests, treaty lines, and
+    neutral buffer corridors."""
+    timeline_events = [
+        {
+            'year': -4000,
+            'type': 'settlement_wave',
+            'polity': 'Zhodani Consulate',
+            'subsectors': ['A', 'B', 'C'],
+            'description': (
+                "Zhodani scouts and settlers from Ziafrplians establish the "
+                "coreward Consular heartland across Subsectors A, B and C, "
+                "with provincial capital at Zdovesil (1212)."
+            ),
+        },
+        {
+            'year': -1850,
+            'type': 'founding',
+            'polity': 'Avalar',
+            'hexes': ['1636'],
+            'description': (
+                "Solomani manufactory starship Avalar settles Avalar (1636); "
+                "first contact with Zhodani explorers follows in -1635."
+            ),
+        },
+        {
+            'year': 18,
+            'type': 'expansion',
+            'polity': 'Avalar',
+            'hexes': ['1636', '1637', '1536', '1734'],
+            'description': (
+                "Having reached TL9 (-21), Avalar settles Tranquilidad (1637) "
+                "and expands across its local 1-parsec cluster."
+            ),
+        },
+        {
+            'year': 550,
+            'type': 'settlement_wave',
+            'polity': 'Third Imperium',
+            'subsectors': ['D', 'H', 'L', 'P'],
+            'description': (
+                "Pre-war Imperial thin settlement wave crosses from the "
+                "Spinward Marches into trailing Subsectors Massina (D), "
+                "Fessor (H), Reidain (L) and Urnian (P)."
+            ),
+        },
+        {
+            'year': 604,
+            'type': 'frontier_war',
+            'polity': 'Zhodani Consulate',
+            'subsectors': ['D'],
+            'description': (
+                "First Frontier War (589–604): Zhodani Consulate conquers "
+                "Massina (Subsector D) from the Imperial frontier and begins "
+                "client-state technical assistance to Avalar."
+            ),
+        },
+        {
+            'year': 620,
+            'type': 'treaty',
+            'name': 'Zhodani-Avalar Defence Treaty of 620',
+            'signatories': ['Zhodani Consulate', 'Avalar Consulate'],
+            'description': (
+                "Second Frontier War ends (620): Avalar signs a mutual defence "
+                "treaty with the Zhodani Consulate; Zhodani thin settlement "
+                "wave expands into Subsectors E, F and G (600–700), fixing the "
+                "142-hex Consular border."
+            ),
+        },
+        {
+            'year': 628,
+            'type': 'treaty',
+            'name': 'Charter of the Avalar Consulate (628)',
+            'signatories': ['Avalar Consulate', 'Zhodani Consulate'],
+            'hexes': ['1636', '1634', '1637', '1734'],
+            'description': (
+                "Ardiente (1634) settled; the Avalar Consulate (or neutral "
+                "Confederation of Worlds / Die Weltbund) is formally "
+                "established and recognised."
+            ),
+        },
+        {
+            'year': 855,
+            'type': 'expansion',
+            'polity': 'Avalar Consulate',
+            'subsectors': ['N', 'O'],
+            'hexes': ['2136', '2236', '2135'],
+            'description': (
+                "Avalar expands one Jump-2 link by 800 and two Jump-2 links by "
+                "900 (Ninfa 2136 settled 704, Larissa 2236 joins 744, Fragos "
+                "2135 naval base 855), creating the Subsector N/O border and "
+                "isolating the Subsector I/M shadow frontier."
+            ),
+        },
+        {
+            'year': 983,
+            'type': 'fortification',
+            'polity': 'Avalar Consulate',
+            'hexes': ['1734', '1738', '1637'],
+            'description': (
+                "Third Frontier War (980–986): Naval bases and fortresses "
+                "established at Pres Tinto (1734) and Pres Alfa (1738) in 983; "
+                "Imperial strike devastates Tranquilidad (1637) in 985; "
+                "Vengador strike force raids Urnian in 986."
+            ),
+        },
+        {
+            'year': 1045,
+            'type': 'annexation',
+            'polity': 'Avalar Consulate',
+            'hexes': ['1938'],
+            'description': (
+                "Avalar Consulate occupies Vargr world Zuekgoz (1938) in a "
+                "piracy suppression campaign, extending the eastern border."
+            ),
+        },
+        {
+            'year': 1084,
+            'type': 'frontier_war',
+            'polity': 'Avalar Consulate',
+            'hexes': ['2236', '2237'],
+            'description': (
+                "Fourth Frontier War (1082–1084): Avalar raids Urnian "
+                "installations; Imperial frontier cruisers out of Urnian raid "
+                "Larissa (2236) and Lun Orcus (2237) before the 1084 armistice "
+                "freezes the current borders."
+            ),
+        },
+    ]
+
+    sector.border_history = list(timeline_events)
+
+    # Annotate affected systems and polities with their border history
+    hex_notes = {
+        '1212': "Zhodani Iakr Sector provincial capital established during coreward wave (-4000 to -1000).",
+        '1636': "Settled -1850 by Tvastar-class starship Avalar; capital of the 628 Consulate charter.",
+        '1637': "Settled Year 18 from Avalar; devastated by Imperial strike in 985 (Third Frontier War).",
+        '1634': "Settled 628 at the formal recognition of the Avalar Consulate.",
+        '1734': "Fortified with naval/military base in 983 during the Third Frontier War.",
+        '1738': "Fortified with naval/military base in 983 during the Third Frontier War.",
+        '2135': "Consular naval base established in 855 upon reaching TL12.",
+        '2136': "Settled 704 from Avalar during the Jump-2 expansion ripple.",
+        '2236': "Voluntarily joined the Consulate in 744; raided by Urnian cruisers in 1084.",
+        '2237': "Eastern border naval bastion; raided by Urnian frontier cruisers in 1084.",
+        '1938': "Vargr world occupied by Avalar in 1045 piracy suppression campaign.",
+    }
+    for h, note in hex_notes.items():
+        if h in sector.systems and note not in sector.systems[h].historical_notes:
+            sector.systems[h].historical_notes.append(note)
+
+    # Massina (Subsector D) conquest note (First Frontier War, 589-604)
+    for h, sys in sector.systems.items():
+        col, row = int(h[:2]), int(h[2:])
+        if 25 <= col <= 32 and 1 <= row <= 10 and (sys.allegiance or '').startswith('Zh'):
+            note = "Conquered by the Zhodani Consulate from the early Imperial frontier in the First Frontier War (589–604)."
+            if note not in sys.historical_notes:
+                sys.historical_notes.append(note)
+
+    for polity in sector.polities:
+        for ev in timeline_events:
+            if (ev.get('polity') in (polity.name, 'Avalar') and polity.allegiance_code in ('Av', 'Wb')) or (
+                ev.get('polity') == 'Zhodani Consulate' and polity.allegiance_code.startswith('Zh')
+            ):
+                if ev not in polity.history:
+                    polity.history.append(ev)
+
+    return sector.border_history
 
 
 def define_polities(sector: Sector, reserved: set = None):
