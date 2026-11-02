@@ -211,6 +211,57 @@ CATALOGUED_RACES = {
                             "Imperial ship. They hold four systems as the "
                             "Tlesho Union and fire on unauthorised visitors."),
     },
+    "Issugur": {
+        "symmetry": "Bilateral", "limbs": "Tetrapod", "manipulators": "Hand",
+        "environment": "Amphibian-descended savannah dweller",
+        "behaviour": "Omnivore", "gender": "Multiple sexes",
+        "morphology": "Bilateral (Humaniti, Minor Human Race of Parthinia)",
+        "sensory_organs": ["Standard senses"],
+        "psychology": "Isolated, resilient, fiercely protective of ancestral lands",
+        "evolutionary_track": "Transplanted Terran stock adapted to Parthinia",
+        "history_summary": ("Human Minor Race native to Parthinia in Foreven, "
+                            "introduced in Classic Traveller Alien Realms "
+                            "('The Deep Metal', 1986) and catalogued in "
+                            "GURPS Traveller: Humaniti (p. 38)."),
+    },
+    "Heptamorphs": {
+        "symmetry": "Radial", "limbs": "Many-limbed", "manipulators": "Grasper",
+        "environment": "Floating", "behaviour": "Omnivore",
+        "gender": "Asexual",
+        "morphology": "Radial heptamorphic symmetry (7-fold chitinous-neural nodes)",
+        "sensory_organs": ["7-Band Ultraviolet/Infrared Ocelli",
+                           "Heptagonal Synaptic Telepathic Lattice",
+                           "Magnetoreceptive Resonance"],
+        "psychology": "Collective distributed hivemind consciousness",
+        "evolutionary_track": "Dense exotic atmosphere pressure-reefs of Septima Prime (1628)",
+        "history_summary": ("Custom Referee's Preserve species: a 7-fold radial "
+                            "psionic hivemind native to 1628 in Subsector J."),
+    },
+    "Uplifted Terran Cats": {
+        "symmetry": "Bilateral", "limbs": "Tetrapod", "manipulators": "Hand",
+        "environment": "Amphibian-descended savannah dweller",
+        "behaviour": "Carnivore", "gender": "Multiple sexes",
+        "morphology": "Bilateral digitigrade felid (Felis catus sapiens)",
+        "sensory_organs": ["Tapetum lucidum low-light vision",
+                           "Ultrasonic pinnae hearing",
+                           "Vibrissae tactile array"],
+        "psychology": "Fiercely independent, intensely curious, high-reflex astrogators",
+        "evolutionary_track": "Genetically uplifted on Terra during the Rule of Man (-1851)",
+        "history_summary": ("Custom Referee's Preserve species: uplifted Terran "
+                            "felids who settled Bastet (0131) during the Rule of Man."),
+    },
+    "Periannath": {
+        "symmetry": "Bilateral", "limbs": "Tetrapod", "manipulators": "Hand",
+        "environment": "Subterranean", "behaviour": "Omnivore",
+        "gender": "Multiple sexes",
+        "morphology": "Bilateral diminutive Humaniti (Homo sapiens parvulus)",
+        "sensory_organs": ["Acute hearing", "Quiet-step proprioception",
+                           "Natural psionic null-resonance"],
+        "psychology": "Peaceable, clannish, pastoral, burrow-dwelling",
+        "evolutionary_track": "Transplanted from Pleistocene Terra by the Ancients",
+        "history_summary": ("Custom Referee's Preserve species: halfling-like "
+                            "human minor race of The Shire (2835) and Parthinia (3018)."),
+    },
 }
 
 

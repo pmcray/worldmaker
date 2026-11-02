@@ -616,3 +616,192 @@ def export_system_html(system: StellarSystem) -> str:
     html.append('</div>')
 
     return "".join(html)
+
+
+def create_settlement_waves_dataframe(sector: Sector):
+    """Creates a Pandas DataFrame summarizing the active SCG (pp. 22-27)
+    settlement waves modeled in `sector` and how many systems each wave reached.
+    """
+    import pandas as pd
+
+    waves = getattr(sector, "settlement_waves", []) or []
+    rows = []
+    for w in waves:
+        reached = [
+            h for h, s in sector.systems.items()
+            if any(
+                st.get("wave_name") == (w.name or w.wave_id)
+                for st in (getattr(s, "settlement_strata", []) or [])
+            )
+        ]
+        primary_for = [
+            h for h, s in sector.systems.items()
+            if getattr(s, "settlement_wave", "") == (w.name or w.wave_id)
+        ]
+        rows.append({
+            "Wave ID": w.wave_id or w.name,
+            "Wave Name": w.name,
+            "Epoch": w.epoch_label,
+            "Type (SCG)": w.wave_type,
+            "Entry / Vector": f"{w.entry_edge} ({w.origin_hex})",
+            "Subsectors": ", ".join(w.subsectors) if w.subsectors else "All",
+            "Start Year": w.start_year,
+            "Speed (pc/century)": w.velocity_parsecs_per_century,
+            "Culture Sphere": w.culture_sphere,
+            "Systems Reached": len(reached),
+            "Primary Wave Systems": len(primary_for),
+            "Description": w.description,
+        })
+    return pd.DataFrame(rows)
+
+
+def create_settlement_strata_dataframe(sector: Sector):
+    """Creates a Pandas DataFrame showing the per-system settlement wave
+    history, arrival years, local age in centuries, SCG Population DM, and
+    multi-wave historical strata across `sector`.
+    """
+    import pandas as pd
+
+    rows = []
+    for hex_coord in sorted(sector.systems):
+        s = sector.systems[hex_coord]
+        mw = s.mainworld
+        strata = getattr(s, "settlement_strata", []) or []
+        strata_str = " → ".join(
+            f"{st['wave_name']} (yr {st['arrival_year']}, {st['local_age_centuries']}c, DM {st['population_dm']:+d})"
+            for st in strata
+        ) if strata else "Unsettled (-4 DM)"
+        rows.append({
+            "Hex": hex_coord,
+            "Subsector": f"{s.subsector_code}: {s.subsector_name}" if s.subsector_name else s.subsector_code,
+            "Name": mw.name if mw else s.name,
+            "UWP": str(mw.uwp) if mw else "",
+            "Allegiance": s.allegiance,
+            "Pop DM": s.population_dm,
+            "Primary Wave": s.settlement_wave or "Unsettled",
+            "Epoch": s.settlement_epoch or "Unsettled",
+            "Wave Count": len(strata),
+            "Historical Strata": strata_str,
+        })
+    return pd.DataFrame(rows)
+
+
+def create_analogues_dataframes(sector: Sector) -> Dict[str, Any]:
+    """Returns a dictionary of three Pandas DataFrames for a generated sector:
+      - ``"earth_analogues"``: Top Earth-like worlds (Coupled ESI + age/metallicity)
+      - ``"solar_system_analogues"``: Top Solar System architectural analogues
+      - ``"solar_analogues"``: Top Solar analogue primary stars
+    """
+    import pandas as pd
+    from .sector import evaluate_sector_analogues
+
+    if not getattr(sector, "earth_analogues", None) and sector.systems:
+        evaluate_sector_analogues(sector, top_n=10)
+
+    earth_rows = []
+    for rank, ea in enumerate(getattr(sector, "earth_analogues", []) or [], 1):
+        earth_rows.append({
+            "Rank": rank,
+            "Hex": ea.get("hex_coord", ""),
+            "System": ea.get("system_name", ""),
+            "World": ea.get("world_name", ""),
+            "Designation": ea.get("designation", ""),
+            "Mainworld?": ea.get("is_mainworld", True),
+            "UWP": ea.get("uwp", ""),
+            "Primary Star": ea.get("primary_star", ""),
+            "Orbit (AU)": ea.get("orbit_au", 0.0),
+            "Gravity (G)": ea.get("gravity_g", 0.0),
+            "Temp (K)": ea.get("mean_temperature_k", 0.0),
+            "Age (Gyr)": ea.get("age_gyr", 0.0),
+            "[Fe/H]": ea.get("metallicity_feh", 0.0),
+            "Epoch": ea.get("geological_epoch", ""),
+            "Physical ESI": ea.get("physical_only_score", 0.0),
+            "Coupled ESI Score": ea.get("score", 0.0),
+        })
+
+    ss_rows = []
+    for rank, ssa in enumerate(getattr(sector, "solar_system_analogues", []) or [], 1):
+        ss_rows.append({
+            "Rank": rank,
+            "Hex": ssa.get("hex_coord", ""),
+            "System": ssa.get("name", ""),
+            "Primary Star": ssa.get("primary_star", ""),
+            "Single Star?": ssa.get("is_single_star", False),
+            "Age (Gyr)": ssa.get("age_gyr", 0.0),
+            "[Fe/H]": ssa.get("metallicity_feh", 0.0),
+            "Inner Terrestrials": ssa.get("inner_terrestrial_count", 0),
+            "Inner Gas Giants (Hot Jupiters)": ssa.get("inner_gas_giant_count", 0),
+            "Outer Gas Giants": ssa.get("outer_gas_giant_count", 0),
+            "Planetoid Belts": ssa.get("planetoid_belt_count", 0),
+            "Best HZ Terrestrial": ssa.get("best_hz_world", ""),
+            "Best HZ UWP": ssa.get("best_hz_uwp", ""),
+            "Score (/100)": ssa.get("score", 0.0),
+        })
+
+    sol_rows = []
+    for rank, sa in enumerate(getattr(sector, "solar_analogues", []) or [], 1):
+        sol_rows.append({
+            "Rank": rank,
+            "Hex": sa.get("hex_coord", ""),
+            "System": sa.get("name", ""),
+            "Primary Star": sa.get("spectral_type") or sa.get("primary_star", ""),
+            "All Stars": ", ".join(sa.get("all_stars", [])),
+            "Mass (M☉)": sa.get("mass", 0.0),
+            "Lum (L☉)": sa.get("luminosity", 0.0),
+            "Teff (K)": sa.get("temp_k", 0),
+            "Age (Gyr)": sa.get("age_gyr", 0.0),
+            "[Fe/H]": sa.get("metallicity_feh", 0.0),
+            "Epoch": sa.get("geological_epoch", ""),
+            "Score": sa.get("score", 0.0),
+        })
+
+    return {
+        "earth_analogues": pd.DataFrame(earth_rows),
+        "solar_system_analogues": pd.DataFrame(ss_rows),
+        "solar_analogues": pd.DataFrame(sol_rows),
+    }
+
+
+def describe_sector_analogues(sector: Sector, top_n: int = 5) -> str:
+    """Returns a concise Markdown summary of the top Earth-like worlds,
+    Solar System architectural analogues, and Solar analogue stars in `sector`.
+    """
+    from .sector import evaluate_sector_analogues
+
+    if not getattr(sector, "earth_analogues", None) and sector.systems:
+        evaluate_sector_analogues(sector, top_n=max(10, top_n))
+
+    lines = [f"### Earth-like & Solar System-like Analogues in {sector.name}"]
+    if sector.earth_analogues:
+        top_e = sector.earth_analogues[0]
+        lines.append(
+            f"* **#1 Most Earth-like World**: Hex `{top_e['hex_coord']}` — "
+            f"**{top_e['system_name']}** (`{top_e['designation']}`, UWP `{top_e['uwp']}`, "
+            f"Primary `{top_e['primary_star']}`, {top_e['orbit_au']} AU, "
+            f"{top_e['mean_temperature_k']} K, {top_e['age_gyr']} Gyr, "
+            f"`[Fe/H] = {top_e['metallicity_feh']:+.2f}`, "
+            f"Physical ESI = `{top_e.get('physical_only_score', 0):.2f}`, "
+            f"Coupled ESI Score = `{top_e['score']:.2f}`)"
+        )
+    if sector.solar_system_analogues:
+        top_ss = sector.solar_system_analogues[0]
+        lines.append(
+            f"* **#1 Most Solar System-like Architecture**: Hex `{top_ss['hex_coord']}` — "
+            f"**{top_ss['name']}** (Primary `{top_ss['primary_star']}`, "
+            f"{top_ss['inner_terrestrial_count']} Inner Terrestrials, "
+            f"{top_ss['inner_gas_giant_count']} Inner Gas Giants, "
+            f"{top_ss['outer_gas_giant_count']} Outer Gas Giants, "
+            f"{top_ss['planetoid_belt_count']} Belts, Score = `{top_ss['score']:.2f}`)"
+        )
+    if sector.solar_analogues:
+        top_sol = sector.solar_analogues[0]
+        sp_str = top_sol.get("spectral_type") or top_sol.get("primary_star", "")
+        lines.append(
+            f"* **#1 Closest Solar Analogue Star**: Hex `{top_sol['hex_coord']}` — "
+            f"**{top_sol['name']}** (`{sp_str}`, "
+            f"{top_sol['mass']} $M_\\odot$, {top_sol['luminosity']} $L_\\odot$, "
+            f"{top_sol['temp_k']} K, {top_sol['age_gyr']} Gyr, "
+            f"`[Fe/H] = {top_sol['metallicity_feh']:+.2f}`, Score = `{top_sol['score']:.2f}`)"
+        )
+    return "\n".join(lines)
+

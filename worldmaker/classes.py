@@ -239,9 +239,98 @@ class Polity:
 class Wave:
     name: str = ""
     origin_hex: str = ""
-    age_centuries: int = 0
+    age_centuries: float = 0
     wave_type: str = "" # "thin" or "thick"
     propagation_rate: float = 0.0 # parsecs per century
+    # Extended historical & directional fields (SCG pp. 22-27)
+    wave_id: str = ""
+    start_year: Optional[int] = None
+    end_year: Optional[int] = None
+    entry_edge: Optional[str] = None # None | "coreward" | "rimward" | "spinward" | "trailing"
+    max_radius: Optional[int] = None # Optional cap on propagation distance in parsecs
+    subsectors: Optional[List[str]] = None # Optional subsector corridor filter (e.g. ["A", "B", "C"])
+    culture_sphere: str = ""         # e.g. "Zhodani", "Imperial (Vilani/Solomani)"
+    allegiance_imprint: str = ""     # Optional allegiance hint (e.g. "ZhIN", "CsIm", "Na")
+    epoch_label: str = ""            # e.g. "Epoch II (-4000 to -1000)"
+    description: str = ""            # Historical narrative of this wave
+    distance_decay: bool = False     # When True, local_age = age_centuries - distance / propagation_rate
+    enabled: bool = True
+
+    @property
+    def velocity_parsecs_per_century(self) -> float:
+        return self.propagation_rate
+
+    def distance_to(self, hex_coord: str, width: int = 32, height: int = 40) -> int:
+        """Distance in parsecs from the wave's entry edge or point origin."""
+        col, row = int(hex_coord[:2]), int(hex_coord[2:])
+        if self.entry_edge == "coreward":
+            return max(0, row - 1)
+        if self.entry_edge == "rimward":
+            return max(0, height - row)
+        if self.entry_edge == "spinward":
+            return max(0, col - 1)
+        if self.entry_edge == "trailing":
+            return max(0, width - col)
+        if not self.origin_hex:
+            return 0
+        c2, r2 = int(self.origin_hex[:2]), int(self.origin_hex[2:])
+        x1 = col
+        z1 = row - (col + (col % 2)) // 2
+        y1 = -x1 - z1
+        x2 = c2
+        z2 = r2 - (c2 + (c2 % 2)) // 2
+        y2 = -x2 - z2
+        return max(abs(x1 - x2), abs(y1 - y2), abs(z1 - z2))
+
+    def reaches(self, hex_coord: str, width: int = 32, height: int = 40) -> bool:
+        """Whether this settlement wave has reached `hex_coord`."""
+        if not self.enabled:
+            return False
+        if self.subsectors:
+            col, row = int(hex_coord[:2]), int(hex_coord[2:])
+            sub_idx = ((row - 1) // 10) * 4 + ((col - 1) // 8)
+            sub_letter = chr(ord("A") + sub_idx) if 0 <= sub_idx < 16 else "?"
+            if sub_letter not in self.subsectors:
+                return False
+        dist = self.distance_to(hex_coord, width, height)
+        if self.max_radius is not None and dist > self.max_radius:
+            return False
+        return dist <= (self.propagation_rate * self.age_centuries)
+
+    def local_age_centuries(self, hex_coord: str, width: int = 32, height: int = 40) -> float:
+        """How many centuries ago the wave arrived at `hex_coord`."""
+        if not self.distance_decay or self.propagation_rate <= 0:
+            return float(self.age_centuries)
+        dist = self.distance_to(hex_coord, width, height)
+        return max(0.0, float(self.age_centuries) - (dist / self.propagation_rate))
+
+    def arrival_year(self, hex_coord: str, current_year: int = 1105,
+                     width: int = 32, height: int = 40) -> int:
+        """Estimated Imperial year this wave reached `hex_coord`."""
+        base_start = (self.start_year if self.start_year is not None
+                      else int(round(current_year - self.age_centuries * 100)))
+        if self.distance_decay and self.propagation_rate > 0:
+            dist = self.distance_to(hex_coord, width, height)
+            arr = int(round(base_start + (dist / self.propagation_rate) * 100))
+            if self.end_year is not None:
+                arr = min(arr, self.end_year)
+            return min(arr, current_year)
+        return base_start
+
+    def population_dm_at(self, hex_coord: str, width: int = 32,
+                         height: int = 40) -> Optional[int]:
+        """SCG p.22 population DM at `hex_coord` (thin: -5 + 1/century;
+        thick: -3 + 1/century; capped at 0), or None if the wave has not
+        reached `hex_coord`."""
+        if not self.reaches(hex_coord, width, height):
+            return None
+        age = self.local_age_centuries(hex_coord, width, height)
+        if self.wave_type == "thin":
+            return min(0, int(-5 + int(age)))
+        if self.wave_type == "thick":
+            cap = 1 if self.distance_decay else 0
+            return min(cap, int(-3 + int(age)))
+        return 0
 
 @dataclass
 class PlanetaryBody:
@@ -458,8 +547,10 @@ class StellarSystem:
     has_highport: bool = False
     settlement_epoch: str = ""
     settlement_wave: str = ""
+    settlement_strata: List[Dict[str, Any]] = field(default_factory=list)
     population_dm: int = 0
     historical_notes: List[str] = field(default_factory=list)
+    corporations: List[str] = field(default_factory=list)
     pbg: str = ""
 
     @property
@@ -512,3 +603,5 @@ class Sector:
     solar_analogues: List[Dict[str, Any]] = field(default_factory=list)
     solar_system_analogues: List[Dict[str, Any]] = field(default_factory=list)
     earth_analogues: List[Dict[str, Any]] = field(default_factory=list)
+    corporations: List[Dict[str, Any]] = field(default_factory=list)
+    scenario_config: Optional[Any] = None

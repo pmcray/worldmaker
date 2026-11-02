@@ -45,25 +45,101 @@ def hex_neighbors(col: int, row: int) -> Dict[str, Tuple[int, int]]:
             'NE': (col + 1, row), 'SE': (col + 1, row + 1),
             'NW': (col - 1, row), 'SW': (col - 1, row + 1)}
 
-def calculate_population_dm(hex_coord: str, sector: Sector) -> int:
-    """Calculates the population DM for a given hex based on native sophonts and settlement waves."""
+def evaluate_settlement_waves_at(hex_coord: str, sector: Sector,
+                                 current_year: int = 1105) -> Dict[str, Any]:
+    """Evaluates all active settlement waves at `hex_coord`, returning the
+    net SCG population DM and the chronological list of settlement strata."""
     population_dm = 0
-
-    # Apply DM for native sophonts (+6 for homeworlds)
     if hex_coord in sector.native_sophonts:
         population_dm += 6
 
-    # Apply DM for settlement waves (SCG p.22: thin wave DM-5 +1/century,
-    # thick wave DM-3 +1/century; the penalty decays to zero, never a bonus)
-    for wave in sector.settlement_waves:
-        distance = hex_distance(hex_coord, wave.origin_hex)
-        if distance <= (wave.propagation_rate * wave.age_centuries):
-            if wave.wave_type == "thin":
-                population_dm += min(0, -5 + wave.age_centuries)
-            elif wave.wave_type == "thick":
-                population_dm += min(0, -3 + wave.age_centuries)
+    waves = [w for w in sector.settlement_waves if getattr(w, 'enabled', True)]
+    if not waves:
+        return {
+            "population_dm": population_dm,
+            "wave_dm": 0,
+            "strata": [],
+            "primary_wave": "",
+            "latest_wave": "",
+            "epoch": "",
+        }
 
-    return population_dm
+    has_decay_model = any(getattr(w, 'distance_decay', False) for w in waves)
+    strata: List[Dict[str, Any]] = []
+
+    if has_decay_model:
+        for wave in waves:
+            dm = wave.population_dm_at(hex_coord, sector.width, sector.height)
+            if dm is None:
+                continue
+            arr = wave.arrival_year(hex_coord, current_year, sector.width, sector.height)
+            loc_age = round(wave.local_age_centuries(hex_coord, sector.width, sector.height), 2)
+            strata.append({
+                "wave_id": wave.wave_id or wave.name,
+                "wave_name": wave.name,
+                "arrival_year": arr,
+                "local_age_centuries": loc_age,
+                "wave_dm": dm,
+                "population_dm": dm,
+                "wave_type": wave.wave_type,
+                "culture_sphere": wave.culture_sphere,
+                "allegiance_imprint": wave.allegiance_imprint,
+                "epoch_label": wave.epoch_label,
+                "description": wave.description,
+            })
+        strata.sort(key=lambda s: s["arrival_year"])
+        if strata:
+            # The most mature settlement wave governs the baseline population DM
+            wave_dm = max(s["wave_dm"] for s in strata)
+        else:
+            # Unreached shadow frontier beyond all active waves
+            wave_dm = -3 if hex_coord not in sector.native_sophonts else 0
+        population_dm += wave_dm
+    else:
+        wave_dm = 0
+        for wave in waves:
+            distance = hex_distance(hex_coord, wave.origin_hex)
+            if distance <= (wave.propagation_rate * wave.age_centuries):
+                dm = 0
+                if wave.wave_type == "thin":
+                    dm = min(0, int(-5 + wave.age_centuries))
+                elif wave.wave_type == "thick":
+                    dm = min(0, int(-3 + wave.age_centuries))
+                wave_dm += dm
+                strata.append({
+                    "wave_id": wave.wave_id or wave.name,
+                    "wave_name": wave.name,
+                    "arrival_year": wave.arrival_year(hex_coord, current_year,
+                                                      sector.width, sector.height),
+                    "local_age_centuries": float(wave.age_centuries),
+                    "wave_dm": dm,
+                    "population_dm": dm,
+                    "wave_type": wave.wave_type,
+                    "culture_sphere": wave.culture_sphere,
+                    "allegiance_imprint": wave.allegiance_imprint,
+                    "epoch_label": wave.epoch_label,
+                    "description": wave.description,
+                })
+        population_dm += wave_dm
+
+    primary_wave = strata[0]["wave_name"] if strata else ("Indigenous Sophont" if hex_coord in sector.native_sophonts else "Unreached Frontier")
+    latest_wave = strata[-1]["wave_name"] if strata else primary_wave
+    epoch = strata[0]["epoch_label"] if strata and strata[0]["epoch_label"] else (
+        f"Settled {strata[0]['arrival_year']}" if strata else "Frontier"
+    )
+    return {
+        "population_dm": population_dm,
+        "wave_dm": wave_dm,
+        "strata": strata,
+        "primary_wave": primary_wave,
+        "latest_wave": latest_wave,
+        "epoch": epoch,
+    }
+
+
+def calculate_population_dm(hex_coord: str, sector: Sector) -> int:
+    """Calculates the population DM for a given hex based on native sophonts and settlement waves."""
+    return evaluate_settlement_waves_at(hex_coord, sector)["population_dm"]
 
 def define_settlement_waves(sector: Sector):
     """Defines settlement waves for the sector."""
@@ -243,7 +319,7 @@ def calculate_xboat_routes(sector: Sector, max_jump: int = 4):
             sector.off_sector_routes.append((hubs[0], style))
 
 def _generate_systems(sector: Sector, density_target: int = 4, universe=None,
-                      canon=None):
+                      canon=None, current_year: int = 1105):
     """Rolls system presence per hex (1D >= density_target) and generates
     systems with unique mainworld names.
 
@@ -261,10 +337,16 @@ def _generate_systems(sector: Sector, density_target: int = 4, universe=None,
     if canon is not None:
         used_names.update(w.name.strip() for w in canon.named_worlds())
 
+    has_multi_waves = any(getattr(w, 'distance_decay', False)
+                          for w in sector.settlement_waves
+                          if getattr(w, 'enabled', True))
+
     for col in range(1, sector.width + 1):
         for row in range(1, sector.height + 1):
             hex_coord = f"{col:02d}{row:02d}"
-            population_dm = calculate_population_dm(hex_coord, sector)
+            wave_eval = evaluate_settlement_waves_at(hex_coord, sector,
+                                                     current_year=current_year)
+            population_dm = wave_eval["population_dm"]
 
             target = density_target
             max_tech_level = None
@@ -288,10 +370,69 @@ def _generate_systems(sector: Sector, density_target: int = 4, universe=None,
                 name = generate_world_name(used_names)
                 system = generate_full_system(name, population_dm,
                                               max_tech_level=max_tech_level)
+                system.hex_coord = hex_coord
+                system.population_dm = population_dm
+                system.settlement_strata = wave_eval["strata"]
+                system.settlement_epoch = wave_eval["epoch"]
+                if len(wave_eval["strata"]) > 1:
+                    system.settlement_wave = " -> ".join(
+                        f"{s['wave_name']} ({s['arrival_year']})"
+                        for s in wave_eval["strata"]
+                    )
+                else:
+                    system.settlement_wave = wave_eval["primary_wave"]
+                if has_multi_waves:
+                    if wave_eval["strata"]:
+                        strata_summary = "; ".join(
+                            f"{s['wave_name']} (arr. {s['arrival_year']}, "
+                            f"age {s['local_age_centuries']:.1f}c, DM {s['wave_dm']:+d})"
+                            for s in wave_eval["strata"]
+                        )
+                        system.historical_notes.append(
+                            f"Settlement Strata: {strata_summary}."
+                        )
+                    else:
+                        system.historical_notes.append(
+                            f"Settlement Strata: Unreached Frontier Shadow "
+                            f"(Pop DM {population_dm:+d})."
+                        )
                 mainworld = _mainworld_of(system)
                 if mainworld:
                     mainworld.name = name
                 sector.systems[hex_coord] = system
+
+
+def evaluate_sector_analogues(sector: Sector, top_n: int = 10) -> None:
+    """Evaluates and records the closest Solar analogue stars, Solar System
+    orbital architectural analogues, and age/metallicity-coupled Earth-like
+    worlds across the sector (without mutating world names or UWPs)."""
+    from .analogues import (
+        calculate_stellar_metallicity,
+        find_solar_analogues,
+        find_solar_system_analogues,
+        find_earth_analogues,
+    )
+    for hex_coord, sys in sector.systems.items():
+        if not sys.hex_coord:
+            sys.hex_coord = hex_coord
+        if sys.metallicity_feh == 0.0 and all(s.metallicity_feh == 0.0 for s in sys.stars):
+            calculate_stellar_metallicity(sys)
+
+    sector.solar_analogues = find_solar_analogues(sector, top_n=top_n)
+    if sector.solar_analogues:
+        sector.solar_analogue_hex = sector.solar_analogues[0]["hex_coord"]
+
+    sector.solar_system_analogues = find_solar_system_analogues(sector, top_n=top_n)
+    if sector.solar_system_analogues:
+        sector.solar_system_analogue_hex = sector.solar_system_analogues[0]["hex_coord"]
+
+    sector.earth_analogues = find_earth_analogues(
+        sector, top_n=top_n, include_age_and_metallicity=True,
+        include_secondary_worlds=True
+    )
+    if sector.earth_analogues and not sector.erith_hex:
+        sector.erith_hex = sector.earth_analogues[0]["hex_coord"]
+
 
 def generate_sector(width=8, height=10):
     """Generates a subsector-sized (default 8x10) region of systems."""
@@ -308,51 +449,51 @@ def generate_sector(width=8, height=10):
     generate_bases(sector)
     calculate_routes(sector)
     calculate_xboat_routes(sector)
-
-    from .analogues import (
-        find_solar_analogues,
-        find_solar_system_analogues,
-        find_earth_analogues,
-    )
-    sector.solar_analogues = find_solar_analogues(sector, top_n=10)
-    if sector.solar_analogues:
-        sector.solar_analogue_hex = sector.solar_analogues[0]["hex_coord"]
-    sector.solar_system_analogues = find_solar_system_analogues(sector, top_n=10)
-    if sector.solar_system_analogues:
-        sector.solar_system_analogue_hex = sector.solar_system_analogues[0]["hex_coord"]
-    sector.earth_analogues = find_earth_analogues(sector, top_n=10)
-    if sector.earth_analogues and not sector.erith_hex:
-        sector.erith_hex = sector.earth_analogues[0]["hex_coord"]
+    evaluate_sector_analogues(sector)
 
     return sector
 
+
 def name_subsectors(sector: Sector):
     """Names the sixteen subsectors A-P, conventionally after a notable world
-    in each."""
+    in each, while preserving any subsector names already established by a
+    canonical overlay or scenario."""
+    for hex_coord, sys in sector.systems.items():
+        c, r = hex_to_coords(hex_coord)
+        if not sys.subsector_code:
+            sys.subsector_code = subsector_letter(c, r)
+
     if sector.width != 32 or sector.height != 40:
         return
-    for idx in range(16):
-        letter = chr(ord('A') + idx)
-        scol, srow = (idx % 4) * 8, (idx // 4) * 10
-        best = None
-        best_score = -1
-        for c in range(scol + 1, scol + 9):
-            for r in range(srow + 1, srow + 11):
-                system = sector.systems.get(f"{c:02d}{r:02d}")
-                mw = system.mainworld if system else None
-                if mw is None:
-                    continue
-                score = (Utils.from_eHex(mw.uwp.population) * 2
-                         + Utils.from_eHex(mw.uwp.tech_level))
-                if score > best_score:
-                    best_score = score
-                    best = mw
-        sector.subsector_names[letter] = best.name if best else f"Subsector {letter}"
+    has_preset_names = bool(sector.subsector_names)
+    if not has_preset_names:
+        for idx in range(16):
+            letter = chr(ord('A') + idx)
+            scol, srow = (idx % 4) * 8, (idx // 4) * 10
+            best = None
+            best_score = -1
+            for c in range(scol + 1, scol + 9):
+                for r in range(srow + 1, srow + 11):
+                    system = sector.systems.get(f"{c:02d}{r:02d}")
+                    mw = system.mainworld if system else None
+                    if mw is None:
+                        continue
+                    score = (Utils.from_eHex(mw.uwp.population) * 2
+                             + Utils.from_eHex(mw.uwp.tech_level))
+                    if score > best_score:
+                        best_score = score
+                        best = mw
+            sector.subsector_names[letter] = best.name if best else f"Subsector {letter}"
+
+    for sys in sector.systems.values():
+        if sys.subsector_code:
+            sys.subsector_name = sector.subsector_names.get(sys.subsector_code, "")
 
 
 def generate_full_sector(name="Generated Sector", width=32, height=40,
                          density_target=4, universe=None, canon=None,
-                         canon_mode='pin', canon_expand=None):
+                         canon_mode='pin', canon_expand=None,
+                         settlement_waves: Optional[List[Wave]] = None):
     """Generates a complete sector (default 32x40 hexes) in a single pass so
     polities, sophonts, settlement waves, routes and names are coherent
     across all sixteen subsectors.
@@ -368,9 +509,17 @@ def generate_full_sector(name="Generated Sector", width=32, height=40,
     capital but no extent."""
     sector = Sector(name=name, width=width, height=height)
 
-    define_settlement_waves(sector)
+    if settlement_waves is not None:
+        sector.settlement_waves = [w for w in settlement_waves]
+    elif canon is not None and getattr(canon, 'settlement_waves', None):
+        sector.settlement_waves = [w for w in canon.settlement_waves]
+    else:
+        define_settlement_waves(sector)
+
     if universe is not None:
         place_native_sophonts(sector, *universe.sophont_counts(sector))
+    elif canon is not None and getattr(canon, 'suppress_random_sophonts', False):
+        pass
     else:
         place_native_sophonts(sector)
 
@@ -380,7 +529,11 @@ def generate_full_sector(name="Generated Sector", width=32, height=40,
         from .canon import place_canonical_sophonts
         place_canonical_sophonts(sector, canon)
 
-    _generate_systems(sector, density_target, universe, canon)
+    current_year = (universe.current_year if universe is not None
+                    else getattr(canon, 'current_year', 1105) if canon is not None
+                    else 1105)
+    _generate_systems(sector, density_target, universe, canon,
+                      current_year=current_year)
 
     # Canonical borders are established, not rolled: lay that territory down
     # first so the procedural states fill in around it rather than over it.
@@ -391,7 +544,9 @@ def generate_full_sector(name="Generated Sector", width=32, height=40,
         canonical_polities_list, reserved = establish_canon_polities(
             sector, canon, canon_expand)
 
-    if universe is not None:
+    if canon is not None and getattr(canon, 'suppress_procedural_polities', False):
+        pass
+    elif universe is not None:
         generate_polities(sector, max_polities=universe.polity_count,
                           reserved=reserved)
     else:
@@ -409,6 +564,7 @@ def generate_full_sector(name="Generated Sector", width=32, height=40,
     calculate_routes(sector)
     calculate_xboat_routes(sector)
     name_subsectors(sector)
+    evaluate_sector_analogues(sector)
 
     return sector
 
@@ -890,3 +1046,170 @@ def generate_sector_svg(sector, name=None, full_sector: Optional[Sector] = None)
     return _render_window(sector, name or sector.name, window, R=15.0,
                           title_size=30.0, subsector_grid=(sector.width == 32
                                                            and sector.height == 40))
+
+
+_WAVE_PALETTE = [
+    ("#2563eb", "#dbeafe"),  # Blue: Zhodani Coreward Thick Wave
+    ("#d97706", "#fef3c7"),  # Amber: Imperial Spinward Main Thin Wave
+    ("#7c3aed", "#ede9fe"),  # Purple: Zhodani Post-FFW II Thin Wave
+    ("#059669", "#d1fae5"),  # Emerald: Avalar / Weltbund Rimward Radial Wave
+    ("#db2777", "#fce7f3"),  # Pink: Psionic Suppressions Refugee Wave
+    ("#0891b2", "#cffafe"),  # Cyan: Additional custom wave
+]
+
+
+def generate_settlement_wave_svg(sector: Sector, name: Optional[str] = None) -> str:
+    """Renders a full sector SVG map color-coding star hexes by their active
+    settlement wave strata, Population DM (`+6` native sophont, `+1` thick
+    mature, `+0` thin mature, `-1/-2` frontier, `-4` unsettled), and highlighting
+    the top Earth-like (`erith_hex`) and Solar System-like (`solar_system_analogue_hex`)
+    candidate systems.
+    """
+    title = name or f"{sector.name} — Settlement Waves & Historical Strata"
+    c0, r0, c1, r1 = (1, 1, sector.width, sector.height)
+    n_cols = c1 - c0 + 1
+    n_rows = r1 - r0 + 1
+    R = 15.0
+    title_size = 28.0
+    row_h = _SQRT3 * R
+    scale = R / 32.0
+
+    grid_w = 1.5 * R * n_cols + 0.5 * R
+    grid_h = row_h * n_rows + row_h / 2
+    ox, oy = 55.0, title_size * 3.4
+    legend_h = 110.0
+    svg_w = grid_w + ox * 2
+    svg_h = oy + grid_h + 30 + legend_h + 25
+
+    wave_colors: Dict[str, Tuple[str, str]] = {}
+    for idx, w in enumerate(getattr(sector, "settlement_waves", []) or []):
+        wkey = w.name or w.wave_id or f"Wave {idx+1}"
+        wave_colors[wkey] = _WAVE_PALETTE[idx % len(_WAVE_PALETTE)]
+
+    svg: List[str] = []
+    svg.append(f'<svg xmlns="http://www.w3.org/2000/svg" '
+               f'viewBox="0 0 {svg_w:.0f} {svg_h:.0f}" width="100%" height="100%">')
+    svg.append(_CLASSIC_STYLE)
+    svg.append(f'<rect x="0" y="0" width="{svg_w:.0f}" height="{svg_h:.0f}" class="cm-bg" />')
+
+    svg.append(f'<text x="{ox:.1f}" y="{title_size * 1.5:.1f}" class="cm-title" '
+               f'font-size="{title_size:.1f}">{_escape(title.upper())}</text>')
+    svg.append(f'<text x="{ox:.1f}" y="{title_size * 2.4:.1f}" class="cm-subtitle" '
+               f'font-size="{title_size * 0.38:.1f}">'
+               f'SCG (pp. 22–27) Settlement Wave Propagation, Local Arrival Strata &amp; Population DMs</text>')
+
+    earth_hex = getattr(sector, "erith_hex", "") or ""
+    ss_hex = getattr(sector, "solar_system_analogue_hex", "") or ""
+    sol_hex = getattr(sector, "solar_analogue_hex", "") or ""
+
+    for ci in range(n_cols):
+        for ri in range(n_rows):
+            col, row = c0 + ci, r0 + ri
+            hex_coord = f"{col:02d}{row:02d}"
+            x, y = _hex_center(ci, ri, R, ox, oy)
+            system = sector.systems.get(hex_coord)
+            pts = " ".join(f"{px:.1f},{py:.1f}" for px, py in _hex_vertices(x, y, R))
+
+            fill_color = "none"
+            stroke_color = "#cccccc"
+            stroke_w = "0.55"
+            wave_label = "Unsettled"
+            if system is not None:
+                strata = getattr(system, "settlement_strata", []) or []
+                wname = getattr(system, "settlement_wave", "") or ""
+                if hex_coord in sector.native_sophonts:
+                    fill_color = "#fef08a"
+                    stroke_color = "#ca8a04"
+                    stroke_w = "1.4"
+                    wave_label = f"Sophont ({sector.native_sophonts[hex_coord].name})"
+                elif wname in wave_colors:
+                    stroke_color, fill_color = wave_colors[wname]
+                    stroke_w = "1.2" if len(strata) <= 1 else "1.8"
+                    wave_label = wname
+                else:
+                    fill_color = "#f1f5f9"
+                    stroke_color = "#64748b"
+                    stroke_w = "0.9"
+                    wave_label = wname or "Unsettled Void (-4 DM)"
+
+            tip_lines = [f"Hex {hex_coord}"]
+            if system is not None:
+                mw = _mainworld_of(system)
+                tip_lines.append(f"System: {mw.name if mw else system.name} ({mw.uwp if mw else ''})")
+                tip_lines.append(f"Allegiance: {system.allegiance} | Pop DM: {system.population_dm:+d}")
+                tip_lines.append(f"Primary Wave: {wave_label}")
+                for st in getattr(system, "settlement_strata", []) or []:
+                    tip_lines.append(
+                        f"  • {st['wave_name']}: arrived yr {st['arrival_year']} "
+                        f"(age {st['local_age_centuries']}c, DM {st['population_dm']:+d})"
+                    )
+            svg.append(f'<g class="cm-hex-group"><title>{_escape(chr(10).join(tip_lines))}</title>')
+            svg.append(f'<polygon points="{pts}" fill="{fill_color}" stroke="{stroke_color}" stroke-width="{stroke_w}" />')
+            svg.append(f'<text x="{x:.1f}" y="{y - 0.62*R:.1f}" class="cm-hexnum" '
+                       f'font-size="{0.20*R:.1f}">{hex_coord}</text>')
+            if system is not None:
+                _world_glyphs(svg, system, x, y, R, scale)
+                dm_str = f"{system.population_dm:+d}"
+                svg.append(f'<text x="{x + 0.48*R:.1f}" y="{y + 0.18*R:.1f}" '
+                           f'font-family="Courier New, monospace" font-weight="bold" '
+                           f'font-size="{0.22*R:.1f}" fill="#1e293b" text-anchor="middle">{dm_str}</text>')
+                if hex_coord in (earth_hex, ss_hex, sol_hex):
+                    ring_color = "#16a34a" if hex_coord == earth_hex else ("#0284c7" if hex_coord == ss_hex else "#ea580c")
+                    svg.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{0.84*R:.1f}" '
+                               f'fill="none" stroke="{ring_color}" stroke-width="2.2" />')
+            svg.append('</g>')
+
+    _draw_borders(svg, sector, R, ox, oy, (c0, r0, c1, r1), scale)
+
+    if sector.width == 32 and sector.height == 40:
+        for k in range(1, 4):
+            gx = ox + 1.5 * R * (8 * k) + 0.25 * R
+            svg.append(f'<line x1="{gx:.1f}" y1="{oy:.1f}" x2="{gx:.1f}" '
+                       f'y2="{oy + grid_h:.1f}" class="cm-subgrid" opacity="0.55" />')
+            gy = oy + row_h * 10 * k + row_h / 4
+            svg.append(f'<line x1="{ox:.1f}" y1="{gy:.1f}" x2="{ox + grid_w:.1f}" '
+                       f'y2="{gy:.1f}" class="cm-subgrid" opacity="0.55" />')
+        names = getattr(sector, 'subsector_names', None) or {}
+        for idx in range(16):
+            sc, sr = idx % 4, idx // 4
+            letter = chr(ord("A") + idx)
+            lx = ox + 1.5 * R * (8 * sc) + 0.75 * R
+            ly = oy + row_h * 10 * sr + row_h * 0.9
+            svg.append(f'<text x="{lx:.1f}" y="{ly:.1f}" class="cm-sslabel" '
+                       f'font-size="{row_h * 0.85:.1f}">{letter}</text>')
+            label = names.get(letter)
+            if label:
+                svg.append(f'<text x="{lx + row_h * 0.75:.1f}" y="{ly:.1f}" '
+                           f'class="cm-ssname" font-size="{row_h * 0.34:.1f}">'
+                           f'{_escape(label.upper())}</text>')
+
+    svg.append(f'<rect x="{ox:.1f}" y="{oy:.1f}" width="{grid_w:.1f}" '
+               f'height="{grid_h:.1f}" class="cm-frame" />')
+
+    # Wave Legend Box
+    ly0 = oy + grid_h + 22
+    svg.append(f'<rect x="{ox:.1f}" y="{ly0:.1f}" width="{grid_w:.1f}" '
+               f'height="{legend_h:.1f}" class="cm-legend-box" />')
+    legend_entries: List[Tuple[str, str, str]] = []
+    for wname, (stroke_c, fill_c) in wave_colors.items():
+        legend_entries.append((fill_c, stroke_c, wname))
+    legend_entries.append(("#fef08a", "#ca8a04", "Sophont Homeworld / Transplant (+6 DM)"))
+    legend_entries.append(("#f1f5f9", "#64748b", "Unsettled Void (-4 DM)"))
+    if earth_hex:
+        legend_entries.append(("none", "#16a34a", f"#1 Earth-like World (Hex {earth_hex})"))
+    if ss_hex:
+        legend_entries.append(("none", "#0284c7", f"#1 Solar System Analogue (Hex {ss_hex})"))
+
+    cols = 3
+    cell_w = grid_w / cols
+    for i, (fc, sc, lbl) in enumerate(legend_entries):
+        cx = ox + (i % cols) * cell_w + 18
+        cy = ly0 + 22 + (i // cols) * 26
+        svg.append(f'<rect x="{cx - 8:.1f}" y="{cy - 8:.1f}" width="16" height="16" '
+                   f'fill="{fc}" stroke="{sc}" stroke-width="2" />')
+        svg.append(f'<text x="{cx + 14:.1f}" y="{cy + 4:.1f}" class="cm-legend-text" '
+                   f'font-size="11">{_escape(lbl)}</text>')
+
+    svg.append('</svg>')
+    return "\n".join(svg)
+

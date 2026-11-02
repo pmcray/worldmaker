@@ -46,34 +46,98 @@ function calls, which every cell shows.
 
 # ---------------------------------------------------------------- setup
 md("""
-## 1. Settings
+## 1. Settings & Foreven 1105 Scenario Toggles
 
-Change these and re-run from here. The seed makes a sector reproducible:
-the same seed always gives the same sector.
+Out of the box, this notebook defaults to the **absolute minimum: Strict 1105 Canon**
+for the **Foreven Sector** (*Iakr* in Zhodani), based on the Far Future Enterprises
+(2008) *Foreven Sector Reserve* and Classic Traveller primary sources:
+- **358 canonical star positions** and the **142-hex Zhodani Consulate border** (`ZhIN`, *Preqlianz of Iadr Nsobl*).
+- **Only the 4 canonical FFE subsector names**: `D: Massina`, `H: Fessor`, `L: Reidain`, `P: Urnian`.
+- **The 3 canonical statted worlds**: `Zdovesil (1212)`, `Alenzar (3229)` (plus secondary planet *Chamax* with STL subterrene ruins and Chamax bugs from *Double Adventure 5*), and `Raschev (3230)`.
+- **The 3 Classic Traveller named unstatted systems**: `Tlebria (1618)` (*Book 7: Merchant Prince*), `Purfyr (2211)` (*JTAS #16*), and `Cocta (2415)` (*JTAS #2* citation).
+- **Canonical Minor Races & Aliens**: Two *Alien Module 5* Droyne worlds (`0513` in Pieplow, `3003` in Massina) and `Parthinia (3018)` (*Alien Realms* "The Deep Metal", homeworld of the *Issugur* minor human race).
+- **Canonical Corporations**: `Iadria Vlovl` (1618 Tlebria), `Priantqlovr Drafr` (1212 Zdovesil), and `InStarSpec` (3229 Alenzar).
+
+Every deuterocanonical (*Imperial Lines #1*, *Die Weltbund*, *Mnemosyne Principality*),
+*Sector Construction Guide* (SCG 2022), third-party (*Zhodani Base / Reidain*, *JBE Foreven Worlds*),
+and custom *Referee's Preserve* faction (`Heptamorphs`, `Uplifted Terran Cats`, `Halfling Shires`, `Christen Erith`)
+is **off by default** and individually toggleable below.
+
+Regardless of which scenario toggles are active, **every run always identifies and ranks**:
+1. **The most Earth-like worlds** (Coupled Earth Similarity Index + stellar age/metallicity).
+2. **The most Solar System-like planetary architectures** (inner rocky planets, no hot Jupiters, outer gas giants, belts).
+3. **The closest Solar analogue stars** (G2V benchmark).
 """)
 
 code("""
-SEED          = 1105          # any integer; change for a different sector
-SECTOR_NAME   = "Foreven Reach"
-WIDTH, HEIGHT = 32, 40        # a full sector; try 8, 10 for one subsector
+SEED               = 1105          # any integer; change for a different sector
+USE_FOREVEN_1105   = True          # True: modular Foreven 1105 generator; False: generic sector
+CANON_MODE         = "pin"         # "pin" | "seed" | "positions"
 
-# Canon: None, or a sector name published on travellermap.com such as
-# "Foreven". Canonical star positions, borders and named worlds are then
-# honoured and everything else generated around them.
-CANON_SECTOR  = None
-CANON_MODE    = "pin"         # "pin" | "seed" | "positions"
+# Quick Preset: None (use individual toggles below), or one of:
+#   "strict_1105"             (Default: FFE 2008 Reserve + Classic Traveller only)
+#   "deuterocanon_1105"       (Strict 1105 + Imperial Lines #1 + 1105 Die Weltbund + Mnemosyne)
+#   "scg_worked_1105"         (Strict 1105 + full Mongoose 2022 Sector Construction Guide example)
+#   "community_synthesis_1105"(Deuterocanon 1105 + Zhodani Base Reidain/Kamrathi + JBE Cornathia)
+#   "referee_preserve_1107"   (Full SCG + Heptamorphs, Uplifted Cats, Halfling Shires & Erith in 1107)
+FOREVEN_PRESET     = None
 
-# For Foreven only. "reserve" adds the seven worlds the reserve
-# documentation establishes; "full" adds the whole sector the Sector
-# Construction Guide works up around them - the Avalar Consulate, the Tlesho
-# Union, the sophont homeworlds and Ancients sites, the barren zone of
-# subsector J and the Zhodani route waypoints. None uses the survey alone.
-SCG_TIER      = "reserve"     # None | "reserve" | "full"
+# --- Era & Base Survey Grid ---
+CURRENT_YEAR               = 1105
+CANONICAL_POSITIONS_358    = True
+ZHODANI_CONSULATE_BORDER   = True
+# Subsector naming: "ffe_4" (Strict 1105: only D, H, L, P), "imperial_lines_16", "zhodani_base_16", "custom_16"
+SUBSECTOR_NAMING_MODE      = "ffe_4"
 
-# Optional: a universe preset shapes density, technology and sophonts.
-# One of None, "charted_space", "frontier", "pocket_empires",
-# "fallen_empire", "deep_rift".
-UNIVERSE_PRESET = None
+# --- Tier 1: Strict 1105 Canon (ON by default) ---
+STRICT_1105_WORLDS         = True   # Zdovesil (1212), Alenzar (3229) + Chamax, Raschev (3230)
+CLASSIC_NAMED_SYSTEMS      = True   # Tlebria (1618), Purfyr (2211), Cocta (2415 citation)
+INCLUDE_COCTA_2415         = False  # If True, places a 359th star at 2415 for Cocta
+AM5_DROYNE_WORLDS          = True   # Alien Module 5 Droyne at 0513 & 3003
+PARTHINIA_ISSUGUR          = True   # Alien Realms (1986) Parthinia (3018) Issugur minor human race
+CANONICAL_CORPORATIONS     = True   # Iadria Vlovl, Priantqlovr Drafr, InStarSpec
+
+# --- Tier 2: Deuterocanonical Layers (OFF by default) ---
+IMPERIAL_LINES_ANCHORS     = False  # Hollis (2523), Avalar (1636), Gatina, Sturray, Ranther
+HOLLIS_BABYLON5_MODE       = False  # Downgrades Hollis (2523) to Scout-only diplomatic station
+# Rimward polity mode: "none" (Strict 1105), "weltbund_1105" (Rancke/JBE neutral Confederation),
+#                      "avalar_il1" (procedural Avalar), "avalar_scg_27" (all 27 SCG Avalar worlds)
+RIMWARD_POLITY_MODE        = "none"
+MNEMOSYNE_PRINCIPALITY     = False  # Multi-system pocket empire ('Mn') in Subsectors M/N
+
+# --- Tier 3: Sector Construction Guide (SCG 2022) Layers (OFF by default) ---
+SCG_TLESHO_UNION           = False  # 4-system Tlinzha octopod polity (0720, 0819, 0820, 0919)
+SCG_NATIVE_SOPHONTS        = False  # 7 SCG native sophont homeworlds (p.24)
+SCG_ANCIENTS_RUINS         = False  # 4 SCG Ancients ruins sites (1726, 2615, 2740, 3006)
+SCG_SCATTERED_SETTLEMENTS  = False  # 10 SCG scattered settlements (pp.25-26)
+SCG_BARREN_ANOMALY         = False  # 14 SCG barren systems in Subsector J & C (p.8 Decision #5)
+SCG_STRATEGIC_BASES        = False  # Zhodani route waypoints, Imperial Droyne Cage, TL ceilings
+
+# --- Tier 4: Third-Party & Community Layers (OFF by default) ---
+ZHODANI_BASE_REIDAIN       = False  # BeRKA/Dylan Lee/GypsyComet Reidain (2925) + Kamrathi League
+JBE_FOREVEN_WORLDS         = False  # JBE Cornathian Empire in Fessor + Warpride (2136)
+MONGOOSE_1E_REIDAIN_SALIENT= False  # 2008 Mongoose 1e Zhodani salient into Reidain
+
+# --- Tier 5: Settlement Wave Modeling (SCG pp. 22-27) ---
+ENABLE_SETTLEMENT_WAVES    = True
+WAVE_ZHODANI_THICK         = True   # Coreward Zhodani thick wave (-5000 to -1000, Subsectors A/B/C/E/F)
+WAVE_IMPERIAL_THIN         = True   # Trailing Imperial thin wave (50 to 589, Subsectors D/H/L/P)
+WAVE_ZHODANI_THIN          = True   # Post-FFW II Zhodani thin wave (600 to 700, Subsectors D/E/F/G)
+WAVE_RIMWARD_HUB           = False  # Radial wave from Avalar 1636 (auto-enabled if Avalar/Weltbund active)
+WAVE_PSIONIC_REFUGEES      = False  # Post-800 Psionic Suppressions wave into Rimward/Frontier
+
+# --- Tier 6: Procedural & Custom Referee's Preserve Toggles (OFF by default) ---
+ALLOW_RANDOM_SOPHONTS      = False
+ALLOW_PROCEDURAL_POLITIES  = False
+CUSTOM_HEPTAMORPHS         = False  # Heptarchy of Septima ('He') around 1628
+CUSTOM_UPLIFTED_CATS       = False  # Chatelaine of Bastet ('Fe') around 0131
+CUSTOM_HALFLING_SHIRES     = False  # Periannath Shires ('Hl') around 2835 & 3018
+CHRISTEN_ERITH             = False  # Rename the #1 Earth analogue to 'Erith'
+
+# Generic non-Foreven fallback settings (used only when USE_FOREVEN_1105 = False)
+SECTOR_NAME      = "Foreven"
+WIDTH, HEIGHT    = 32, 40
+UNIVERSE_PRESET  = None
 """)
 
 code("""
@@ -96,42 +160,141 @@ print("worldmaker ready")
 md("""
 ## 2. Generate the sector
 
-A full 32x40 sector is around 600 systems and takes a few seconds. Each
-system is generated in full — stars, orbits, every world's physical and
-social characteristics, secondary populations, and the nations of any
-balkanised world.
+Builds the `ForevenScenario` from your toggles (or preset), constructs the
+canonical overlay and settlement waves, and generates all 358 systems (plus
+their secondary worlds, moons, trade routes, historical settlement strata,
+and Earth/Solar System analogue rankings).
 """)
 
 code("""
-random.seed(SEED)
-
-canon = None
-if CANON_SECTOR:
-    canon = wm.fetch_canonical_sector(CANON_SECTOR)
-    if CANON_SECTOR.lower().startswith("foreven") and SCG_TIER:
-        tier = (wm.scg_foreven_full() if SCG_TIER == "full"
-                else wm.scg_foreven())
-        canon = wm.merge_canon(canon, tier, name=CANON_SECTOR)
-    print(canon.summary())
+if USE_FOREVEN_1105:
+    if FOREVEN_PRESET:
+        scenario = wm.ForevenScenario.from_preset(FOREVEN_PRESET)
+    else:
+        scenario = wm.ForevenScenario(
+            current_year=CURRENT_YEAR,
+            canonical_positions_358=CANONICAL_POSITIONS_358,
+            zhodani_consulate_border=ZHODANI_CONSULATE_BORDER,
+            subsector_naming_mode=SUBSECTOR_NAMING_MODE,
+            strict_1105_worlds=STRICT_1105_WORLDS,
+            classic_named_systems=CLASSIC_NAMED_SYSTEMS,
+            include_cocta_2415=INCLUDE_COCTA_2415,
+            am5_droyne_worlds=AM5_DROYNE_WORLDS,
+            parthinia_issugur=PARTHINIA_ISSUGUR,
+            canonical_corporations=CANONICAL_CORPORATIONS,
+            imperial_lines_anchors=IMPERIAL_LINES_ANCHORS,
+            hollis_babylon5_mode=HOLLIS_BABYLON5_MODE,
+            rimward_polity_mode=RIMWARD_POLITY_MODE,
+            mnemosyne_principality=MNEMOSYNE_PRINCIPALITY,
+            scg_tlesho_union=SCG_TLESHO_UNION,
+            scg_native_sophonts=SCG_NATIVE_SOPHONTS,
+            scg_ancients_ruins=SCG_ANCIENTS_RUINS,
+            scg_scattered_settlements=SCG_SCATTERED_SETTLEMENTS,
+            scg_barren_anomaly=SCG_BARREN_ANOMALY,
+            scg_strategic_bases=SCG_STRATEGIC_BASES,
+            zhodani_base_reidain=ZHODANI_BASE_REIDAIN,
+            jbe_foreven_worlds=JBE_FOREVEN_WORLDS,
+            mongoose_1e_reidain_salient=MONGOOSE_1E_REIDAIN_SALIENT,
+            enable_settlement_waves=ENABLE_SETTLEMENT_WAVES,
+            wave_zhodani_thick=WAVE_ZHODANI_THICK,
+            wave_imperial_thin=WAVE_IMPERIAL_THIN,
+            wave_zhodani_thin=WAVE_ZHODANI_THIN,
+            wave_rimward_hub=WAVE_RIMWARD_HUB,
+            wave_psionic_refugees=WAVE_PSIONIC_REFUGEES,
+            allow_random_native_sophonts=ALLOW_RANDOM_SOPHONTS,
+            allow_procedural_polities=ALLOW_PROCEDURAL_POLITIES,
+            custom_heptamorphs=CUSTOM_HEPTAMORPHS,
+            custom_uplifted_cats=CUSTOM_UPLIFTED_CATS,
+            custom_halfling_shires=CUSTOM_HALFLING_SHIRES,
+            christen_erith=CHRISTEN_ERITH,
+        )
+    sector = wm.generate_foreven_1105(seed=SEED, scenario=scenario, canon_mode=CANON_MODE)
+    SECTOR_NAME = sector.name
+    print("Active Foreven Scenario Layers:")
+    for layer in scenario.active_layers():
+        print(f"  • {layer}")
     print()
-
-universe = (wm.create_universe(SECTOR_NAME, preset=UNIVERSE_PRESET)
-            if UNIVERSE_PRESET else None)
-
-sector = wm.generate_full_sector(
-    SECTOR_NAME, width=WIDTH, height=HEIGHT,
-    universe=universe, canon=canon, canon_mode=CANON_MODE)
+else:
+    random.seed(SEED)
+    universe = (wm.create_universe(SECTOR_NAME, preset=UNIVERSE_PRESET)
+                if UNIVERSE_PRESET else None)
+    sector = wm.generate_full_sector(
+        SECTOR_NAME, width=WIDTH, height=HEIGHT,
+        universe=universe, canon_mode=CANON_MODE)
 
 inhabited = sum(1 for s in sector.systems.values()
                 for b in s.all_bodies
                 if getattr(b, 'is_secondary_world', False))
 
 print(f"{len(sector.systems)} systems, {len(sector.polities)} polities, "
-      f"{len(sector.native_sophonts)} sophont homeworlds")
+      f"{len(sector.native_sophonts)} sophont worlds, "
+      f"{len(sector.settlement_waves)} settlement waves")
 print(f"{inhabited} inhabited secondary worlds beyond the mainworlds")
 for p in sector.polities:
     print(f"  {p.allegiance_code:6s} {p.name:32s} "
           f"{len(p.controlled_systems):4d} worlds")
+if sector.corporations:
+    print("\\nCanonical Corporations:")
+    for c in sector.corporations:
+        print(f"  • {c['name']} (HQ: {c['hq_hex']} {c['hq_world']}, {c['allegiance']}) — {c['role']}")
+print()
+display(Markdown(wm.describe_sector_analogues(sector)))
+""")
+
+# ------------------------------------------------- settlement waves section
+md("""
+## 2b. Settlement Waves & Sector History (SCG pp. 22–27)
+
+In the *Sector Construction Guide* (pp. 22–27), a sector's demographic density and
+historical depth are shaped by **Settlement Waves** (*thick* vs. *thin* waves) propagating
+from sector edges or local hubs at a characteristic speed (parsecs per century):
+- **Indigenous / Transplanted Sophont Worlds** (`sector.native_sophonts`): Carry a **+6 DM** to Population (SCG p. 22).
+- **Thick Settlement Waves** (e.g. the *Zhodani Coreward Heartland Wave* from Ziafrplians, or the *Avalar/Weltbund Radial Wave*): Start at **-3 DM** on the newly settled frontier and gain **+1 DM per century** of local age, maturing at **+1 DM**.
+- **Thin Settlement Waves** (e.g. the *Imperial Spinward Main Thin Wave* across Massina, Fessor, Reidain, and Urnian, or the *Zhodani Post-FFW II Thin Wave*): Start at **-5 DM** and gain **+1 DM per century**, maturing at **+0 DM**.
+- **Unreached Shadow Zones** (e.g. Spinward Subsectors I, J, M when rimward/custom waves are off): Carry an unsettled frontier penalty (**-3 DM**).
+- **Historical Stratigraphy**: When multiple waves cross the same hex at different epochs (for example, Subsector D *Massina*, settled by the pre-war Imperial Thin Wave and conquered by the Zhodani in the First Frontier War), both waves are recorded in `system.settlement_strata`.
+""")
+
+code("""
+waves_df = wm.create_settlement_waves_dataframe(sector)
+display(Markdown("### Active Settlement Waves"))
+display(waves_df)
+
+strata_df = wm.create_settlement_strata_dataframe(sector)
+display(Markdown("### Multi-Wave Historical Stratigraphy (Systems Reached by 2+ Waves)"))
+multi_wave_df = strata_df[strata_df["Wave Count"] >= 2]
+print(f"{len(multi_wave_df)} systems have multi-epoch settlement strata; "
+      f"{len(strata_df[strata_df['Wave Count'] == 0])} systems lie in unreached shadow space.")
+display(multi_wave_df.head(15))
+""")
+
+code("""
+# Color-coded Settlement Wave & Population DM Map
+display(SVG(wm.generate_settlement_wave_svg(sector)))
+""")
+
+# ------------------------------------------------ analogues section
+md("""
+## 2c. Most Earth-like Worlds, Solar System Analogues & Solar Analogue Stars
+
+Every run automatically evaluates all generated star systems and planetary bodies
+against three astrobiological and architectural benchmarks:
+1. **Age & Metallicity-Coupled Earth Similarity Index (`sector.earth_analogues`)**: Combines physical ESI (radius, density, escape velocity, surface temperature, pressure, hydrographics, breathable atmosphere) with host star spectral class, orbital placement, stellar metallicity `[Fe/H]`, and geological age (`3.5–5.5 Gyr` sweet spot).
+2. **Solar System Architectural Analogues (`sector.solar_system_analogues`)**: Scores systems for a single Solar-like primary (`G0V–G5V` or `F8V–K2V`), inner rocky terrestrials inside the snow line, **zero** inner gas giants (no Hot Jupiters disrupting terrestrial orbits), outer gas giants beyond the snow line, and planetoid belts.
+3. **Solar Analogue Stars (`sector.solar_analogues`)**: Ranks primary stars against Sol (`G2 V`, $1.00\\,M_\\odot$, $1.00\\,L_\\odot$, $5778\\,\\text{K}$, $4.6\\,\\text{Gyr}$, `[Fe/H] = 0.00`).
+""")
+
+code("""
+analogues = wm.create_analogues_dataframes(sector)
+
+display(Markdown(f"### Top 10 Most Earth-like Worlds (Top Match: Hex `{sector.erith_hex}`)"))
+display(analogues["earth_analogues"])
+
+display(Markdown(f"### Top 10 Solar System Architectural Analogues (Top Match: Hex `{sector.solar_system_analogue_hex}`)"))
+display(analogues["solar_system_analogues"])
+
+display(Markdown(f"### Top 10 Solar Analogue Primary Stars (Top Match: Hex `{sector.solar_analogue_hex}`)"))
+display(analogues["solar_analogues"])
 """)
 
 # ------------------------------------------------------------- the maps
@@ -239,6 +402,20 @@ def show_system(hex_coord):
     out.append(f"**System age** {system.age_gyr} Gyr &nbsp; "
                f"**Gas giants** {system.gas_giant_count} &nbsp; "
                f"**Belts** {system.planetoid_belt_count}")
+    if getattr(system, "settlement_strata", None):
+        out.append("")
+        out.append(f"## Settlement Wave Stratigraphy (Pop DM `{system.population_dm:+d}`)")
+        for st in system.settlement_strata:
+            out.append(
+                f"- **{st['wave_name']}** ({st['epoch_label']}): arrived yr `{st['arrival_year']}`, "
+                f"local age `{st['local_age_centuries']}c`, wave DM `{st['wave_dm']:+d}` — "
+                f"*{st['culture_sphere']}*"
+            )
+    if getattr(system, "corporations", None):
+        out.append(f"- **Canonical Corporations**: {', '.join(system.corporations)}")
+    if getattr(system, "historical_notes", None):
+        for hnote in system.historical_notes:
+            out.append(f"- **Historical Note**: {hnote}")
     out.append("")
 
     out.append("## Stars")
@@ -371,34 +548,38 @@ pd.DataFrame(rows)
 """)
 
 md("""
-### Making one of them Erith
+### Inspecting the Top Earth-like Candidate (or Christening Erith)
 
-An exact Erith is rare by chance, because generation ties Tech Level to
-starport and population. `make_erith` takes the closest candidate, makes it
-match exactly, rebuilds its nations, gives them a culture palette and
-records the family holding the freehold.
-
-On a balkanised world the freehold does not abolish the states: title and
-ground disagree, which is the point.
+By default (`CHRISTEN_ERITH = False` in Strict 1105 mode), the top candidate is
+inspected **without mutating** its generated UWP or renaming it. Set
+`CHRISTEN_ERITH = True` in Section 1 to call `wm.make_erith(sector)`, which
+imposes the exact Erith profile, rebuilds its balkanised nations, and records
+the freehold proprietor.
 """)
 
 code("""
-erith = wm.make_erith(sector, culture_family="terrestrial")
+if CHRISTEN_ERITH:
+    erith = wm.make_erith(sector, culture_family="terrestrial")
+else:
+    erith = candidates[0] if candidates else None
 
 if erith is None:
     print("No world in this sector passes the Erith filters. "
           "Try another seed.")
 else:
     w = erith.body
-    print(f"Erith is at {erith.hex}: {w.uwp}  ({erith.score}% match)")
+    mode_lbl = "Christened Erith" if CHRISTEN_ERITH else "Top Earth-like Candidate (Unmutated)"
+    print(f"{mode_lbl} at {erith.hex} ({w.name}): {w.uwp}  ({erith.score}% match)")
     print(f"  star        {erith.star.spectral_type}, "
           f"habitable zone at Orbit# {erith.star.hzco:.2f}")
     print(f"  temperature {w.mean_temperature} K, "
           f"habitability {w.habitability_rating}")
     print(f"  a moon      {getattr(w, 'parent_body', None) is not None}")
-    print(f"  proprietor  {w.proprietor['owner']}")
+    if getattr(w, 'proprietor', None):
+        print(f"  proprietor  {w.proprietor['owner']}")
     print()
-    print(wm.describe_nations(w))
+    if getattr(w, 'nations', None):
+        print(wm.describe_nations(w))
 """)
 
 code("""
